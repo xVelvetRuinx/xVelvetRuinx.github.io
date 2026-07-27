@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
 
@@ -10,16 +11,17 @@
 
   <meta
     name="description"
-    content="A collection of chatbot creation guides and resources."
+    content="Rhey’s personal archive of chatbot creation guides, character resources, and storytelling systems."
   >
 
-  <title>Your Bot Library</title>
+  <title>Rhey’s Character Reliquary</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Pacifico&family=Rye&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Italianno&display=swap"
     rel="stylesheet"
   >
 
@@ -30,120 +32,303 @@
 
   <main class="site-shell">
 
+    <!-- Decorative background -->
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
     <!-- Header -->
     <header class="hero">
 
-      <div class="brand-row">
+      <div class="creator-line">
+
         <img
           class="profile-avatar"
-          src="images/avatar.png"
-          alt="Creator avatar"
+          src="images/RHEYCROP.PNG"
+          alt="Rhey creator avatar"
         >
 
-        <div>
-          <p class="eyebrow">THE BOT CREATOR’S COLLECTION</p>
-          <h1>Your Library</h1>
+        <div class="creator-copy">
+          <p class="eyebrow">THE CHARACTER RELIQUARY</p>
+          <p class="creator-name">Curated by Rhey</p>
         </div>
+
       </div>
 
-      <div class="tagline">
-        <span aria-hidden="true">♥</span>
-        <p>Spicy Little Chatbots</p>
-        <span aria-hidden="true">♥</span>
+      <div class="hero-grid">
+
+        <div class="hero-copy">
+
+          <p class="archive-label">
+            PRIVATE ARCHIVE · VOLUME I
+          </p>
+
+          <h1>
+            Stories Made
+            <span>to Linger</span>
+          </h1>
+
+          <p class="hero-description">
+            A collection of character-building guides, narrative systems,
+            world-building tools, and carefully crafted methods for creating
+            bots that feel vivid, consistent, and impossible to forget.
+          </p>
+
+          <div class="hero-actions">
+
+            <a class="primary-button" href="#guides">
+              Enter the Archive
+            </a>
+
+            <span class="collection-count">
+              05 curated entries
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="portrait-frame">
+
+          <div class="portrait-ornament ornament-top">✦</div>
+
+          <img
+            class="hero-character"
+            src="images/83D5FCB7-C76B-4DD7-89AF-1FA17A49C28B.png"
+            alt="Rhey’s illustrated archive mascot"
+          >
+
+          <div class="portrait-caption">
+            <span>✦</span>
+            Keeper of the Archive
+            <span>✦</span>
+          </div>
+
+        </div>
+
       </div>
 
-      <img
-        class="hero-character"
-        src="images/mascot.png"
-        alt="Illustrated chatbot guide mascot"
-      >
-
-      <div class="guide-prompt">
-        <span class="dash">———</span>
-        <span>grab a guide, cutie</span>
-        <span class="arrow">↓</span>
-        <span class="dash">———</span>
+      <div class="ornate-divider">
+        <span></span>
+        <b>❦</b>
+        <span></span>
       </div>
 
     </header>
 
-    <!-- Guide Navigation -->
-    <section class="guide-list" aria-label="Available guides">
+    <!-- Guide introduction -->
+    <section class="section-heading" id="guides">
 
-      <a class="guide-card" href="guides/beginners-guide.html">
-        <span class="guide-number">1</span>
+      <p class="section-kicker">
+        SELECT AN ENTRY
+      </p>
+
+      <h2>The Creator’s Index</h2>
+
+      <p>
+        Open a chapter to explore a different layer of character creation.
+      </p>
+
+    </section>
+
+    <!-- Guide navigation -->
+    <section
+      class="guide-list"
+      aria-label="Available character creation guides"
+    >
+
+      <a
+        class="guide-card"
+        href="guides/beginners-guide.html"
+      >
+
+        <span class="guide-number">I</span>
 
         <span class="guide-copy">
+
+          <span class="guide-category">
+            FOUNDATION
+          </span>
+
           <strong>Beginner’s Guide</strong>
-          <small>start here — build your first bot ♥</small>
+
+          <small>
+            Build your first character from concept to opening message.
+          </small>
+
         </span>
 
-        <span class="guide-arrow" aria-hidden="true">›</span>
-      </a>
-
-      <a class="guide-card" href="guides/tracker.html">
-        <span class="guide-number">2</span>
-
-        <span class="guide-copy">
-          <strong>Tracker &amp; Anti-Drift</strong>
-          <small>keep your bot on track mid-chat</small>
+        <span
+          class="guide-arrow"
+          aria-hidden="true"
+        >
+          ↗
         </span>
 
-        <span class="guide-arrow" aria-hidden="true">›</span>
       </a>
 
-      <a class="guide-card" href="guides/world-books.html">
-        <span class="guide-number">3</span>
+      <a
+        class="guide-card"
+        href="guides/tracker.html"
+      >
+
+        <span class="guide-number">II</span>
 
         <span class="guide-copy">
-          <strong>World Books &amp; JSON Files</strong>
-          <small>give your bot a memory that sticks</small>
+
+          <span class="guide-category">
+            CONSISTENCY
+          </span>
+
+          <strong>Trackers &amp; Anti-Drift</strong>
+
+          <small>
+            Preserve development, memory, pacing, and emotional continuity.
+          </small>
+
         </span>
 
-        <span class="guide-arrow" aria-hidden="true">›</span>
-      </a>
-
-      <a class="guide-card" href="guides/ooc-steering.html">
-        <span class="guide-number">4</span>
-
-        <span class="guide-copy">
-          <strong>Using OOC to Steer a Bot</strong>
-          <small>redirect behavior without restarting</small>
+        <span
+          class="guide-arrow"
+          aria-hidden="true"
+        >
+          ↗
         </span>
 
-        <span class="guide-arrow" aria-hidden="true">›</span>
       </a>
 
-      <a class="guide-card" href="guides/personality.html">
-        <span class="guide-number">5</span>
+      <a
+        class="guide-card"
+        href="guides/world-books.html"
+      >
+
+        <span class="guide-number">III</span>
 
         <span class="guide-copy">
+
+          <span class="guide-category">
+            WORLD-BUILDING
+          </span>
+
+          <strong>World Books &amp; JSON</strong>
+
+          <small>
+            Give your characters a world that remembers what matters.
+          </small>
+
+        </span>
+
+        <span
+          class="guide-arrow"
+          aria-hidden="true"
+        >
+          ↗
+        </span>
+
+      </a>
+
+      <a
+        class="guide-card"
+        href="guides/ooc-steering.html"
+      >
+
+        <span class="guide-number">IV</span>
+
+        <span class="guide-copy">
+
+          <span class="guide-category">
+            DIRECTION
+          </span>
+
+          <strong>OOC Steering</strong>
+
+          <small>
+            Redirect behavior while protecting immersion and momentum.
+          </small>
+
+        </span>
+
+        <span
+          class="guide-arrow"
+          aria-hidden="true"
+        >
+          ↗
+        </span>
+
+      </a>
+
+      <a
+        class="guide-card"
+        href="guides/personality.html"
+      >
+
+        <span class="guide-number">V</span>
+
+        <span class="guide-copy">
+
+          <span class="guide-category">
+            CHARACTERIZATION
+          </span>
+
           <strong>Personality &amp; Voice</strong>
-          <small>build a character who stays consistent</small>
+
+          <small>
+            Create a distinct presence that never breaks character.
+          </small>
+
         </span>
 
-        <span class="guide-arrow" aria-hidden="true">›</span>
+        <span
+          class="guide-arrow"
+          aria-hidden="true"
+        >
+          ↗
+        </span>
+
       </a>
 
     </section>
 
-    <!-- Optional About Section -->
-    <section class="about-panel">
-      <p class="section-label">ABOUT THE LIBRARY</p>
+    <!-- Manifesto -->
+    <section class="manifesto">
 
-      <h2>Build better characters without losing the fun.</h2>
+      <div class="manifesto-mark">
+        R
+      </div>
 
-      <p>
-        These guides cover character design, response rules, trackers,
-        world books, dialogue style, pacing, and long-term consistency.
-      </p>
+      <div class="manifesto-copy">
+
+        <p class="section-kicker">
+          THE RELIQUARY PHILOSOPHY
+        </p>
+
+        <h2>
+          A character should feel discovered, not assembled.
+        </h2>
+
+        <p>
+          Every guide in this archive is built around emotional continuity,
+          deliberate pacing, recognizable voice, and characters whose
+          behavior remains grounded in who they are.
+        </p>
+
+      </div>
+
     </section>
 
     <footer>
-      <p>Made with ♥ for chatbot creators</p>
+
+      <div class="footer-symbol">
+        ✦
+      </div>
+
+      <p>
+        Created by Rhey · For stories that refuse to fade
+      </p>
+
     </footer>
 
   </main>
 
 </body>
+
 </html>
