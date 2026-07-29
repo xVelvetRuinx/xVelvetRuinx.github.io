@@ -869,3 +869,46 @@ footer p {
   }
 }
 deep
+.open-library-badge {
+  width: fit-content;
+  margin-top: 16px;
+  padding: 8px 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--gold-light);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(152, 29, 53, 0.32),
+      rgba(198, 163, 107, 0.12)
+    );
+
+  border: 1px solid rgba(228, 202, 157, 0.45);
+  border-radius: 999px;
+
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.collection-card[href] {
+  cursor: pointer;
+}
+
+.collection-card[href]:hover {
+  transform: translateX(7px);
+  border-color: var(--border-bright);
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(85, 20, 34, 0.9),
+      rgba(25, 10, 15, 0.96)
+    );
+}
