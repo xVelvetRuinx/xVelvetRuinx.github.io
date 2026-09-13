@@ -1,420 +1,167 @@
-/* =========================================================
-   CREATOR GRIMOIRE — MOONBOURNE / MIDNIGHT HOWL OVERRIDES
-   Paste this at the END of ../style.css
-   ========================================================= */
-
-.creator-grimoire-page {
-  --grimoire-bg: #070a12;
-  --grimoire-panel: rgba(12, 18, 31, 0.82);
-  --grimoire-panel-soft: rgba(17, 25, 41, 0.62);
-  --grimoire-ink: #e8edf5;
-  --grimoire-muted: #aeb8c9;
-  --grimoire-blue: #7086b7;
-  --grimoire-indigo: #454b78;
-  --grimoire-violet: #7d6f9f;
-  --grimoire-sage: #667d74;
-  --grimoire-gold: #bda779;
-  --grimoire-silver: #cbd3df;
-  --grimoire-line: rgba(189, 167, 121, 0.22);
-
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 16% 10%, rgba(78, 92, 142, 0.14), transparent 28rem),
-    radial-gradient(circle at 82% 24%, rgba(92, 75, 125, 0.12), transparent 30rem),
-    linear-gradient(180deg, #080b13 0%, #0a0f1a 44%, #080b12 100%);
-  color: var(--grimoire-ink);
-}
-
-.creator-grimoire-page::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.34;
-  background-image:
-    radial-gradient(circle at 10% 15%, rgba(255,255,255,.75) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 31% 8%, rgba(255,255,255,.55) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 64% 19%, rgba(255,255,255,.65) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 83% 11%, rgba(255,255,255,.48) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 89% 37%, rgba(255,255,255,.62) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 47% 34%, rgba(255,255,255,.42) 0 1px, transparent 1.4px);
-  background-size:
-    320px 320px,
-    440px 440px,
-    520px 520px,
-    610px 610px,
-    390px 390px,
-    730px 730px;
-}
-
-.creator-grimoire-page .background-glow {
-  filter: blur(110px);
-  opacity: 0.24;
-}
-
-.creator-grimoire-page .glow-one {
-  background: #38466f;
-}
-
-.creator-grimoire-page .glow-two {
-  background: #513f68;
-}
-
-.creator-grimoire-page .resource-navigation {
-  border-color: var(--grimoire-line);
-}
-
-.creator-grimoire-page .resource-home-link,
-.creator-grimoire-page .resource-top-link {
-  color: var(--grimoire-silver);
-}
-
-.creator-grimoire-page .resource-volume,
-.creator-grimoire-page .eyebrow,
-.creator-grimoire-page .section-kicker,
-.creator-grimoire-page .preview-kicker,
-.creator-grimoire-page .anatomy-label,
-.creator-grimoire-page .example-label {
-  color: var(--grimoire-gold);
-  letter-spacing: .14em;
-}
-
-.creator-grimoire-page .creator-name,
-.creator-grimoire-page .resource-introduction,
-.creator-grimoire-page .resource-heading > p,
-.creator-grimoire-page .anatomy-content > p,
-.creator-grimoire-page .insert-copy > p,
-.creator-grimoire-page .complete-field-content,
-.creator-grimoire-page .after-contact-copy p,
-.creator-grimoire-page .continue-card p {
-  color: var(--grimoire-muted);
-}
-
-.creator-grimoire-page .resource-title,
-.creator-grimoire-page .resource-heading h2,
-.creator-grimoire-page .anatomy-card h3,
-.creator-grimoire-page .archive-insert h3,
-.creator-grimoire-page .preview-heading h2,
-.creator-grimoire-page .continue-card h3,
-.creator-grimoire-page .after-contact h2 {
-  color: var(--grimoire-ink);
-}
-
-.creator-grimoire-page .resource-title span {
-  color: #9daed0;
-  text-shadow: 0 0 28px rgba(112, 134, 183, .18);
-}
-
-.creator-grimoire-page .resource-breadcrumb {
-  color: #aab4c5;
-}
-
-.creator-grimoire-page .resource-breadcrumb b {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .hero-manuscript-mark {
-  color: rgba(189, 167, 121, 0.42);
-  text-shadow: 0 0 28px rgba(126, 111, 159, .28);
-}
-
-.creator-grimoire-page .resource-hero {
-  position: relative;
-}
-
-.creator-grimoire-page .resource-hero::after {
-  content: "";
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  right: 3%;
-  top: 5%;
-  border: 1px solid rgba(189, 167, 121, 0.14);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 34px rgba(112, 134, 183, 0.03),
-    0 0 0 68px rgba(112, 134, 183, 0.02);
-  pointer-events: none;
-}
-
-.creator-grimoire-page .prompt-anatomy-preview {
-  background:
-    linear-gradient(180deg, rgba(16, 23, 39, 0.88), rgba(10, 15, 27, 0.76));
-  border: 1px solid rgba(189, 167, 121, 0.18);
-  box-shadow:
-    0 24px 70px rgba(0,0,0,.24),
-    inset 0 1px 0 rgba(255,255,255,.025);
-  backdrop-filter: blur(12px);
-}
-
-.creator-grimoire-page .preview-field {
-  background: rgba(255,255,255,.018);
-  border-color: rgba(203, 211, 223, 0.10);
-}
-
-.creator-grimoire-page .preview-field:hover {
-  border-color: rgba(189, 167, 121, 0.32);
-  background: rgba(112, 134, 183, .055);
-}
-
-.creator-grimoire-page .preview-number {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .preview-field small {
-  color: #8e99ac;
-}
-
-.creator-grimoire-page .preview-field strong {
-  color: var(--grimoire-ink);
-}
-
-.creator-grimoire-page .preview-field b {
-  color: #a7b6d3;
-}
-
-.creator-grimoire-page .preview-connector {
-  background: linear-gradient(
-    180deg,
-    rgba(189, 167, 121, 0.05),
-    rgba(189, 167, 121, 0.36),
-    rgba(189, 167, 121, 0.05)
-  );
-}
-
-.creator-grimoire-page .preview-footer,
-.creator-grimoire-page .ornate-divider {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .ornate-divider span {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(189, 167, 121, 0.38),
-    transparent
-  );
-}
-
-.creator-grimoire-page .anatomy-grid {
-  gap: 1.4rem;
-}
-
-.creator-grimoire-page .anatomy-card {
-  background:
-    linear-gradient(145deg, rgba(18, 26, 43, 0.72), rgba(10, 15, 26, 0.54));
-  border: 1px solid rgba(203, 211, 223, 0.10);
-  box-shadow: 0 18px 55px rgba(0,0,0,.16);
-}
-
-.creator-grimoire-page .anatomy-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(189, 167, 121, .28);
-}
-
-.creator-grimoire-page .anatomy-number {
-  color: rgba(189, 167, 121, .76);
-  border-color: rgba(189, 167, 121, .20);
-  background: rgba(189, 167, 121, .035);
-}
-
-.creator-grimoire-page .anatomy-quote {
-  color: #9dadca !important;
-}
-
-.creator-grimoire-page .field-note {
-  border-left: 2px solid rgba(112, 134, 183, .65);
-  background: rgba(112, 134, 183, .055);
-  color: #bac5d8;
-}
-
-.creator-grimoire-page .question-list p::before {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .example-panel {
-  border: 1px solid rgba(189, 167, 121, .14);
-  background: rgba(6, 10, 18, .38);
-}
-
-.creator-grimoire-page .archive-insert {
-  background:
-    radial-gradient(circle at 8% 18%, rgba(112,134,183,.07), transparent 18rem),
-    linear-gradient(135deg, rgba(20, 29, 47, .68), rgba(11, 17, 29, .54));
-  border: 1px solid rgba(189, 167, 121, .16);
-}
-
-.creator-grimoire-page .insert-symbol {
-  color: var(--grimoire-gold);
-  text-shadow: 0 0 22px rgba(189,167,121,.24);
-}
-
-.creator-grimoire-page .complete-prompt-section {
-  position: relative;
-}
-
-.creator-grimoire-page .complete-field {
-  background: rgba(11, 17, 29, .56);
-  border-color: rgba(203, 211, 223, .09);
-}
-
-.creator-grimoire-page .complete-field-heading {
-  border-color: rgba(189, 167, 121, .12);
-}
-
-.creator-grimoire-page .complete-field-heading > span {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .complete-field-heading p {
-  color: var(--grimoire-ink);
-}
-
-.creator-grimoire-page .complete-field-heading small {
-  color: #8995a9;
-}
-
-.creator-grimoire-page .prompt-code {
-  background:
-    linear-gradient(180deg, rgba(5, 8, 15, .94), rgba(8, 12, 20, .92));
-  border: 1px solid rgba(112, 134, 183, .16);
-  color: #cdd6e3;
-  box-shadow: inset 0 0 40px rgba(33, 45, 72, .12);
-}
-
-.creator-grimoire-page .prompt-code code {
-  color: #cdd6e3;
-}
-
-.creator-grimoire-page .prompt-order-item {
-  background: rgba(12, 19, 32, .52);
-  border-color: rgba(203, 211, 223, .09);
-}
-
-.creator-grimoire-page .prompt-order-item > span {
-  color: var(--grimoire-gold);
-  border-color: rgba(189, 167, 121, .20);
-}
-
-.creator-grimoire-page .prompt-order-item strong {
-  color: var(--grimoire-ink);
-}
-
-.creator-grimoire-page .prompt-order-item p {
-  color: var(--grimoire-muted);
-}
-
-.creator-grimoire-page .checklist-item {
-  background: rgba(12, 19, 32, .48);
-  border-color: rgba(203, 211, 223, .08);
-}
-
-.creator-grimoire-page .checklist-item:hover {
-  border-color: rgba(189, 167, 121, .24);
-  background: rgba(112, 134, 183, .045);
-}
-
-.creator-grimoire-page .checklist-item span {
-  color: #c4ccd9;
-}
-
-.creator-grimoire-page .checklist-item input {
-  accent-color: #8ea0c5;
-}
-
-.creator-grimoire-page .after-contact {
-  background:
-    linear-gradient(135deg, rgba(47, 60, 95, .14), rgba(67, 57, 86, .10));
-  border-top: 1px solid rgba(189, 167, 121, .15);
-  border-bottom: 1px solid rgba(189, 167, 121, .15);
-}
-
-.creator-grimoire-page .after-contact-mark {
-  color: rgba(189, 167, 121, .32);
-}
-
-.creator-grimoire-page .continue-card {
-  background: rgba(12, 18, 30, .52);
-  border-color: rgba(203, 211, 223, .09);
-}
-
-.creator-grimoire-page .continue-card:hover {
-  border-color: rgba(189, 167, 121, .24);
-  transform: translateY(-2px);
-}
-
-.creator-grimoire-page .continue-number {
-  color: var(--grimoire-gold);
-}
-
-.creator-grimoire-page .coming-soon-badge {
-  color: #bac5d8;
-  border-color: rgba(112, 134, 183, .24);
-  background: rgba(112, 134, 183, .06);
-}
-
-.creator-grimoire-page .primary-button {
-  color: #11141d;
-  background:
-    linear-gradient(135deg, #c4b183 0%, #a8956d 100%);
-  border: 1px solid rgba(231, 218, 183, .22);
-  box-shadow: 0 10px 30px rgba(0,0,0,.18);
-}
-
-.creator-grimoire-page .primary-button:hover {
-  filter: brightness(1.07);
-  transform: translateY(-1px);
-}
-
-.creator-grimoire-page footer {
-  border-color: rgba(189, 167, 121, .14);
-}
-
-.creator-grimoire-page .footer-symbol {
-  color: var(--grimoire-gold);
-}
-
-/* Softer spacing: prevents the old "stack of giant boxes" feeling */
-.creator-grimoire-page .resource-section {
-  padding-top: clamp(4rem, 8vw, 7rem);
-  padding-bottom: clamp(4rem, 8vw, 7rem);
-}
-
-.creator-grimoire-page .resource-heading {
-  max-width: 760px;
-  margin-bottom: 2.8rem;
-}
-
-.creator-grimoire-page .resource-heading h2 {
-  max-width: 720px;
-}
-
-.creator-grimoire-page .anatomy-content {
-  padding-top: .2rem;
-}
-
-.creator-grimoire-page .complete-field-list {
-  gap: .85rem;
-}
-
-/* Responsive cleanup */
-@media (max-width: 900px) {
-  .creator-grimoire-page .resource-hero::after {
-    width: 210px;
-    height: 210px;
-    right: -5rem;
-    top: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .creator-grimoire-page .resource-section {
-    padding-top: 3.6rem;
-    padding-bottom: 3.6rem;
-  }
-
-  .creator-grimoire-page .resource-hero::after {
-    opacity: .45;
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="The Creator's Grimoire by Rhey — character creation, storytelling, Markdown, worldbuilding, and platform adaptation."
+  >
+
+  <title>The Creator's Grimoire | Rhey's Reliquary</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Italianno&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+  <main class="site-shell resource-page creator-grimoire-page">
+
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+    <div class="creator-line resource-creator-line">
+
+      <img
+        class="profile-avatar"
+        src="../images/RHEYCROP.PNG"
+        alt="Rhey creator avatar"
+      >
+
+      <div class="creator-copy">
+        <p class="eyebrow">RHEY'S RELIQUARY</p>
+        <p class="creator-name">Curated by Rhey</p>
+      </div>
+
+    </div>
+
+    <nav
+      class="resource-navigation"
+      aria-label="Page navigation"
+    >
+
+      <a
+        class="resource-home-link"
+        href="../index.html"
+      >
+        ← Return to the Reliquary
+      </a>
+
+      <span class="resource-volume">
+        Creator Library · Volume I
+      </span>
+
+    </nav>
+
+    <header class="resource-hero resource-hero-featured">
+
+      <div
+        class="hero-manuscript-mark"
+        aria-hidden="true"
+      >
+        ☾
+      </div>
+
+      <div class="resource-hero-copy">
+
+        <div class="resource-breadcrumb">
+          <span>THE CREATOR LIBRARY</span>
+          <b>✦</b>
+          <span>FOUNDATIONS</span>
+        </div>
+
+        <p class="section-kicker">
+          TWO WORLDS · ONE CREATIVE SYSTEM
+        </p>
+
+        <h1 class="resource-title">
+          The Creator's
+          <span>Grimoire</span>
+        </h1>
+
+        <p class="resource-introduction">
+          A practical guide to building characters, relationships,
+          worlds, interactive stories, and reusable creative systems.
+        </p>
+
+        <div class="resource-hero-actions">
+
+          <a
+            class="primary-button"
+            href="#begin"
+          >
+            Open the Grimoire
+          </a>
+
+          <span class="hero-reading-note">
+            Moonbourne · Fizzz.ai · Creator Resources
+          </span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+    <div class="ornate-divider">
+      <span></span>
+      <b>☾</b>
+      <span></span>
+    </div>
+
+    <section
+      class="resource-section"
+      id="begin"
+    >
+
+      <div class="resource-heading">
+
+        <p class="section-kicker">
+          THE RELIQUARY METHOD
+        </p>
+
+        <h2>
+          Build the experience before you build the fields.
+        </h2>
+
+        <p>
+          Moonbourne and Fizzz.ai are the two primary creative paths
+          inside the Reliquary. This library connects both through
+          character design, storytelling, Markdown, relationship
+          progression, worldbuilding, and interactive narrative.
+        </p>
+
+      </div>
+
+    </section>
+
+    <footer>
+
+      <div class="footer-symbol">
+        ☾ ✦
+      </div>
+
+      <p>
+        Created by Rhey · For stories that refuse to fade
+      </p>
+
+    </footer>
+
+  </main>
+
+</body>
+</html>
