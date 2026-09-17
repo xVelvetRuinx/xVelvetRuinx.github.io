@@ -9,10 +9,9 @@
 
   <meta
     name="description"
-    content="Fizzz.ai creator resources for character creation, relationship design, worldbooks, greetings, testing, and publishing."
+    content="A practical Fizzz.ai creator guide covering profiles, Core Personality, Initial Messages, Worldbooks, images, voice, testing, publishing, and copy-ready templates."
   >
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -21,805 +20,2186 @@
     rel="stylesheet"
   >
 
-  <!-- Main Reliquary CSS -->
   <link rel="stylesheet" href="/style.css">
-
-  <!-- Fizzz-specific CSS -->
   <link rel="stylesheet" href="/fizzz/fizzz.css">
 </head>
 
-
 <body>
 
-  <!-- =========================================
-       HERO
-       ========================================= -->
+<header class="fizzz-hero">
+  <div class="section-shell">
 
-  <header class="fizzz-hero">
-    <div class="section-shell">
+    <p class="section-kicker">Creator Resources</p>
 
-      <p class="section-kicker">Creator Resources</p>
+    <h1>Fizzz.ai</h1>
 
-      <h1>Fizzz.ai</h1>
+    <p class="section-copy">
+      Build the character, relationship, scene, voice, and visual experience
+      as one cohesive whole.
+    </p>
 
-      <p class="section-copy">
-        Character creation, relationship design, publishing,
-        Markdown, worldbooks, and creator resources.
-      </p>
+    <p class="section-copy">
+      This guide follows Fizzz's character-building structure, then expands it
+      with practical templates, examples, and creator-focused advice you can
+      actually copy into your own work.
+    </p>
 
-      <div class="hero-actions">
-        <a href="#character-creation" class="primary-button">
-          Start Creating
-        </a>
-
-        <a href="#start-here" class="secondary-button">
-          Browse Guides
-        </a>
-      </div>
-
-      <a href="/" class="text-link">
-        ← Return to the Reliquary
+    <div class="hero-actions">
+      <a href="#quick-start" class="primary-button">
+        Quick Start
       </a>
 
+      <a href="#templates" class="secondary-button">
+        Copy Templates
+      </a>
     </div>
-  </header>
+
+    <a href="/" class="text-link">
+      ← Return to the Reliquary
+    </a>
+
+  </div>
+</header>
 
 
-  <main>
+<main>
 
-    <!-- =========================================
-         THE CREATOR'S PATH
-         ========================================= -->
+<!-- ======================================================
+     CREATOR PATH
+     ====================================================== -->
 
-    <section class="fizzz-builder">
+<section class="fizzz-builder">
 
-      <div class="section-shell">
+  <div class="section-shell">
 
-        <div class="section-heading">
+    <div class="section-heading">
+      <p class="section-kicker">The Creator's Path</p>
 
-          <p class="section-kicker">
-            The Creator’s Path
-          </p>
+      <h2>Build from the inside out.</h2>
 
-          <h2>
-            Build better bots from the inside out.
-          </h2>
+      <p class="section-copy">
+        A Fizzz character is not only a prompt. The public profile,
+        Core Personality, opening scene, images, voice, video, and world
+        information all contribute to the final experience.
+      </p>
+    </div>
 
-          <p class="section-copy">
-            Fizzz works best when you build with intention:
-            character first, relationship second, scenario third,
-            then the opening that turns all of it into a playable scene.
-          </p>
+    <div class="path-grid">
 
-        </div>
+      <article class="path-step">
+        <span class="path-number">01</span>
+        <h3>Hook</h3>
+        <p>Decide the fantasy and why someone should click.</p>
+      </article>
 
+      <article class="path-step">
+        <span class="path-number">02</span>
+        <h3>Character</h3>
+        <p>Define identity, psychology, behavior, and voice.</p>
+      </article>
 
-        <div class="path-grid">
+      <article class="path-step">
+        <span class="path-number">03</span>
+        <h3>Relationship</h3>
+        <p>Define why {{user}} matters and how the bond develops.</p>
+      </article>
 
-          <article class="path-step">
-            <span class="path-number">01</span>
+      <article class="path-step">
+        <span class="path-number">04</span>
+        <h3>Scene</h3>
+        <p>Create an opening users can immediately enter.</p>
+      </article>
 
-            <h3>Character</h3>
+      <article class="path-step">
+        <span class="path-number">05</span>
+        <h3>World</h3>
+        <p>Move supporting lore into Worldbook.</p>
+      </article>
 
-            <p>
-              Define identity, personality, voice,
-              and behavioral logic.
-            </p>
-          </article>
+      <article class="path-step">
+        <span class="path-number">06</span>
+        <h3>Media</h3>
+        <p>Match image, video, voice, lighting, and character age.</p>
+      </article>
 
+      <article class="path-step">
+        <span class="path-number">07</span>
+        <h3>Test</h3>
+        <p>Chat, diagnose drift, revise, then publish.</p>
+      </article>
 
-          <article class="path-step">
-            <span class="path-number">02</span>
+    </div>
 
-            <h3>Relationship</h3>
-
-            <p>
-              Decide why {{user}} matters and what
-              emotional fantasy is being sold.
-            </p>
-          </article>
-
-
-          <article class="path-step">
-            <span class="path-number">03</span>
-
-            <h3>Scenario</h3>
-
-            <p>
-              Establish the setup, pressure, and the kind
-              of interaction the bot supports.
-            </p>
-          </article>
-
-
-          <article class="path-step">
-            <span class="path-number">04</span>
-
-            <h3>Greeting</h3>
-
-            <p>
-              Write scene one, not a biography dump.
-            </p>
-          </article>
+  </div>
+</section>
 
 
-          <article class="path-step">
-            <span class="path-number">05</span>
+<!-- ======================================================
+     QUICK START
+     ====================================================== -->
 
-            <h3>Worldbook</h3>
+<section class="fizzz-section" id="quick-start">
 
-            <p>
-              Add only the lore and references
-              the bot actually needs.
-            </p>
-          </article>
+  <div class="section-shell">
 
+    <div class="section-heading">
 
-          <article class="path-step">
-            <span class="path-number">06</span>
+      <p class="section-kicker">
+        Part One · Quick Start
+      </p>
 
-            <h3>Test</h3>
+      <h2>
+        What actually makes up a Fizzz character?
+      </h2>
 
-            <p>
-              Check voice consistency, agency,
-              and whether the bot stays in role.
-            </p>
-          </article>
+      <p class="section-copy">
+        Fizzz combines text roleplay with images, voice, and video.
+        Think of the character as three connected systems:
+        <strong>Profile</strong>,
+        <strong>Character Settings</strong>,
+        and <strong>Character Media</strong>.
+      </p>
 
-
-          <article class="path-step">
-            <span class="path-number">07</span>
-
-            <h3>Publish</h3>
-
-            <p>
-              Polish the title, cover, bio,
-              and final presentation.
-            </p>
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
+    </div>
 
 
-    <!-- =========================================
-         START HERE
-         ========================================= -->
+    <div class="feature-grid three-up">
 
-    <section
-      class="fizzz-start"
-      id="start-here"
-    >
+      <article class="feature-card">
+        <p class="feature-label">01</p>
+        <h3>Profile</h3>
 
-      <div class="section-shell">
-
-        <div class="section-heading">
-
-          <p class="section-kicker">
-            Start Here
-          </p>
-
-          <h2>
-            The first things every creator should understand.
-          </h2>
-
-          <p class="section-copy">
-            Start with the foundation before worrying about
-            elaborate lore, formatting, or advanced prompting.
-          </p>
-
-        </div>
+        <p>
+          The public-facing package: title, name, bio, cover,
+          and tags.
+        </p>
+      </article>
 
 
-        <div class="feature-grid three-up">
+      <article class="feature-card">
+        <p class="feature-label">02</p>
+        <h3>Character Settings</h3>
 
-          <article class="feature-card">
-
-            <p class="feature-label">
-              Guide 01
-            </p>
-
-            <h3>
-              Build Your First Bot
-            </h3>
-
-            <p>
-              Start with a clear fantasy, a stable personality,
-              and a greeting that opens with momentum instead
-              of exposition.
-            </p>
-
-            <a
-              href="#character-creation"
-              class="text-link"
-            >
-              Open guide →
-            </a>
-
-          </article>
+        <p>
+          Core Personality, Initial Message,
+          relationship logic, and optional Worldbook.
+        </p>
+      </article>
 
 
-          <article class="feature-card">
+      <article class="feature-card">
+        <p class="feature-label">03</p>
+        <h3>Character Media</h3>
 
-            <p class="feature-label">
-              Guide 02
-            </p>
+        <p>
+          Character Images, Loop Videos,
+          Opening Film, voice, and background music.
+        </p>
+      </article>
 
-            <h3>
-              Bot Anatomy
-            </h3>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     PROFILE
+     ====================================================== -->
+
+<section class="fizzz-section" id="profile">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Profile
+      </p>
+
+      <h2>
+        The listing sells the experience.
+      </h2>
+
+      <p class="section-copy">
+        Your profile does not replace Core Personality.
+        Its job is to make someone understand the fantasy quickly enough
+        to click.
+      </p>
+
+    </div>
+
+
+    <div class="split-layout">
+
+      <article class="content-panel">
+
+        <div class="info-stack">
+
+          <div class="info-item">
+            <h4>Title *</h4>
 
             <p>
-              Learn what belongs in the character definition,
-              what belongs in the greeting, and what should
-              be saved for a worldbook.
+              A short, clickable summary. It can be the character's name,
+              but a strong story hook often performs better.
             </p>
 
-            <a
-              href="#bot-anatomy"
-              class="text-link"
-            >
-              Open guide →
-            </a>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <p class="feature-label">
-              Guide 03
-            </p>
-
-            <h3>
-              Publishing Checklist
-            </h3>
-
-            <p>
-              Before you publish, make sure the title hooks,
-              the bio sells the premise, and the chat experience
-              actually delivers.
-            </p>
-
-            <a
-              href="#publishing-checklist"
-              class="text-link"
-            >
-              Open guide →
-            </a>
-
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================================
-         CHARACTER CREATION
-         ========================================= -->
-
-    <section
-      class="fizzz-section"
-      id="character-creation"
-    >
-
-      <div class="section-shell">
-
-        <div class="section-heading">
-
-          <p class="section-kicker">
-            Character Creation
-          </p>
-
-          <h2>
-            A good bot knows who it is before it knows what to say.
-          </h2>
-
-          <p class="section-copy">
-            Character creation is not just describing appearance.
-            You are building a repeatable personality with priorities,
-            instincts, and a recognizable way of responding.
-          </p>
-
-        </div>
-
-
-        <div class="split-layout">
-
-          <article class="content-panel">
-
-            <h3>
-              Core Character Blueprint
-            </h3>
-
-
-            <div class="info-stack">
-
-              <div class="info-item">
-
-                <h4>Identity</h4>
-
-                <p>
-                  Name, age, role, setting context,
-                  and the fantasy the character fulfills.
-                </p>
-
-              </div>
-
-
-              <div class="info-item">
-
-                <h4>Personality</h4>
-
-                <p>
-                  Focus on behavior, not vague adjectives.
-                  What does he do under stress?
-                  What does he notice first?
-                  How does he show care, anger, jealousy,
-                  restraint, or vulnerability?
-                </p>
-
-              </div>
-
-
-              <div class="info-item">
-
-                <h4>Voice</h4>
-
-                <p>
-                  Sentence rhythm, word choice, level of formality,
-                  pet names, sharpness, warmth, and whether he feels
-                  teasing, restrained, dangerous, gentle, or distant.
-                </p>
-
-              </div>
-
-
-              <div class="info-item">
-
-                <h4>Behavior Rules</h4>
-
-                <p>
-                  State the patterns explicitly.
-                  If he protects, explain how.
-                  If he is possessive, define how it appears.
-                  If he avoids emotional vulnerability,
-                  describe what that actually looks like.
-                </p>
-
-              </div>
-
-
-              <div class="info-item">
-
-                <h4>Boundaries</h4>
-
-                <p>
-                  Clarify what the bot should not do:
-                  no out-of-character analysis,
-                  no forcing {{user}}’s thoughts or actions,
-                  no breaking tone,
-                  and no contradicting its established premise.
-                </p>
-
-              </div>
-
+            <div class="example-block">
+              <span class="example-label">Weak</span>
+              <p>Cold Mafia Boss</p>
             </div>
 
-          </article>
-
-
-          <aside class="content-sidebar">
-
-            <article class="mini-card">
-
-              <p class="feature-label">
-                Quick Rule
-              </p>
-
-              <h3>
-                Behavior &gt; Adjectives
-              </h3>
-
+            <div class="example-block">
+              <span class="example-label">Stronger</span>
               <p>
-                “Protective” means very little on its own.
-                Show what protective actually looks like in practice.
+                Your Husband Has Been Lying About Who He Really Is
               </p>
-
-            </article>
-
-
-            <article class="mini-card">
-
-              <p class="feature-label">
-                Quick Rule
-              </p>
-
-              <h3>
-                Fantasy First
-              </h3>
-
-              <p>
-                Every strong bot fulfills a recognizable emotional fantasy:
-                safety, obsession, temptation, rivalry, devotion,
-                danger, comfort, authority, or longing.
-              </p>
-
-            </article>
+            </div>
+          </div>
 
 
-            <article class="mini-card">
+          <div class="info-item">
 
-              <p class="feature-label">
-                Quick Rule
-              </p>
-
-              <h3>
-                Keep It Playable
-              </h3>
-
-              <p>
-                A character can be intense, possessive, cold,
-                arrogant, dangerous, or controlling—
-                but {{user}} still needs room to act and respond.
-              </p>
-
-            </article>
-
-          </aside>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================================
-         BOT ANATOMY
-         ========================================= -->
-
-    <section
-      class="fizzz-section"
-      id="bot-anatomy"
-    >
-
-      <div class="section-shell">
-
-        <div class="section-heading">
-
-          <p class="section-kicker">
-            Bot Anatomy
-          </p>
-
-          <h2>
-            Know where each part belongs.
-          </h2>
-
-          <p class="section-copy">
-            More information does not automatically create a better bot.
-            Each piece of information should live where the model
-            can use it most effectively.
-          </p>
-
-        </div>
-
-
-        <div class="feature-grid anatomy-grid">
-
-          <article class="feature-card">
-
-            <p class="feature-label">
-              Foundation
-            </p>
-
-            <h3>
-              Character Definition
-            </h3>
+            <h4>Character Chat Name *</h4>
 
             <p>
-              Identity, personality, speaking style, behavior,
-              relationship logic, recurring instincts,
-              and operating rules.
+              The name users see attached to the character in chat.
             </p>
 
-          </article>
-
-
-          <article class="feature-card">
-
-            <p class="feature-label">
-              Scene One
-            </p>
-
-            <h3>
-              Greeting / Opening Message
-            </h3>
-
-            <p>
-              The first playable scene.
-              It should establish tone, immediate context,
-              and the dynamic between {{char}} and {{user}}.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <p class="feature-label">
-              Supporting Information
-            </p>
-
-            <h3>
-              Worldbook
-            </h3>
-
-            <p>
-              Lore, setting facts, side characters,
-              organizations, locations, and reference details
-              that do not need to clutter the core definition.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <p class="feature-label">
-              The Pitch
-            </p>
-
-            <h3>
-              Bio / Listing Copy
-            </h3>
-
-            <p>
-              The hook that sells the fantasy.
-              Short, clear, emotionally specific,
-              and written for the person deciding whether to click.
-            </p>
-
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================================
-         RELATIONSHIP DESIGN
-         ========================================= -->
-
-    <section
-      class="fizzz-section"
-      id="relationship-design"
-    >
-
-      <div class="section-shell">
-
-        <div class="section-heading">
-
-          <p class="section-kicker">
-            Relationship Design
-          </p>
-
-          <h2>
-            A character is not a relationship.
-          </h2>
-
-          <p class="section-copy">
-            One of the most common creator mistakes is building
-            a detailed character without defining how that character
-            bonds with {{user}}.
-          </p>
-
-        </div>
-
-
-        <div class="feature-grid relationship-grid">
-
-          <article class="feature-card">
-
-            <h3>
-              Slow Burn
-            </h3>
-
-            <p>
-              Restraint, denial, tension,
-              and emotional progression over time.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <h3>
-              Enemies to Lovers
-            </h3>
-
-            <p>
-              Conflict, friction, attraction,
-              reluctant investment, and changing trust.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <h3>
-              Protective / Possessive
-            </h3>
-
-            <p>
-              Safety, control, intensity,
-              territorial instincts, and emotional claim.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <h3>
-              Marriage / Established Bond
-            </h3>
-
-            <p>
-              Domestic intimacy, history,
-              reliability, conflict, and emotional familiarity.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <h3>
-              Boss / Power Dynamic
-            </h3>
-
-            <p>
-              Authority, professionalism,
-              restraint, boundaries, and tension inside structure.
-            </p>
-
-          </article>
-
-
-          <article class="feature-card">
-
-            <h3>
-              Second Chance
-            </h3>
-
-            <p>
-              Regret, longing, unfinished feelings,
-              shared history, and the question of whether
-              trust can be rebuilt.
-            </p>
-
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================================
-         PUBLISHING CHECKLIST
-         ========================================= -->
-
-    <section
-      class="fizzz-section"
-      id="publishing-checklist"
-    >
-
-      <div class="section-shell">
-
-        <div class="section-heading">
-
-          <p class="section-kicker">
-            Publishing Checklist
-          </p>
-
-          <h2>
-            Before you hit publish.
-          </h2>
-
-          <p class="section-copy">
-            A polished bot is more than a finished prompt.
-            Test the entire experience from the listing
-            to the first several messages of the chat.
-          </p>
-
-        </div>
-
-
-        <div class="checklist-panel">
-
-          <div class="checklist-grid">
-
-            <div class="check-item">
-              □ Title has a strong hook
+            <div class="example-block">
+              <span class="example-label">Example</span>
+              <p>Kieran</p>
             </div>
 
-            <div class="check-item">
-              □ Bio clearly sells the fantasy
-            </div>
+          </div>
 
-            <div class="check-item">
-              □ Cover reflects genre and tone
-            </div>
 
-            <div class="check-item">
-              □ Greeting reads like scene one
-            </div>
+          <div class="info-item">
 
-            <div class="check-item">
-              □ {{user}} is not over-written
-            </div>
+            <h4>Character Bio</h4>
 
-            <div class="check-item">
-              □ Character voice is recognizable
-            </div>
+            <p>
+              The public introduction. It sells the premise and explains
+              what kind of experience the user is entering.
+            </p>
 
-            <div class="check-item">
-              □ Worldbook contains only necessary material
-            </div>
-
-            <div class="check-item">
-              □ Test chat has been completed
-            </div>
-
-            <div class="check-item">
-              □ Mobile presentation has been checked
-            </div>
+            <p>
+              The Bio does <strong>not</strong> carry the character's
+              hidden roleplay instructions.
+            </p>
 
           </div>
 
         </div>
 
-      </div>
-
-    </section>
-
-  </main>
+      </article>
 
 
-  <!-- =========================================
-       FOOTER
-       ========================================= -->
+      <aside class="content-sidebar">
 
-  <footer class="fizzz-footer">
+        <article class="mini-card">
 
-    <div class="section-shell">
+          <p class="feature-label">
+            Important
+          </p>
 
-      <p>
-        Fizzz.ai Creator Resources · The Reliquary
-      </p>
+          <h3>
+            Public ≠ Prompt
+          </h3>
 
-      <a href="/" class="text-link">
-        ← Return to the Reliquary
-      </a>
+          <p>
+            Do not cram hidden behavior rules into your public Bio.
+            Keep the listing readable and move actual roleplay instructions
+            into Core Personality.
+          </p>
+
+        </article>
+
+
+        <article class="mini-card">
+
+          <p class="feature-label">
+            Content Warnings
+          </p>
+
+          <h3>
+            Warn before the click.
+          </h3>
+
+          <p>
+            If the experience includes grief, betrayal, horror,
+            dark relationship dynamics, death, violence, or similar
+            high-intensity themes, disclose them clearly.
+          </p>
+
+        </article>
+
+      </aside>
 
     </div>
 
-  </footer>
+  </div>
 
+</section>
+
+
+<!-- ======================================================
+     BIO EXAMPLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Concrete Example
+      </p>
+
+      <h2>
+        A stronger Character Bio.
+      </h2>
+
+    </div>
+
+
+    <div class="example-showcase">
+
+      <div class="example-copy">
+
+        <p class="feature-label">
+          Example · Mature Romance / Secret Identity
+        </p>
+
+        <h3>Kieran</h3>
+
+        <p>
+          Kieran is the kind of husband people trust without thinking twice:
+          steady, quiet, competent, and almost impossible to rattle.
+        </p>
+
+        <p>
+          What {{user}} doesn't know is that the ordinary life he built
+          was deliberate.
+        </p>
+
+        <p>
+          He has spent years keeping one half of himself carefully buried,
+          convinced that loving her meant keeping the dangerous parts of his
+          world far away.
+        </p>
+
+        <p>
+          That becomes impossible the night his past arrives at their door.
+        </p>
+
+        <p>
+          <strong>Experience:</strong>
+          established marriage, hidden identity, protective husband,
+          slow-burn revelations, danger, emotional restraint, and trust.
+        </p>
+
+        <p>
+          <strong>Content warning:</strong>
+          fictional violence, criminal themes, threats, and relationship angst.
+        </p>
+
+      </div>
+
+
+      <div class="example-notes">
+
+        <h4>Why this works</h4>
+
+        <ul>
+          <li>It tells users who he is.</li>
+          <li>It establishes the relationship immediately.</li>
+          <li>It introduces the conflict without spoiling everything.</li>
+          <li>It tells the user what emotional fantasy to expect.</li>
+          <li>It keeps hidden AI instructions out of the public listing.</li>
+        </ul>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     COVER & TAGS
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Cover + Discovery
+      </p>
+
+      <h2>
+        Make the promise visible.
+      </h2>
+
+    </div>
+
+
+    <div class="feature-grid three-up">
+
+      <article class="feature-card">
+
+        <h3>Cover Image</h3>
+
+        <p>
+          Fizzz recommends a 3:4 vertical cover.
+          Think promotional poster rather than video source image.
+        </p>
+
+        <p>
+          Keep the face readable and check the crop before publishing.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Tags</h3>
+
+        <p>
+          Tags should describe the experience users actually receive.
+          Select the required Gender, POV, and Rating categories and use
+          the remaining tags intentionally.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Consistency</h3>
+
+        <p>
+          Cover, Bio, tags, Core Personality, and media should all
+          promise the same character.
+        </p>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     CORE PERSONALITY
+     ====================================================== -->
+
+<section class="fizzz-section" id="core-personality">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Core Personality
+      </p>
+
+      <h2>
+        This is where the character actually lives.
+      </h2>
+
+      <p class="section-copy">
+        Core Personality is the section Fizzz primarily uses to understand
+        who the character is, how he thinks, how he treats {{user}},
+        and how he behaves over time.
+      </p>
+
+      <p class="section-copy">
+        Fizzz allows up to 25,000 characters, but recommends keeping the
+        working personality around 10,000 characters when possible.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid anatomy-grid">
+
+      <article class="feature-card">
+        <h3>Identity</h3>
+        <p>Name, age, role, occupation, species, living situation.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Appearance</h3>
+        <p>Height, build, hair, eyes, clothing, signature details.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Background</h3>
+        <p>The events that explain why the personality formed.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Personality</h3>
+        <p>Psychology plus the observable behaviors that express it.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>{{user}} Relationship</h3>
+        <p>Existing bond, attitude, attraction, trust, conflict, progression.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Goals</h3>
+        <p>What the character wants to preserve, obtain, prevent, or become.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Boundaries</h3>
+        <p>Specific corrections for behavior discovered during testing.</p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Speaking Style</h3>
+        <p>Tone, pacing, sentence length, vocabulary, verbal habits.</p>
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     CORE PERSONALITY TEMPLATE
+     ====================================================== -->
+
+<section class="fizzz-section" id="templates">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Copy + Paste Template
+      </p>
+
+      <h2>
+        Core Personality Markdown.
+      </h2>
+
+      <p class="section-copy">
+        This follows Fizzz's recommended information hierarchy,
+        but is structured for the kind of relationship-heavy characters
+        we build here.
+      </p>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code># {{char}}
+
+## Identity
+
+**Name:**  
+**Age:**  
+**Gender:**  
+**Species / Race:**  
+**Occupation / Role:**  
+**Location:**  
+**Current living situation:**  
+
+## Appearance
+
+**Height:**  
+**Build:**  
+**Hair:**  
+**Eyes:**  
+**Face:**  
+**Clothing style:**  
+**Signature features:**  
+
+## Background
+
+Describe the events that shaped {{char}}.
+
+Focus on:
+- formative experiences
+- major losses or successes
+- important relationships
+- career or social background
+- the event that most strongly shaped his current worldview
+
+Do not add history simply for decoration.
+Backstory should explain present behavior.
+
+## Core Personality
+
+### Surface Personality
+
+How {{char}} appears to strangers or casual acquaintances.
+
+- 
+- 
+- 
+- 
+
+### Inner Personality
+
+Who {{char}} actually is beneath the surface.
+
+- 
+- 
+- 
+- 
+
+### Emotional Logic
+
+Explain WHY he behaves this way.
+
+What does he fear?
+
+What does he protect?
+
+What makes him lose control?
+
+What makes him withdraw?
+
+What does trust mean to him?
+
+## Relationship With {{user}}
+
+**Current relationship:**  
+
+**Why {{user}} matters:**  
+
+**How {{char}} normally treats {{user}}:**  
+
+**What {{char}} wants from the relationship:**  
+
+**What {{char}} refuses to admit:**  
+
+**Relationship progression:**  
+Describe how his behavior should evolve as trust,
+attachment, conflict, and intimacy develop.
+
+## Observable Behavior
+
+Instead of relying only on adjectives, define actions.
+
+When protective, {{char}}:
+
+- 
+- 
+- 
+
+When jealous, {{char}}:
+
+- 
+- 
+- 
+
+When angry, {{char}}:
+
+- 
+- 
+- 
+
+When worried, {{char}}:
+
+- 
+- 
+- 
+
+When affectionate, {{char}}:
+
+- 
+- 
+- 
+
+## Character Goals
+
+**Primary goal:**  
+
+**Relationship goal:**  
+
+**Long-term stability:**  
+
+What parts of his identity must remain important even
+after the relationship deepens?
+
+## Behavioral Boundaries
+
+**Never describe, decide, or assume {{user}}'s thoughts,
+emotions, dialogue, choices, or actions.**
+
+{{char}} may create pressure, conflict, temptation,
+danger, or emotional tension without taking control
+of {{user}}'s agency.
+
+Additional character-specific boundaries:
+
+- 
+- 
+- 
+
+## Speaking Style
+
+**Tone:**  
+
+**Sentence length:**  
+
+**Vocabulary:**  
+
+**Formality:**  
+
+**Humor:**  
+
+**Nicknames / forms of address:**  
+
+**Verbal habits:**  
+
+### Emotional Expression
+
+When calm:
+
+When amused:
+
+When angry:
+
+When vulnerable:
+
+When afraid:
+
+When affectionate:
+
+### Dialogue Rules
+
+- Keep dialogue natural rather than constantly theatrical.
+- Avoid repeating signature phrases every response.
+- Allow silence, action, and body language to carry emotion.
+- Do not explain emotions the character would normally hide.
+- Maintain {{char}}'s established level of formality and restraint.</code></pre>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     FILLED PERSONALITY EXAMPLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Concrete Example
+      </p>
+
+      <h2>
+        Turning adjectives into an actual character.
+      </h2>
+
+    </div>
+
+
+    <div class="comparison-grid">
+
+      <article class="comparison-card">
+
+        <p class="feature-label">Too Thin</p>
+
+<pre><code>Personality:
+cold, dominant, possessive,
+protective, jealous, intelligent,
+dangerous, loyal</code></pre>
+
+      </article>
+
+
+      <article class="comparison-card">
+
+        <p class="feature-label">Playable</p>
+
+<pre><code>## Core Personality
+
+Kieran is intensely self-controlled.
+
+To strangers he appears calm, observant,
+and difficult to unsettle. He rarely raises
+his voice because he associates visible loss
+of control with weakness.
+
+His protectiveness comes from responsibility,
+not from believing {{user}} is helpless.
+
+When worried, he becomes more attentive:
+checking exits, noticing changes in routine,
+remembering details, quietly placing himself
+between {{user}} and potential danger.
+
+His possessiveness is primarily emotional.
+He dislikes uncertainty about his place in
+{{user}}'s life, but does not treat {{user}}
+as property.
+
+Jealousy makes him quieter rather than louder.
+He watches, withdraws slightly, and becomes
+unusually precise with his words.
+
+Kieran shows care through competence:
+solving problems, anticipating needs,
+remembering preferences, and making difficult
+situations easier before {{user}} has to ask.
+
+He struggles to verbalize vulnerability.
+When frightened of losing {{user}}, his first
+instinct is to control the environment rather
+than confess that he is afraid.</code></pre>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     RELATIONSHIP DESIGN
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Relationship Design
+      </p>
+
+      <h2>
+        A character is not a relationship.
+      </h2>
+
+      <p class="section-copy">
+        “Protective” tells the model almost nothing about the actual
+        relationship. Define the emotional mechanism connecting the
+        character to {{user}}.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid relationship-grid">
+
+      <article class="feature-card">
+        <h3>Why {{user}}?</h3>
+        <p>
+          What makes this person matter differently from everyone else?
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>What changes?</h3>
+        <p>
+          What parts of {{char}} become visible only through this relationship?
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>What creates tension?</h3>
+        <p>
+          Desire versus duty? Trust versus fear? Control versus vulnerability?
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>How does it progress?</h3>
+        <p>
+          Define how behavior changes as attachment and trust increase.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>What remains stable?</h3>
+        <p>
+          Romance should deepen a character, not erase his original identity.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>What can {{user}} choose?</h3>
+        <p>
+          Leave room for resistance, affection, questions, conflict,
+          exploration, and different outcomes.
+        </p>
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     INITIAL MESSAGE
+     ====================================================== -->
+
+<section class="fizzz-section" id="initial-message">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Initial Message
+      </p>
+
+      <h2>
+        Write Scene One, not the encyclopedia.
+      </h2>
+
+      <p class="section-copy">
+        Fizzz allows up to 5,000 characters.
+        Use that room for atmosphere, movement, voice, conflict,
+        and an interaction hook—not a lore dump.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid anatomy-grid">
+
+      <article class="feature-card">
+        <p class="feature-label">01</p>
+        <h3>Setup</h3>
+        <p>What just changed?</p>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">02</p>
+        <h3>Scene</h3>
+        <p>Where are we and what does the moment feel like?</p>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">03</p>
+        <h3>Action</h3>
+        <p>Give the character something visible to do.</p>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">04</p>
+        <h3>Dialogue</h3>
+        <p>Let voice and relationship show through speech.</p>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">05</p>
+        <h3>Tension</h3>
+        <p>Introduce a question, threat, revelation, or unresolved problem.</p>
+      </article>
+
+      <article class="feature-card">
+        <p class="feature-label">06</p>
+        <h3>Agency</h3>
+        <p>Stop before deciding how {{user}} responds.</p>
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     INITIAL MESSAGE EXAMPLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Opening Example
+      </p>
+
+      <h2>
+        Give the player somewhere to enter.
+      </h2>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code>The lock turned sometime after midnight.
+
+Kieran entered quietly, closing the apartment
+door behind him with the same controlled care
+he used every night.
+
+Except tonight there was blood on his cuff.
+
+Not much.
+
+Enough.
+
+He noticed it at almost the same moment he
+noticed {{user}} was still awake.
+
+For one brief second, the man standing in the
+doorway was not the quiet husband who remembered
+how she took her coffee or automatically checked
+that the windows were locked before bed.
+
+Something colder looked through his eyes.
+
+Then it vanished.
+
+Kieran removed his coat.
+
+"You should be asleep."
+
+His voice was level.
+
+Too level.
+
+He folded the coat once, deliberately positioning
+the stained sleeve underneath.
+
+A phone vibrated inside the pocket.
+
+Kieran ignored it.
+
+It vibrated again.
+
+His jaw tightened.
+
+"Before you ask..."
+
+He finally looked directly at {{user}}.
+
+"...I can explain."
+
+Another vibration.
+
+This time the screen lit through the fabric.
+
+UNKNOWN CALLER.
+
+Kieran went very still.
+
+Then he reached for the phone.
+
+"Stay here."</code></pre>
+
+    </div>
+
+
+    <div class="example-notes">
+
+      <h4>What this opening accomplishes</h4>
+
+      <ul>
+        <li>The relationship is obvious without exposition.</li>
+        <li>The scene creates immediate visual material.</li>
+        <li>Kieran speaks early enough for Opening Film voice.</li>
+        <li>His personality is demonstrated rather than explained.</li>
+        <li>A secret is introduced.</li>
+        <li>{{user}} has not been told what she thinks or does.</li>
+        <li>The scene ends at a natural decision point.</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     USER VARIABLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        {{user}}
+      </p>
+
+      <h2>
+        Personalize without pre-writing the player.
+      </h2>
+
+    </div>
+
+
+    <div class="comparison-grid">
+
+      <article class="comparison-card">
+
+        <p class="feature-label">
+          Good
+        </p>
+
+<pre><code>"You finally made it, {{user}}."
+
+{{user}} is Kieran's spouse.
+
+Kieran watches {{user}} carefully
+for a reaction.</code></pre>
+
+      </article>
+
+
+      <article class="comparison-card">
+
+        <p class="feature-label">
+          Avoid
+        </p>
+
+<pre><code>{{user}} is shy, frightened,
+five-foot-four, secretly in love
+with Kieran, and immediately blushes
+when he enters.
+
+{{user}} steps backward and whispers,
+"What happened?"</code></pre>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     WORLDBOOK
+     ====================================================== -->
+
+<section class="fizzz-section" id="worldbook">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Worldbook
+      </p>
+
+      <h2>
+        Put the world outside the character.
+      </h2>
+
+      <p class="section-copy">
+        Fizzz supports up to three Worldbook entries.
+        Each entry can contain up to 10,000 characters.
+      </p>
+
+      <p class="section-copy">
+        Use <strong>Always Active</strong> for information needed constantly.
+        Use <strong>Keyword Trigger</strong> for locations, NPCs, secrets,
+        organizations, or side plots that only matter sometimes.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid three-up">
+
+      <article class="feature-card">
+
+        <p class="feature-label">
+          Entry 01
+        </p>
+
+        <h3>Core World</h3>
+
+        <p>
+          Usually Always Active.
+          World rules, setting baseline, important universal constraints.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <p class="feature-label">
+          Entry 02
+        </p>
+
+        <h3>People / Factions</h3>
+
+        <p>
+          Often Keyword Trigger.
+          NPCs, organizations, rivals, families, enemies.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <p class="feature-label">
+          Entry 03
+        </p>
+
+        <h3>Secrets / Locations</h3>
+
+        <p>
+          Ideal for hidden history, special places,
+          events, mysteries, or unlockable plot lines.
+        </p>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     WORLDBOOK TEMPLATE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Copy + Paste Template
+      </p>
+
+      <h2>
+        Worldbook Markdown.
+      </h2>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code># WORLD BASELINE
+
+## Setting
+
+Describe the world in clear factual language.
+
+## Current Time / Era
+
+State the technological, historical,
+fantasy, or social baseline.
+
+## Important Rules
+
+- Rule one
+- Rule two
+- Rule three
+
+## Social Structure
+
+Explain important cultural expectations,
+power structures, supernatural rules,
+or organizations.
+
+## What {{char}} Knows
+
+List information considered common knowledge
+to {{char}}.
+
+## What Must Remain Consistent
+
+- 
+- 
+- 
+
+## Tone
+
+Describe the intended atmosphere:
+gothic, modern crime, romantic fantasy,
+quiet domestic drama, supernatural thriller, etc.</code></pre>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     SAMPLE WORLDBOOK ENTRY
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Concrete Example
+      </p>
+
+      <h2>
+        Worldbook without repeating Core Personality.
+      </h2>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code># THE KURODA NETWORK
+
+**Trigger Mode:** Keyword
+
+**Keywords:**
+Kuroda, family, syndicate, Yakuza,
+Tokyo, enforcer, organization
+
+## Overview
+
+The Kuroda Network is an old criminal organization
+operating primarily through legitimate businesses,
+private security companies, property holdings,
+and carefully controlled illicit operations.
+
+Its public-facing businesses appear ordinary.
+
+Most civilians do not know the organization's
+true structure.
+
+## Hierarchy
+
+The organization values discipline,
+loyalty, discretion, and repayment of debts.
+
+Open disobedience is treated as more dangerous
+than personal dislike.
+
+## Renji's History
+
+Renji Kuroda previously served as an enforcer.
+
+He left active service years ago and now runs
+a butcher shop while maintaining limited ties
+to people from his former life.
+
+He does not casually explain this history.
+
+## Current Conflict
+
+Recent activity suggests someone from Renji's
+former organization has begun watching him again.
+
+The reason is initially unknown.
+
+## Usage Rules
+
+Do not force this plot into every conversation.
+
+Allow ordinary domestic scenes to continue
+unless the organization, Renji's past,
+a suspicious visitor, or related danger
+naturally enters the conversation.</code></pre>
+
+    </div>
+
+
+    <div class="example-notes">
+
+      <h4>Why this belongs in Worldbook</h4>
+
+      <ul>
+        <li>It describes the surrounding organization.</li>
+        <li>It contains reusable setting facts.</li>
+        <li>It does not waste Core Personality space.</li>
+        <li>It tells the model not to drag the crime plot into every scene.</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     KEYWORD TRIGGERS
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Advanced Worldbook
+      </p>
+
+      <h2>
+        Keyword triggers can become story mechanics.
+      </h2>
+
+    </div>
+
+
+    <div class="feature-grid relationship-grid">
+
+      <article class="feature-card">
+        <h3>Hidden Past</h3>
+        <p>
+          Trigger an old name, location, object, or date and reveal
+          a reaction the character normally suppresses.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>NPC</h3>
+        <p>
+          Load an NPC's personality and history only when their name
+          becomes relevant.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Location</h3>
+        <p>
+          Mentioning a location can activate environmental details,
+          customs, or dangers.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Side Plot</h3>
+        <p>
+          Let users discover optional content through curiosity.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Secret</h3>
+        <p>
+          Tie information to an unusual but discoverable keyword.
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <h3>Easter Egg</h3>
+        <p>
+          Reward users who remember details or deliberately investigate.
+        </p>
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     MEDIA
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Character Media
+      </p>
+
+      <h2>
+        Text, image, voice, and video should describe the same man.
+      </h2>
+
+    </div>
+
+
+    <div class="feature-grid three-up">
+
+      <article class="feature-card">
+
+        <h3>Character Images</h3>
+
+        <p>
+          Upload up to three.
+          Fizzz recommends 9:16 vertical images with one clear,
+          recognizable subject.
+        </p>
+
+        <p>
+          Avoid obscured faces, tiny subjects, heavy blur,
+          cluttered backgrounds, or multiple people.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Opening Film</h3>
+
+        <p>
+          Match the image to the opening scene.
+          Night text should not begin from a bright beach image.
+          A seated source image should not immediately require a
+          complicated full-body action.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Voice</h3>
+
+        <p>
+          Match age, personality, cadence, emotional restraint,
+          accent, and visual presentation.
+        </p>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     VOICE EXAMPLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Voice Design
+      </p>
+
+      <h2>
+        Describe the sound—not the archetype.
+      </h2>
+
+    </div>
+
+
+    <div class="comparison-grid">
+
+      <article class="comparison-card">
+
+        <p class="feature-label">
+          Too Vague
+        </p>
+
+<pre><code>Sexy mafia daddy voice.</code></pre>
+
+      </article>
+
+
+      <article class="comparison-card">
+
+        <p class="feature-label">
+          Better
+        </p>
+
+<pre><code>Native American English.
+Male, late 40s.
+Low baritone, slightly rough,
+measured pacing, restrained emotion,
+quiet authority.</code></pre>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     SPEAKING STYLE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Speaking Style
+      </p>
+
+      <h2>
+        Teach the pattern instead of scripting every sentence.
+      </h2>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code>## Speaking Style
+
+Kieran speaks in a low-key,
+controlled conversational style.
+
+He prefers short to medium sentences.
+
+He rarely gives long emotional speeches.
+
+He is direct when discussing practical matters
+and more evasive when discussing his own feelings.
+
+When amused, his humor is dry and understated.
+
+When angry, his volume usually decreases.
+
+When vulnerable, he pauses more often,
+uses fewer words, and may redirect attention
+toward practical action.
+
+He uses {{user}}'s name deliberately rather
+than constantly.
+
+He does not repeat pet names or signature
+phrases every response.
+
+His dialogue should sound like a mature adult
+speaking naturally, not like continuous
+romance-novel narration.</code></pre>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     TESTING
+     ====================================================== -->
+
+<section class="fizzz-section" id="testing">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Testing
+      </p>
+
+      <h2>
+        Testing is part of creation.
+      </h2>
+
+      <p class="section-copy">
+        Do not judge the character only from the form.
+        Run real conversations and look for repeatable problems.
+      </p>
+
+    </div>
+
+
+    <div class="checklist-panel">
+
+      <div class="checklist-grid">
+
+        <div class="check-item">
+          □ Identity remains stable
+        </div>
+
+        <div class="check-item">
+          □ Voice remains recognizable
+        </div>
+
+        <div class="check-item">
+          □ {{user}} retains agency
+        </div>
+
+        <div class="check-item">
+          □ Character remembers the relationship
+        </div>
+
+        <div class="check-item">
+          □ Replies leave room to respond
+        </div>
+
+        <div class="check-item">
+          □ Traits are not exaggerated every turn
+        </div>
+
+        <div class="check-item">
+          □ Opening encourages a reply
+        </div>
+
+        <div class="check-item">
+          □ Images animate cleanly
+        </div>
+
+        <div class="check-item">
+          □ Voice matches age and presentation
+        </div>
+
+        <div class="check-item">
+          □ Worldbook triggers appropriately
+        </div>
+
+        <div class="check-item">
+          □ Media and text agree
+        </div>
+
+        <div class="check-item">
+          □ Character still has a life outside {{user}}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     DIAGNOSIS
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Troubleshooting
+      </p>
+
+      <h2>
+        Fix the cause, not the symptom.
+      </h2>
+
+    </div>
+
+
+    <div class="troubleshooting-list">
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>He talks too much.</h3>
+        </div>
+
+        <div>
+          <p>
+            Add Speaking Style instructions for shorter replies,
+            pauses, action beats, and less explanation.
+          </p>
+        </div>
+
+      </article>
+
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>He controls {{user}}.</h3>
+        </div>
+
+        <div>
+          <p>
+            Add a clear agency boundary:
+            do not decide or describe {{user}}'s actions,
+            emotions, thoughts, dialogue, or responses.
+          </p>
+        </div>
+
+      </article>
+
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>Possessiveness becomes cartoonish.</h3>
+        </div>
+
+        <div>
+          <p>
+            Define what possessiveness means psychologically
+            and how it is actually expressed.
+          </p>
+        </div>
+
+      </article>
+
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>He becomes generic.</h3>
+        </div>
+
+        <div>
+          <p>
+            Strengthen emotional logic, relationship-specific behavior,
+            goals, and speaking style rather than adding more adjectives.
+          </p>
+        </div>
+
+      </article>
+
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>Lore takes over every scene.</h3>
+        </div>
+
+        <div>
+          <p>
+            Move conditional information into keyword-triggered
+            Worldbook entries.
+          </p>
+        </div>
+
+      </article>
+
+
+      <article class="trouble-row">
+
+        <div>
+          <h3>The opening feels dead.</h3>
+        </div>
+
+        <div>
+          <p>
+            Add a present-tense problem, movement,
+            spoken dialogue, and a decision point.
+          </p>
+        </div>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     PUBLISHING
+     ====================================================== -->
+
+<section class="fizzz-section" id="publishing">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Before Publishing
+      </p>
+
+      <h2>
+        Run the full experience once.
+      </h2>
+
+    </div>
+
+
+    <div class="checklist-panel">
+
+      <div class="checklist-grid">
+
+        <div class="check-item">
+          □ Title creates curiosity
+        </div>
+
+        <div class="check-item">
+          □ Bio explains the fantasy
+        </div>
+
+        <div class="check-item">
+          □ Warnings are present where needed
+        </div>
+
+        <div class="check-item">
+          □ Tags accurately describe the character
+        </div>
+
+        <div class="check-item">
+          □ Cover crop works on mobile
+        </div>
+
+        <div class="check-item">
+          □ Core Personality is internally consistent
+        </div>
+
+        <div class="check-item">
+          □ Appearance exists in text settings
+        </div>
+
+        <div class="check-item">
+          □ Relationship with {{user}} is defined
+        </div>
+
+        <div class="check-item">
+          □ Speaking style is explicit
+        </div>
+
+        <div class="check-item">
+          □ Greeting creates Scene One
+        </div>
+
+        <div class="check-item">
+          □ Worldbook contains supporting information only
+        </div>
+
+        <div class="check-item">
+          □ Character Images match the written character
+        </div>
+
+        <div class="check-item">
+          □ Opening Film matches the opening
+        </div>
+
+        <div class="check-item">
+          □ Voice matches age and personality
+        </div>
+
+        <div class="check-item">
+          □ Several trial chats were completed
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     MAINTENANCE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        After Publishing
+      </p>
+
+      <h2>
+        Improve without erasing the character users chose.
+      </h2>
+
+    </div>
+
+
+    <div class="feature-grid three-up">
+
+      <article class="feature-card">
+
+        <h3>Back Up Settings</h3>
+
+        <p>
+          Save a copy of Core Personality, greeting,
+          and Worldbook before major edits.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Correct Drift</h3>
+
+        <p>
+          Fix repeatable problems discovered through chats
+          without rebuilding the entire character every week.
+        </p>
+
+      </article>
+
+
+      <article class="feature-card">
+
+        <h3>Preserve Recognition</h3>
+
+        <p>
+          Large changes to identity, relationship, voice,
+          or premise may be better released as a new character.
+        </p>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     FAST BUILD TEMPLATE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="section-heading">
+
+      <p class="section-kicker">
+        Fast Build
+      </p>
+
+      <h2>
+        Before writing 8,000 words, answer these eight questions.
+      </h2>
+
+    </div>
+
+
+    <div class="code-card">
+
+<pre><code>1. Who is he?
+
+2. What does he want?
+
+3. What is he afraid of?
+
+4. Why does {{user}} matter specifically?
+
+5. What changes when he cares?
+
+6. What does he do instead of simply saying
+   how he feels?
+
+7. What must never disappear from his identity
+   even if romance develops?
+
+8. What situation opens the story?</code></pre>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ======================================================
+     FINAL RULE
+     ====================================================== -->
+
+<section class="fizzz-section">
+
+  <div class="section-shell">
+
+    <div class="final-principle">
+
+      <p class="section-kicker">
+        The Rule I Come Back To
+      </p>
+
+      <h2>
+        Background creates psychology.
+        Psychology creates behavior.
+        Behavior creates relationship.
+        Relationship creates story.
+      </h2>
+
+      <p>
+        If those pieces connect logically, the model has something
+        coherent to play.
+      </p>
+
+      <p>
+        If they contradict one another, another thousand words of prompting
+        usually will not save it.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<footer class="fizzz-footer">
+
+  <div class="section-shell">
+
+    <p>
+      Fizzz.ai Creator Resources · The Reliquary
+    </p>
+
+    <a href="/" class="text-link">
+      ← Return to the Reliquary
+    </a>
+
+  </div>
+
+</footer>
 
 </body>
-
 </html>
