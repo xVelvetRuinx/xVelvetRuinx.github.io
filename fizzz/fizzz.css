@@ -1,0 +1,251 @@
+.fizzz-builder,
+.fizzz-start,
+.fizzz-section {
+  position: relative;
+  padding: 4.5rem 0;
+}
+
+.section-shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.section-heading {
+  max-width: 760px;
+  margin-bottom: 2rem;
+}
+
+.section-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.95;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.section-copy {
+  margin: 1rem 0 0;
+  max-width: 680px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.path-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.path-step {
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  background: var(--panel-soft);
+  backdrop-filter: blur(10px);
+  min-height: 180px;
+}
+
+.path-number {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.84rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rose);
+}
+
+.path-step h3 {
+  margin: 0 0 0.7rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.path-step p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.feature-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.three-up {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.anatomy-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.relationship-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.feature-card,
+.mini-card,
+.content-panel,
+.checklist-panel {
+  border: 1px solid var(--line);
+  border-radius: 1.4rem;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.feature-card,
+.mini-card {
+  padding: 1.5rem;
+}
+
+.feature-label {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--silver);
+}
+
+.feature-card h3,
+.mini-card h3,
+.content-panel h3 {
+  margin: 0 0 0.75rem;
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.feature-card p,
+.mini-card p {
+  margin: 0;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+.text-link {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.text-link:hover {
+  color: var(--text);
+}
+
+.split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.content-panel {
+  padding: 1.75rem;
+}
+
+.info-stack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.info-item {
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.info-item:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.info-item h4 {
+  margin: 0 0 0.45rem;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.info-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.content-sidebar {
+  display: grid;
+  gap: 1rem;
+}
+
+.checklist-panel {
+  padding: 1.75rem;
+}
+
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.check-item {
+  padding: 1rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .path-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .anatomy-grid,
+  .checklist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .three-up,
+  .relationship-grid,
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .path-grid,
+  .anatomy-grid,
+  .checklist-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fizzz-builder,
+  .fizzz-start,
+  .fizzz-section {
+    padding: 3.25rem 0;
+  }
+
+  .feature-card,
+  .mini-card,
+  .content-panel,
+  .checklist-panel,
+  .path-step {
+    border-radius: 1rem;
+  }
+}
