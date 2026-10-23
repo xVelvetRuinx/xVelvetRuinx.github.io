@@ -243,8 +243,103 @@ const major=(k,before,after)=>{
  }
  return false;
 };
+
+function optInstance(){return window.VelvetRuinFizzzOptimizer;}
+function optimizeOne(item,editor,checkbox,approval,status,reason,detail){
+ const opt=optInstance();
+ if(!opt){A().notify("The optimization module did not load. Reload this page.");return {changed:false};}
+ const found=opt.reduce(item.key,editor.value);
+ if(!found.changed){
+   detail.hidden=false;detail.replaceChildren();
+   detail.append(make("p","", "No safe mechanical reductions found. The original wording can stay. For deeper edits, use the optional AI copyedit brief and review every change."));
+   return found;
+ }
+ editor.value=found.proposed;
+ checkbox.checked=false; // every proposed trim is opt-in
+ approval.checked=false;
+ item.status="Gentle trim · review";
+ item.reason="Deterministic, reviewable reductions suggested by the local optimizer. Original identity, canon, and any quoted speech remain intact. Check the comparison before approving.";
+ item.reductionLog=(item.reductionLog||[]).concat(found.changes);
+ status.textContent=item.status;reason.textContent=item.reason;
+ detail.hidden=false;detail.replaceChildren();
+ const top=make("p","trim-result-title","✦ "+found.charactersSaved+" characters saved · approximately "+found.tokensSaved+" estimated tokens");
+ detail.append(top);
+ found.changes.forEach((change,i)=>{
+  const row=make("article","trim-change"),heading=make("b","", (i+1)+". "+change.kind);
+  const desc=make("p","",change.why);
+  const diff=make("p","trim-diff","Before: "+change.before+"  →  After: "+change.after);
+  const mini=make("small","",String(change.charactersSaved)+" characters reduced by this operation");
+  row.append(heading,desc,diff,mini);detail.append(row);
+ });
+ return found;
+}
+function optimizerNotes(){
+ const opt=optInstance();
+ if(!opt){A().notify("Reload to enable the gentle optimizer.");return [];}
+ const now=Object.fromEntries(proposals.map(p=>{
+   const editor=$('[data-proposal="'+p.key+'"]');
+   return [p.key,editor?.value||p.value];
+ }));
+ const all=opt.feedback({...A().getState(),...now});
+ const root=$("#optimizer-feedback");root.replaceChildren();
+ if(!all.length){
+   root.append(make("p","opt-success","✦ No obvious pattern-based issues found. That is not a guarantee of story quality; test the actual chats, video and voice on Fizzz."));
+   return all;
+ }
+ const header=make("p","optimizer-note-heading","✧ "+all.length+" editorial checkpoint"+(all.length===1?"":"s")+" based on Fizzz's guide and recognizable, player-driven premise design:");
+ root.append(header);
+ all.forEach(n=>{
+   const card=make("article","optimizer-note "+(n.priority==="important"?"important":""));
+   const heading=make("b","",n.heading);
+   const badge=make("span","optimizer-target",label(n.field));
+   const body=make("p","",n.reason);
+   const jump=make("button","optimizer-jump","Review this field ↗");jump.type="button";
+   jump.addEventListener("click",()=>{
+      const editor=$('[data-proposal="'+n.field+'"]');
+      if(editor){editor.scrollIntoView({behavior:"smooth",block:"center"});editor.focus();}
+      else{A().notify("That field was not in this import. Add it in the matching creation chapter after applying.");}
+   });
+   card.append(heading,badge,body,jump);root.append(card);
+ });
+ return all;
+}
+function optimizeAll(){
+ const opt=optInstance();
+ if(!sourceMapped){A().notify("Map an imported character or select Review My Current Draft first.");return;}
+ if(!opt){A().notify("Optimization module unavailable; reload the page.");return;}
+ let changedFields=0,savedChars=0,savedTokens=0;
+ for(const item of proposals){
+  const editor=$('[data-proposal="'+item.key+'"]');
+  if(!editor)continue;
+  const wrap=editor.closest?.(".migration-proposal");
+  const details=wrap?.querySelector?.(".trim-info");
+  const box=$('[data-select="'+item.key+'"]'),approved=$('[data-approve="'+item.key+'"]');
+  const status=wrap?.querySelector?.(".proposal-status");
+  const reason=wrap?.querySelector?.(".proposal-reason");
+  // Delegate through the field's button so its same UI/approval logic runs.
+  const result=opt.reduce(item.key,editor.value);
+  if(!result.changed)continue;
+  if(wrap?.querySelector?.(".proposal-trim"))wrap.querySelector(".proposal-trim").click();
+  else{
+    editor.value=result.proposed;box.checked=false;if(approved)approved.checked=false;
+    item.reason="Gentle mechanical trims proposed: "+result.changes.map(x=>x.why).join(" ");
+    item.reductionLog=(item.reductionLog||[]).concat(result.changes);
+    editor.dispatchEvent(new Event("input",{bubbles:true}));
+  }
+  changedFields++;savedChars+=result.charactersSaved;savedTokens+=result.tokensSaved;
+ }
+ const target=$("#optimizer-summary");
+ target.textContent=changedFields
+   ?"Suggested "+changedFields+" field edit"+(changedFields===1?"":"s")+", "+savedChars+" fewer characters (about "+savedTokens+" estimated tokens). Edits are UNCHECKED; original text is retained for comparison. Review each change and check only what you approve."
+   :"No automatic safe reductions found. That's often good: the tool won't rewrite distinctive scenes, dialogue, world rules or original story details just to reduce length.";
+ optimizerNotes();
+ A().notify(changedFields?"Gentle trims ready for review; nothing was applied.":"No safe automatic trims found; check the editorial recommendations.");
+}
+
 function showReview(data){
  sourceMapped=data;proposals=data.items;
+ $("#optimizer-summary").textContent="No reductions have been proposed. Click Find Gentle Trims after reviewing the imported fields.";
+ $("#optimizer-feedback").replaceChildren();
  const notes=$("#migration-notes");notes.replaceChildren();
  [data.kind+" · "+data.items.length+" mapped fields",...data.notes,...lastAIFeedback].forEach((note,i)=>{notes.append(make("p",i?"muted":"",note));});
  const where=$("#migration-proposals");where.replaceChildren();
@@ -253,8 +348,13 @@ function showReview(data){
   box.checked=!item.inferred&&!item.aiChanged;
   l.append(box,make("b","",label(item.key)));
   const status=make("span","proposal-status",item.status);header.append(l,status);
-  const reason=make("p","",item.reason),edit=make("textarea");edit.rows=Math.min(10,Math.max(3,Math.ceil(item.value.length/90)));edit.value=item.value;edit.dataset.proposal=item.key;edit.setAttribute("aria-label","Review "+label(item.key));
+  const reason=make("p","proposal-reason",item.reason),edit=make("textarea");edit.rows=Math.min(10,Math.max(3,Math.ceil(item.value.length/90)));edit.value=item.value;edit.dataset.proposal=item.key;edit.setAttribute("aria-label","Review "+label(item.key));
   const budget=make("div","proposal-budget"),detail=make("details","before-after"),summary=make("summary","","View original versus proposed");
+  const trimInfo=make("div","trim-info");
+  trimInfo.hidden=true;
+  const trimBtn=make("button","proposal-trim","✧ Find precise trims");
+  trimBtn.type="button";
+  trimBtn.setAttribute("aria-label","Suggest compact edits for "+label(item.key));
   const grid=make("div","before-after-grid"),left=make("div"),right=make("div"),proposed=make("pre","",item.value);
   left.append(make("b","","ORIGINAL · PROTECTED"),make("pre","",item.original||"(no corresponding source field)"));
   right.append(make("b","","PROPOSED · EDITABLE"),proposed);grid.append(left,right);detail.append(summary,grid);
@@ -272,8 +372,12 @@ function showReview(data){
    detail.open=risk&&!check.checked;
   };
   edit.addEventListener("input",()=>{check.checked=false;redraw()});
-  restore.addEventListener("click",()=>{edit.value=item.original;box.checked=true;check.checked=false;redraw();A().notify("Original restored for "+label(item.key))});
-  wrap.append(header,reason,edit,budget,detail);
+  restore.addEventListener("click",()=>{edit.value=item.original;box.checked=true;check.checked=false;item.reductionLog=[];item.reason=describe(item.key,"file");reason.textContent="Original wording restored. Source history preserved.";trimInfo.hidden=true;redraw();A().notify("Original restored for "+label(item.key))});
+  trimBtn.addEventListener("click",()=>{
+    const result=optimizeOne(item,edit,box,check,status,reason,trimInfo);
+    if(result.changed)redraw();
+  });
+  wrap.append(header,reason,edit,budget,trimBtn,trimInfo,detail);
   if(item.original)wrap.append(restore);
   wrap.append(approve);where.append(wrap);redraw();
  }
@@ -297,7 +401,7 @@ function report(){
  for(const item of proposals){
   const editor=$('[data-proposal="'+item.key+'"]'),selected=$('[data-select="'+item.key+'"]')?.checked;
   rows.push("═".repeat(46),label(item.key),"Status: "+item.status,"Reason: "+item.reason,
-  "Selected: "+(selected?"yes":"no"),"Original approx tokens: "+token(item.original),"Proposed approx tokens: "+token(editor?.value||""),
+  "Selected: "+(selected?"yes":"no"),"Estimated characters saved: "+(item.original.length-(editor?.value||"").length),"Edit rationale: "+(item.reductionLog?.length?item.reductionLog.map(ch=>ch.kind+" — "+ch.before+" → "+ch.after+"; "+ch.why).join(" | "):"No mechanical trim; original or editor-entered text"),"Original approx tokens: "+token(item.original),"Proposed approx tokens: "+token(editor?.value||""),
   "ORIGINAL:\n"+item.original,"PROPOSED:\n"+(editor?.value||""),"");
  }
  if(sourceMapped?.leftovers)rows.push("UNMAPPED ORIGINAL SOURCE:\n"+sourceMapped.leftovers);
@@ -336,6 +440,10 @@ function aiBrief(){
  "Preserve the established identity, species, age, name, secrets, narrative situation, motivations, nuanced psychology, personality, dialogue, relationship logic, user agency and worldbook facts.",
  "Do not replace the character concept, rewrite whole scenes, invent lore, change opening dialogue, remove a distinct behavioral trait or compress unique backstory to chase arbitrary targets.",
  "Make only local, carefully justified grammar edits, ambiguity fixes, repeated-word removal, structural moves into correct Fizzz fields and very minor clarity tweaks.",
+ "CREATOR ENGAGEMENT GOALS: Preserve an instantly legible romance/roleplay premise, user-centered stakes, a distinct emotional contradiction, protective-but-consensual behavior, and an obvious reason to respond on turn one. Familiar accessible tropes can help the first click, but character-specific behavior and meaningful progression drive lasting play. Do not flatten nuanced character traits into a generic mafia/boss/vampire stereotype.",
+ "Ensure playable scenario over lore dump. Keep the original greeting's dialogue and action intact, never convert the scene into a summary. Keep rich prose when it earns emotion and visual continuity. Make speaking style behavioral, brief and useful; no independent example-dialogue field in Fizzz.",
+ "For WORLD/LORE: Do not delete unique mechanics, hidden pasts, evidence, or secret-discovery rules. Flag text that belongs in Worldbook; if relocation is proposed preserve it VERBATIM and specify source/destination in changeLog. Worldbook keyword triggers are not the same as narrative discovery: define what {{char}} knows versus suspects.",
+ "Optimize only redundancy, repetitive boilerplate, filler, formatting and genuine ambiguities. Do not cut a complete concept, change any signature conversation, reassign {{user}}'s identity, or invent character motivation. Include precise before/after quotes and an explicit WHY for each sentence-level suggestion.",
  "If an existing field is good, leave it completely unchanged and OMIT IT from the output fields object.",
  "Fizzz official limits: Core Personality max 25,000 characters; recommended within 10,000. Initial Message max 5,000. Worldbook: up to 3 entries, 10,000 chars each. Bio is public but not model context. Images for video recommended 9:16. No independent example dialogue field: prefer concise speaking style in core instead.",
  "Preserve initial message prose, spoken lines, emotional tone, chronology and playable closing beat verbatim unless a tiny local correction is absolutely needed.",
@@ -454,6 +562,12 @@ function initFizzzMigration(context){
     sourceMapped=prospective(originalText,format);baseline=Object.fromEntries(sourceMapped.items.map(x=>[x.key,x.original]));
     showReview(sourceMapped);A().notify("Original text mapped for review. No changes applied.");
   }catch(e){A().notify("Could not map character: "+e.message)}
+ });
+ $("#optimize-all").addEventListener("click",optimizeAll);
+ $("#audit-quality").addEventListener("click",()=>{
+   if(!sourceMapped)return A().notify("Map a source character or audit your current draft first.");
+   const notes=optimizerNotes();
+   $("#optimizer-summary").textContent="Checked "+proposals.length+" mapped fields. Found "+notes.length+" editorial observation"+(notes.length===1?"":"s")+". These are coaching suggestions, not automatic rewrites.";
  });
  $("#audit-current").addEventListener("click",auditCurrent);
  $("#migration-sample").addEventListener("click",demo);
