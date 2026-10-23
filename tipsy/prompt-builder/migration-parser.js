@@ -57,7 +57,8 @@ function parseSections(text){
  const groups=[],orphan=[];
  let current=null,before=[];
  const flush=()=>{if(current){current.value=current.lines.join("\n").trim();groups.push(current);current=null;}};
- for(const [i,line] of cleanup(text,"faithful").split("\n").entries()){
+ const textLines=cleanup(text,"faithful").split("\n");
+ for(const [i,line] of textLines.entries()){
    const trim=line.trim();
    const numbered=trim.match(/^\d{1,2}\s*[·.\-—]\s*(.+)$/);
    const h=trim.match(/^#{1,6}\s+(.+)$/)||trim.match(/^\[([^\]]{2,65})\]\s*$/)||trim.match(/^\*\*([^*]{2,65})\*\*\s*$/)||numbered;
@@ -65,7 +66,7 @@ function parseSections(text){
    let name="",key=null,inline="";
    if(h){name=h[1];key=fieldName(name);}
    else if(kv){name=kv[1];key=fieldName(name);inline=kv[2];}
-   else if(i===0&&trim.length<50){name=trim;key=fieldName(name);}
+   else if(trim.length<65&&fieldName(trim)&&(i===0||!textLines[i-1].trim())){name=trim;key=fieldName(name);}
    if(key && !/^\{\{(?:user|char)\}\}/i.test(trim)){
       if(before.join("").trim())orphan.push(before.join("\n").trim());
       before=[];flush();current={key,name,lines:inline?[inline]:[]};continue;
