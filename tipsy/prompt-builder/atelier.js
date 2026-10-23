@@ -3,7 +3,7 @@
   const STORAGE = "velvetruin.tipsy.atelier.v1";
   const STEPS = ["concept","character","world","opening","export"];
   const TAGS = ["Original Character","Slow Burn","Romance","Drama","Fantasy","Modern","Mystery","Angst","Fluff","Horror","Adventure","Supernatural","Vampire","Werewolf","Sci-Fi","Enemies to Lovers","Friends to Lovers","Forced Proximity","Protective","Found Family","Crime","Historical","Comfort","Rivals","Action","Omegaverse"];
-  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
+  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
   const fields = $$("[data-key]");
@@ -161,6 +161,48 @@
     if(state.timeSkip) continuity.push("Advance time organically or when {{user}} requests it; update circumstances after a skip. Never skip pivotal player choices or assume what {{user}} did during an unplayed interval.");
     if(state.relationshipProgression) continuity.push("Track relationship shifts internally from observable interactions. Trust, vulnerability and affection are earned through events, not sudden status changes; communicate change through behavior rather than a numeric meter.");
     if(state.visibleStatus) continuity.push("At the start of each response, show a small status line: [Date or relative day | Time | Location]. Only update facts when scene events justify it; do not invent precise timestamps without context.");
+    if(state.promptMode!=="extended") {
+      const compactCharacter=[
+        line("Character",name+(textVal("age")?" (age "+textVal("age")+")":"")+(textVal("gender")?", "+textVal("gender").toLowerCase():"")+".").trim(),
+        line("Appearance",textVal("appearance")).trim(),
+        line("Personality",textVal("personality")).trim(),
+        line("Contradiction",textVal("contradiction")).trim(),
+        line("Speech",textVal("voice")).trim(),
+        line("Habits",textVal("mannerisms")).trim(),
+        line("Occupation",textVal("occupation")).trim(),
+        line("Surface goal",textVal("surfaceGoal")).trim(),
+        line("Hidden goal",textVal("hiddenGoal")).trim(),
+        line("History",textVal("backstory")).trim()
+      ];
+      const compactWorld=[
+        line("Setting",textVal("setting")).trim(),
+        line("Current conflict",textVal("scenario")).trim(),
+        line("World rules",textVal("lore")).trim(),
+        line("User role",textVal("userRole")).trim(),
+        line("Relationship at start",textVal("relationship")).trim(),
+        line("Tropes",textVal("trope")).trim(),
+        line("Supporting cast",textVal("supporting")).trim(),
+        line("Continuity facts",textVal("canon")).trim()
+      ];
+      const compactRules=[
+        "Write only for {{char}} and NPCs. Preserve {{user}}'s choices, dialogue, actions, feelings, identity and consent.",
+        'Use *narration/actions*, "spoken dialogue" and \'inner thoughts\'. Stay in character; show personality in behavior, not labels.',
+        "Keep each turn playable; stop before {{user}} must respond. Avoid plot summaries and instant resolutions.",
+        (lengths[state.replyLength]||lengths.concise),
+        pacing,
+        textVal("anchors")?"Character absolutes: "+textVal("anchors"):"",
+        state.continuity?"Remember facts, promises and consequences within this chat only; do not claim cross-session memory.":"",
+        state.timeSkip?"Time skips follow events or {{user}}'s lead; do not skip player choices.":"",
+        state.relationshipProgression?"Earn changes in trust and romance through events, not sudden affection jumps.":"",
+        state.visibleStatus?"Show a concise [Day | Time | Place] header when context supports it.":"",
+        state.rating==="Limited"?"Keep the story non-explicit and publication-safe.":"Any romance or intimacy involves adults and consent. Public material must meet Tipsy's standards."
+      ];
+      return [
+        block("CHARACTER",compactCharacter),
+        block("STORY & RELATIONSHIP",compactWorld),
+        block("ROLEPLAY RULES",compactRules)
+      ].filter(Boolean).join("\\n\\n");
+    }
     return [
       block("CHARACTER IDENTITY",[identity]),
       block("PERSONALITY & HISTORY",[persona]),
@@ -194,10 +236,15 @@
     ];
     return kit;
   }
+  function adultAgeValid() {
+    const m=textVal("age").match(/(?:^|[^0-9])([0-9]{1,3})(?![0-9])/);
+    return !m || Number(m[1])>=18;
+  }
   function audit() {
     const greeting=generateGreeting(), examples=generateExamples();
     const checks=[
       ["Distinct name and published title",Boolean(textVal("title")&&textVal("name"))],
+      ["Age is adult (18+) whenever specified",adultAgeValid()],
       ["Public hook + clear player role",Boolean(textVal("hook")&&textVal("userRole"))],
       ["Personality grounded in observable behavior",textVal("personality").length>=30],
       ["A recognizable speech pattern",textVal("voice").length>=25],
@@ -206,7 +253,7 @@
       ["Greeting with narration and character dialogue",Boolean(greeting.includes("*")&&greeting.includes('"'))],
       ["An open end for {{user}} to respond",Boolean(textVal("customGreeting")||textVal("openingBeat"))],
       ["Image prompt is 9:16 and public-safe",Boolean(generateArt().includes("9:16"))],
-      ["No more than ten proposed tags",state.tags.length<=10]
+      ["Select 1–10 relevant suggested tags",state.tags.length>0&&state.tags.length<=10]
     ];
     // Tipsy recommends examples. The check validates their presence, not predicted model performance.
     return checks;
@@ -277,6 +324,7 @@
     setTimeout(()=>URL.revokeObjectURL(url),5000);
   }
   function downloadTxt() {
+    if(!adultAgeValid()){toast("Tipsy requires adult characters (18+). Revise the age first.");go("concept");return;}
     const kit=build();
     const intro="VELVETRUIN — THE CHARACTER ATELIER\nTipsy creator paste kit\nIndependent, guide-informed tool · https://tipsy.chat/creators-guide\n\nCopy each section to the matching field in Tipsy's editor. Confirm tags and rating manually.\n";
     const data=intro+kit.map(k=>"\n"+"═".repeat(52)+"\n"+k.title.toUpperCase()+"\n"+"═".repeat(52)+"\n\n"+(k.value||"(not provided)")+"\n").join("");
