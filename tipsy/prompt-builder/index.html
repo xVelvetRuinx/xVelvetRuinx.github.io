@@ -86,7 +86,7 @@
             <div class="migrate-or"><span>OR PASTE AN EXISTING CHARACTER</span></div>
             <label class="field full" for="migration-paste"><span>Original character concept, profile, lore, bot export or greeting</span>
               <textarea id="migration-paste" rows="8" placeholder="Paste anything: a Fizzz persona, Tipsy prompt, SillyTavern character card, Markdown with headings, novel-style backstory, another bot platform's fields, or rough notes..."></textarea>
-              <small>Nothing is uploaded. Formatting is interpreted locally in your browser. Maximum 6 MB per file; image-only documents cannot be read. PNG import works only for character cards with embedded metadata.</small>
+              <small>Nothing is uploaded. Formatting is interpreted locally in your browser. Files up to 12 MB; image-only documents cannot be read. PNG import works only for character cards with embedded metadata. Or use “Audit My Current Draft” to review text already entered in the Atelier.</small>
             </label>
             <div class="migrate-file-line" id="migration-file-line" role="status" aria-live="polite">No file chosen. Paste text or upload a file to begin.</div>
           </div>
@@ -97,6 +97,7 @@
             <label class="migrate-choice"><input type="radio" name="migration-style" value="faithful"><span><strong>Preserve Original Wording</strong><small>Transfer the source almost word-for-word. Only extract named sections and normalize file encoding or incompatible field formats. Suggestions remain optional.</small></span></label>
             <div class="migrate-actions">
               <button class="btn-primary" type="button" id="migration-analyze">✦ Analyze & Suggest Gentle Improvements</button>
+              <button class="btn-outline" type="button" id="migration-review-current">✧ Audit My Current Draft</button>
               <button class="btn-outline" type="button" id="migration-example">See an example migration</button>
             </div>
           </div>
