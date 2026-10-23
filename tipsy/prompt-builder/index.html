@@ -10,7 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="atelier.css?v=1">
-  <script defer src="atelier.js?v=1"></script>
+  <link rel="stylesheet" href="coach.css?v=2">
+  <script defer src="atelier.js?v=2"></script>
+  <script defer src="coach.js?v=2"></script>
 </head>
 <body>
 <a class="skip" href="#workspace">Skip to builder</a>
@@ -97,6 +99,11 @@
             <p>EXCHANGE II · OPTIONAL</p>
             <label class="field"><span>{{user}} says</span><textarea data-key="sampleUser2" rows="2" placeholder="You can't decide everything for me."></textarea></label>
             <label class="field"><span>{{char}} replies</span><textarea data-key="sampleChar2" rows="3" placeholder='"No." *His smile is brief.* "And I wouldn’t want to."'></textarea></label>
+          </div>
+          <div class="sample-pair">
+            <p>EXCHANGE III · OPTIONAL · SHOW A DIFFERENT REACTION</p>
+            <label class="field"><span>{{user}} says</span><textarea data-key="sampleUser3" rows="2" placeholder="You know how this ends, don't you?"></textarea></label>
+            <label class="field"><span>{{char}} replies</span><textarea data-key="sampleChar3" rows="3" placeholder='"I know one way it ended." *He does not look at the locked gate.* "You may find another."'></textarea></label>
           </div>
           <div class="step-bottom"><button type="button" class="btn-outline prev" data-next="concept">← Previous</button><button type="button" class="btn-primary next" data-next="world">Continue to the World →</button></div>
         </section>
