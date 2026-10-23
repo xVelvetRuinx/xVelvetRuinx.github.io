@@ -95,6 +95,7 @@ function save(){
 const words=x=>String(x||"").trim().split(/\s+/).filter(Boolean).length;
 const tokens=x=>Math.ceil(String(x||"").length/4);
 const ccount=(x,limit)=>{const n=String(x||"").length;return n.toLocaleString()+" / "+limit.toLocaleString()+" characters · ~"+tokens(x).toLocaleString()+" tokens"};
+// Token estimates use a rough 4-character heuristic; Fizzz's actual limits are character counts.
 function notify(message){
  const t=$("#toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3500);
 }
@@ -159,7 +160,7 @@ function buildControl(meta){
  if(box.tagName==="INPUT")box.type="text";
  if(opts)meta.choices.forEach(v=>{const o=el("option","",v);o.value=v;box.append(o)});
  box.value=state[meta.key]||"";
- const refresh=()=>{count.textContent=meta.key.endsWith("Body")?box.value.length+"/10,000":meta.key==="coreRaw"?box.value.length+" chars":box.value.length?box.value.length+" chars":"";count.classList.toggle("over",meta.key.endsWith("Body")&&box.value.length>10000)};
+ const refresh=()=>{const n=box.value.length,max=meta.key.endsWith("Body")?10000:meta.key==="coreRaw"?25000:meta.key==="initialRaw"?5000:null;count.textContent=n?(max?n.toLocaleString()+"/"+max.toLocaleString():n.toLocaleString())+" chars · ~"+tokens(box.value)+" tokens":"";count.classList.toggle("over",max!==null&&n>max)};
  box.addEventListener(opts?"change":"input",()=>{state[meta.key]=box.value;refresh();save();update()});
  refresh();
  const small=el("small","",meta.guide);
