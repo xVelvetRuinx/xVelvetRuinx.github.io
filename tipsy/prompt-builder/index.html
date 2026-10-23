@@ -119,6 +119,15 @@
             <label class="toggle"><input data-key="relationshipProgression" type="checkbox" checked><span><b>Earned relationship stages</b><small>Show change through action and language, not arbitrary affection jumps or on-screen meters.</small></span></label>
             <label class="toggle"><input data-key="visibleStatus" type="checkbox"><span><b>Visible scene status</b><small>Optional discreet date · time · place header each response. Adds tokens; leave off for immersive romance.</small></span></label>
           </div>
+          <div class="options-block">
+            <p class="overline">ADVANCED · OPTIONAL STORY TRACKERS</p>
+            <p class="muted tiny">Values are simulated by the chat model in the current conversation only. Hidden means behavioral cues without numbers; visible adds a compact meter to responses. Leave off unless your story benefits.</p>
+            <div class="field-grid">
+              <label class="field"><span>Trust / Affection</span><select data-key="trustTracker"><option value="off">Off · no meter</option><option value="hidden">Hidden · shown through behavior</option><option value="visible">Visible · show value in chat</option></select></label>
+              <label class="field"><span>Tension / Rivalry</span><select data-key="tensionTracker"><option value="off">Off · no meter</option><option value="hidden">Hidden · shown through behavior</option><option value="visible">Visible · show value in chat</option></select></label>
+              <label class="field full"><span>Danger / Scene Stakes</span><select data-key="dangerTracker"><option value="off">Off · no meter</option><option value="hidden">Hidden · shown through behavior</option><option value="visible">Visible · show value in chat</option></select></label>
+            </div>
+          </div>
           <div class="step-bottom"><button type="button" class="btn-outline prev" data-next="character">← Previous</button><button type="button" class="btn-primary next" data-next="opening">Continue to the First Page →</button></div>
         </section>
         <section class="editor-step" id="step-opening" role="tabpanel" aria-labelledby="tab-opening" hidden>
