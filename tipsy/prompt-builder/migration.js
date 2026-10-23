@@ -75,6 +75,13 @@ function render(result){
    const budget=el("div","migrate-review-budget");
    const recount=()=>budget.textContent=token(edit.value)+" estimated tokens · "+edit.value.length+" characters";
    edit.addEventListener("input",recount);recount();body.append(edit,budget);
+   if(item.original!==null && item.original!==undefined &&
+      String(item.original)!==String(item.value)){
+      const original=el("details","migrate-old migrate-original"),
+        heading=el("summary","migrate-old-summary","✦ See original source before this field was tuned"),
+        pre=el("pre","",Array.isArray(item.original)?item.original.join(", "):String(item.original));
+      original.append(heading,pre);body.append(original);
+   }
    const prev=existing[item.key];
    if(prev && String(prev)!==String(item.value)){
      const d=el("details","migrate-old"),s=el("summary","migrate-old-summary","Compare your current Atelier draft"),pre=el("pre","",Array.isArray(prev)?prev.join(", "):String(prev));
