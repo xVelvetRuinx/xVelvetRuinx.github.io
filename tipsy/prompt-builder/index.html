@@ -11,12 +11,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="atelier.css?v=1">
   <link rel="stylesheet" href="coach.css?v=2">
-  <link rel="stylesheet" href="migration.css?v=1">
+  <link rel="stylesheet" href="migration.css?v=2">
   <script defer src="atelier.js?v=2"></script>
   <script defer src="coach.js?v=2"></script>
   <script defer src="legacy-doc.js?v=1"></script>
-  <script defer src="migration-parser.js?v=1"></script>
-  <script defer src="migration.js?v=1"></script>
+  <script defer src="migration-parser.js?v=2"></script>
+  <script defer src="migration.js?v=2"></script>
 </head>
 <body>
 <a class="skip" href="#workspace">Skip to builder</a>
@@ -69,11 +69,11 @@
           <div class="step-top">
             <span class="step-index">THE RECLAMATION ROOM · CHAPTER 00</span>
             <h3>The <em>Transmutation.</em></h3>
-            <p>Bring an existing character. We'll extract what is already there, reorganize it for Tipsy, recommend useful edits, and show you every proposed change before it touches your draft.</p>
+            <p>Bring an existing character. We'll preserve your concept, personality, lore and dialogue. The Atelier suggests only targeted improvements, explains every edit, and never changes your existing draft until you approve.</p>
           </div>
           <div class="migrate-intro">
             <div class="migrate-icon" aria-hidden="true">✦</div>
-            <div><p class="overline">FROM THE ARCHIVE INTO THE ATELIER</p><h4>Your character. <em>A stronger structure.</em></h4><p>Keep the character's identity, history, choices and voice. Strip formatting noise, not personality.</p></div>
+            <div><p class="overline">FROM THE ARCHIVE INTO THE ATELIER</p><h4>Your character. <em>A stronger structure.</em></h4><p>Your canon, your scenes, your dialogue. Reorganize and polish without replacing the character you created.</p></div>
           </div>
           <div class="migrate-import-options">
             <label for="migration-file" class="migrate-dropzone" id="migration-dropzone" tabindex="0">
@@ -91,17 +91,20 @@
             <div class="migrate-file-line" id="migration-file-line" role="status" aria-live="polite">No file chosen. Paste text or upload a file to begin.</div>
           </div>
           <div class="migrate-options">
-            <p class="overline">HOW SHOULD THE MANUSCRIPT BE REFINED?</p>
-            <label class="migrate-choice"><input type="radio" name="migration-style" value="tuned" checked><span><strong>Tipsy Tune-Up</strong><small>Extract and reorganize source details, normalize roleplay formatting, make a sharper hook from existing facts, and use compact, consistent creator-field structure.</small></span></label>
-            <label class="migrate-choice"><input type="radio" name="migration-style" value="faithful"><span><strong>Faithful Import</strong><small>Keep phrasing close to the original. Sort fields and clean formatting without shortening character prose.</small></span></label>
+            <p class="overline">HOW CAREFULLY SHOULD THE MANUSCRIPT BE HANDLED?</p>
+            <div class="migrate-promise"><b>Preservation-first guarantee</b><p>The original is kept intact. Automatic optimization fixes structure and minor formatting, not characterization, plots, lore or dialogue. Proposed additions are marked separately for approval.</p></div>
+            <label class="migrate-choice"><input type="radio" name="migration-style" value="tuned" checked><span><strong>Gentle Tipsy Polish · Recommended</strong><small>Keep existing wording, move sections into the correct fields, remove formatting clutter and show optional suggestions. Do not shorten entire scenes, stories, lore or conversations.</small></span></label>
+            <label class="migrate-choice"><input type="radio" name="migration-style" value="faithful"><span><strong>Preserve Original Wording</strong><small>Transfer the source almost word-for-word. Only extract named sections and normalize file encoding or incompatible field formats. Suggestions remain optional.</small></span></label>
             <div class="migrate-actions">
-              <button class="btn-primary" type="button" id="migration-analyze">✦ Analyze & Optimize for Tipsy</button>
+              <button class="btn-primary" type="button" id="migration-analyze">✦ Analyze & Suggest Gentle Improvements</button>
               <button class="btn-outline" type="button" id="migration-example">See an example migration</button>
             </div>
           </div>
           <div class="migrate-results" id="migration-results" hidden>
             <div class="migrate-result-header"><div><p class="overline">ARCHIVE ANALYSIS</p><h4 id="migration-summary">Review the proposed character</h4><p class="muted" id="migration-note"></p></div><span id="migration-count" class="migrate-count"></span></div>
             <div class="migrate-insights" id="migration-insights" aria-live="polite"></div>
+            <div class="migrate-change-summary" id="migration-change-summary" aria-live="polite"></div>
+            <div class="migrate-change-explain"><b>What changed — and why</b><p>Each field shows its status, the exact original if it differs, an explanation, and its estimated token difference. You can restore original wording, edit a suggestion, or deselect it. Major wording changes require additional explicit approval.</p></div>
             <div class="migrate-review-toolbar">
               <strong>REVIEW THE FIELDS</strong>
               <div><button type="button" id="migration-select-all" class="migrate-link">Select all</button><button type="button" id="migration-select-none" class="migrate-link">Select none</button></div>
@@ -117,16 +120,16 @@
             <div class="migrate-leftovers" id="migration-leftovers" hidden><details><summary>Unmapped source material — preserved for review</summary><p class="muted">These excerpts weren't confidently assigned a creator field. Copy or preserve them; nothing should be silently invented or thrown away.</p><pre id="migration-leftovers-text"></pre></details></div>
           </div>
           <div class="migrate-ai" id="migration-ai">
-            <div class="migrate-ai-head"><span class="migrate-ai-symbol" aria-hidden="true">✧</span><div><p class="overline">OPTIONAL SECOND PASS · DEEP CREATIVE REWRITE</p><h4>Let AI refine the story, too.</h4></div></div>
-            <p>Automatic migration can rearrange, clean and prioritize your writing. A genuinely creative rewrite needs a language model. Copy a tailored upgrade brief, open it in ChatGPT or another assistant, and bring its JSON response right back here. No API key required on this website.</p>
+            <div class="migrate-ai-head"><span class="migrate-ai-symbol" aria-hidden="true">✧</span><div><p class="overline">OPTIONAL SECOND PASS · GENTLE AI COPYEDIT</p><h4>Polish the prose. <em>Keep the story.</em></h4></div></div>
+            <p>Automatic migration stays conservative. For stronger line edits, copy a preservation-focused brief into ChatGPT or another assistant. It asks for minimal revisions to improve clarity and token efficiency, while protecting your original plot, dialogue, personality and canon. The response includes an explanation of each proposed edit.</p>
             <div class="migrate-actions">
-              <button type="button" id="migration-copy-ai" class="btn-outline">✧ Copy AI Upgrade Brief</button>
+              <button type="button" id="migration-copy-ai" class="btn-outline">✧ Copy Gentle AI Polish Brief</button>
               <button type="button" id="migration-import-ai" class="btn-outline">Import AI-Refined JSON</button>
               <input type="file" id="migration-ai-file" accept=".json,application/json" hidden>
             </div>
             <label class="field full migrate-ai-response"><span>Or paste the assistant's JSON response</span><textarea id="migration-ai-paste" rows="4" placeholder='{"name":"...", "personality":"...", "scenario":"...", "customGreeting":"..."}'></textarea></label>
-            <button type="button" class="migrate-ai-parse" id="migration-ai-parse">Review pasted AI refinements ↗</button>
-            <p class="migrate-disclaimer">The AI option is optional: copying text to an external assistant shares it with that service under its terms. Uploaded character files stay on your device unless you choose to share them. Always review generated changes for invented lore and respect original creator rights.</p>
+            <button type="button" class="migrate-ai-parse" id="migration-ai-parse">Review AI suggestions & edit notes ↗</button>
+            <p class="migrate-disclaimer">Optional AI may still change meaning despite instructions. Compare suggestions to your original, and approve only the edits you want. Copying text to another assistant shares it with that service under its terms; browser imports remain local unless you choose to share.</p>
           </div>
           <div class="step-bottom"><button type="button" class="btn-primary next" data-next="concept">Go to the Premise →</button></div>
         </section>
