@@ -81,10 +81,12 @@ function fromText(text){
  for(const item of parsed.groups){
    const {key,value,name}=item;
    if(!value)continue;
-   if(fields[key]&&fields[key]!==value){
-      if(["personality","lore","backstory","anchors","canon","sampleChar1"].includes(key))fields[key]+="\n\n"+value;
-      else conflicts.push(key+": "+value);
-   }else fields[key]=value;
+   const cleanValue=value.replace(/^[═─-]{4,}\s*$/gm,"").trim();
+   if(!cleanValue)continue;
+   if(fields[key]&&fields[key]!==cleanValue){
+      if(["personality","lore","backstory","anchors","canon","sampleChar1"].includes(key))fields[key]+="\n\n"+cleanValue;
+      else conflicts.push(key+": "+cleanValue);
+   }else fields[key]=cleanValue;
    sources.push(name);
  }
  return {fields,unmapped:parsed.orphan.join("\n\n"),conflicts,sources};
@@ -223,7 +225,8 @@ function analyze(input,{mode="tuned",format="text"}={}){
  const knownKeys=new Set(["title","name","age","gender","rating","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","tags","promptMode","replyLength"]);
  const review=Object.entries(fields).filter(([k,v])=>knownKeys.has(k)&&v!==undefined&&String(v).trim()).map(([key,value])=>({
    key,value,
-   confidence:notes.some(x=>x.key===key)?"Suggestion":"Source",
+   original:originalValues[key]===undefined?null:originalValues[key],
+   confidence:notes.some(x=>x.key===key)?"Suggestion":originalValues[key]!==undefined&&String(originalValues[key])!==String(value)?"Tidied":"Source",
    reason:notes.find(x=>x.key===key)?.why||"Recognized from source. Review the meaning and completeness."
  }));
  if(!review.length)throw Error("No usable character details were recognized. Paste the character's text or use a different export.");
