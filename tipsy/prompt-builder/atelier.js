@@ -1,7 +1,7 @@
 (() => {
   "use strict";
   const STORAGE = "velvetruin.tipsy.atelier.v1";
-  const STEPS = ["concept","character","world","opening","export"];
+  const STEPS = ["migrate","concept","character","world","opening","export"];
   const TAGS = ["Original Character","Slow Burn","Romance","Drama","Fantasy","Modern","Mystery","Angst","Fluff","Horror","Adventure","Supernatural","Vampire","Werewolf","Sci-Fi","Enemies to Lovers","Friends to Lovers","Forced Proximity","Protective","Found Family","Crime","Historical","Comfort","Rivals","Action","Omegaverse"];
   const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",sampleUser3:"",sampleChar3:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",trustTracker:"off",tensionTracker:"off",dangerTracker:"off",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
   const $ = (q, root=document) => root.querySelector(q);
@@ -358,6 +358,29 @@
     toast("Project backup downloaded.");
   }
   function setProject(next) {state=sanitize(next);fillForm();renderTags();update();}
+  // Minimal integration API used by the optional Migration Studio.
+  // No network access and no direct state manipulation by external parsers.
+  window.VelvetRuinAtelier = Object.freeze({
+    go,
+    getData:()=>JSON.parse(JSON.stringify(state)),
+    keys:()=>Object.keys(defaults),
+    replace:next=>setProject(next),
+    apply:(patch,{replace=false}={})=>{
+      if(!patch||typeof patch!=="object")return {applied:[],skipped:[]};
+      const incoming=sanitize(patch),next={...state},applied=[],skipped=[];
+      for(const key of Object.keys(patch)){
+        if(!(key in defaults)){skipped.push(key);continue;}
+        const val=incoming[key];
+        const isEmpty=Array.isArray(val)?val.length===0:typeof val==="string"?!val.trim():false;
+        const currentEmpty=Array.isArray(next[key])?next[key].length===0:typeof next[key]==="string"?!next[key].trim()||next[key]===defaults[key]:next[key]===defaults[key];
+        if(isEmpty||(!replace&&!currentEmpty)){skipped.push(key);continue;}
+        next[key]=val;applied.push(key);
+      }
+      setProject(next);
+      return {applied,skipped};
+    },
+    tags:()=>TAGS.slice()
+  });
   function demo() {
     return {
       title:"Hollis Keene — The Last Train Out",name:"Hollis Keene",age:"38",gender:"Male",rating:"Limited",
@@ -397,6 +420,7 @@
       continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false
     };
   }
+  $("#open-migration").addEventListener("click",()=>go("migrate"));
   fields.forEach(el=>el.addEventListener(el.type==="checkbox"||el.tagName==="SELECT"?"change":"input",e=>currentFromForm(e.currentTarget)));
   $$(".chapter").forEach(b=>b.addEventListener("click",()=>go(b.dataset.step)));
   $$(".chapter").forEach(b=>b.addEventListener("keydown",e=>{
