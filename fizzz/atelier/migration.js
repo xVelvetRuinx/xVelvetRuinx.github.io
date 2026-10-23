@@ -425,7 +425,7 @@ function apply(){
  A().chapter("profile");
 }
 function auditCurrent(){
- const project=A().getState(),real=Object.fromEntries(Object.entries(project).filter(([k,v])=>allowed.has(k)&&typeof v==="string"&&v.trim()&&!["gender","pov","rating"].includes(k)));
+ const project=A().getState(),real=Object.fromEntries(Object.entries(project).filter(([k,v])=>{if(!allowed.has(k)||typeof v!=="string"||!v.trim()||["gender","pov","rating"].includes(k))return false;const book=k.match(/^world([123])(?:Mode|Keywords|Title)$/);if(book&&!String(project["world"+book[1]+"Body"]||"").trim()&&!String(project["world"+book[1]+"Title"]||"").trim())return false;return true;}));
  if(!Object.keys(real).length){A().notify("The current draft is empty. Write something or load an example first.");return}
  originalText=JSON.stringify(project,null,2);fileName="Current Fizzz draft";format="json";baseline={...project};lastAIFeedback=[];
  const replaceMode=$('input[name="merge-mode"][value="replace"]');if(replaceMode)replaceMode.checked=true;
