@@ -353,10 +353,59 @@ function aiBrief(){
  return rules.join("\n\n");
 }
 function parseAi(text){
- let raw=String(text||"").trim();const ticks=String.fromCharCode(96).repeat(3);
- if(raw.startsWith(ticks))raw=raw.replace(new RegExp("^"+ticks+"(?:json)?\\s*","i"),"").replace(new RegExp("\\s*"+ticks+"$"),"").trim();
- const i=raw.indexOf("{"),j=raw.lastIndexOf("}");if(i>=0&&j>i)raw=raw.slice(i,j+1);
- return JSON.parse(raw);
+ const received=String(text??"").replace(/^\uFEFF/,"").trim();
+ if(!received)throw new Error("Nothing has been pasted yet. First copy the Original Bot Draft Brief into ChatGPT. Then copy ChatGPT's COMPLETE JSON response into the box and select Review.");
+ // ChatGPT often includes prose around a fenced JSON result. Prefer that
+ // explicitly marked block, while also accepting prose followed by bare JSON.
+ const fenced=[...received.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)].map(m=>m[1]).find(part=>part.includes("{"));
+ const raw=(fenced||received).trim();
+ const start=raw.indexOf("{");
+ if(start<0)throw new Error("This looks like a description rather than a JSON character export. The response must contain a complete JSON object beginning with { and ending with }. Ask ChatGPT to return the character as valid JSON.");
+ // Find the matching end of the OUTERMOST object. A '}' inside dialogue
+ // or a {{user}} placeholder does not close JSON when inside a string.
+ let quoted=false,escaped=false,depth=0,closed=-1;
+ const stack=[];
+ for(let i=start;i<raw.length;i++){
+   const c=raw[i];
+   if(quoted){
+     if(escaped){escaped=false;continue;}
+     if(c==="\\"){escaped=true;continue;}
+     if(c==='"'){quoted=false;continue;}
+   }else{
+     if(c==='"'){quoted=true;continue;}
+     if(c==="{"||c==="["){stack.push(c);if(c==="{")depth++;continue;}
+     if(c==="}"||c==="]"){
+       const matching=stack.pop();
+       if(matching!==(c==="}"?"{":"["))throw new Error("The JSON has a mismatched closing bracket. Copy the entire original response or ask ChatGPT to resend valid JSON.");
+       if(c==="}")depth--;
+       if(!stack.length){closed=i;break;}
+     }
+   }
+ }
+ if(closed<0){
+   const detail=quoted?"it stops in the middle of a quoted field":"it is missing its final closing } or ]";
+   throw new Error("The copied JSON is incomplete ("+detail+"). This usually means the assistant's response was cut off or only part was copied. Ask ChatGPT: “Resend this character as one shorter, complete JSON object. Include the closing braces and omit extra commentary.” Then copy the FULL result.");
+ }
+ const objectSource=raw.slice(start,closed+1);
+ let obj;
+ try{obj=JSON.parse(objectSource);}
+ catch(error){
+   const msg=String(error.message||"");
+   if(/end of (?:json|input)|unexpected eof|unterminated|end of data/i.test(msg))
+     throw new Error("The JSON appears incomplete or has an unfinished quotation. Ask ChatGPT to resend a complete, shorter JSON object, then paste the entire result.");
+   throw new Error("The response contains a JSON formatting mistake. Ask ChatGPT to resend VALID JSON only (all field names and text in double quotes, with escaped quotes inside dialogue). Details: "+msg.slice(0,160));
+ }
+ if(!obj||typeof obj!=="object"||Array.isArray(obj))throw new Error("Expected one character JSON object containing a fields section.");
+ return obj;
+}
+function originalImportStatus(message,level="info"){
+ const area=$("#original-ai-status");
+ if(area){
+   area.textContent=message;
+   area.dataset.state=level;
+   area.setAttribute("role",level==="error"?"alert":"status");
+   if(level==="error")area.scrollIntoView?.({behavior:"smooth",block:"nearest"});
+ }
 }
 function aiReview(input){
  try{
@@ -437,7 +486,11 @@ window.FizzzAtelierReviewGeneratedDraft=function(input){
   mapped.notes.push("AI original-character drafts are optional and require manual review. Exact character names, motives, and scenes should be edited until they feel genuinely original.");
   lastAIFeedback=Array.isArray(obj.editorNotes)?obj.editorNotes.slice(0,7).map(x=>"Drafting note: "+x):[];
   mapped.notes.push(...lastAIFeedback);showReview(mapped);A().chapter("migrate");
+  originalImportStatus("✓ Complete character JSON recognized. Review the suggested fields in Migration Studio; nothing has changed in your saved draft.","success");
   A().notify("New character draft is ready for review. No AI content was applied automatically.");
- }catch(e){A().notify("Cannot review generated draft: "+e.message)}
+ }catch(e){
+  // Preserve the original text and existing draft; parsing never edits either.
+  originalImportStatus(e.message||"Could not review this draft. The response must be a complete JSON object.","error");
+ }
 };
 })();
