@@ -410,4 +410,25 @@ function initFizzzMigration(context){
  $("#review-ai").addEventListener("click",()=>aiReview($("#ai-response").value));
 }
 window.initFizzzMigration=initFizzzMigration;
+window.FizzzAtelierReviewGeneratedDraft=function(input){
+ try{
+  const obj=parseAi(input),fields=obj.fields&&typeof obj.fields==="object"?obj.fields:obj;
+  if(!fields||typeof fields!=="object")throw Error("Expected a JSON fields object.");
+  const proposed=Object.fromEntries(Object.entries(fields).filter(([k,v])=>allowed.has(k)&&typeof v==="string"&&v.trim()));
+  if(!Object.keys(proposed).length)throw Error("No recognized character fields found. Use the supplied drafting brief.");
+  baseline=A().getState();originalText=JSON.stringify(baseline,null,2);fileName="Current original concept seed";format="json";
+  const raw={fields:proposed,kind:"Original AI Bot Draft · optional",notes:{},unmapped:[],notesGlobal:["AI drafted fiction is a proposal. Confirm every invented detail, especially names, history, dialogue and character logic. Generated fields are unchecked by default."]};
+  const mapped=prepare(raw,{source:"New draft",ai:true,log:[]});
+  mapped.items.forEach(item=>{
+   item.original=String(baseline[item.key]||"");
+   item.status=item.original===item.value?"Author seed unchanged":"New bot proposal";
+   item.inferred=true;item.aiChanged=true;
+   item.reason=item.original===item.value?"Exact author-written seed preserved.":"New proposed content generated from your outline. This was not in the original author input; approve or edit before importing.";
+  });
+  mapped.notes.push("AI original-character drafts are optional and require manual review. Exact character names, motives, and scenes should be edited until they feel genuinely original.");
+  lastAIFeedback=Array.isArray(obj.editorNotes)?obj.editorNotes.slice(0,7).map(x=>"Drafting note: "+x):[];
+  mapped.notes.push(...lastAIFeedback);showReview(mapped);A().chapter("migrate");
+  A().notify("New character draft is ready for review. No AI content was applied automatically.");
+ }catch(e){A().notify("Cannot review generated draft: "+e.message)}
+};
 })();
