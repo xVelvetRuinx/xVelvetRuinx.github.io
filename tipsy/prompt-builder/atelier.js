@@ -3,7 +3,7 @@
   const STORAGE = "velvetruin.tipsy.atelier.v1";
   const STEPS = ["concept","character","world","opening","export"];
   const TAGS = ["Original Character","Slow Burn","Romance","Drama","Fantasy","Modern","Mystery","Angst","Fluff","Horror","Adventure","Supernatural","Vampire","Werewolf","Sci-Fi","Enemies to Lovers","Friends to Lovers","Forced Proximity","Protective","Found Family","Crime","Historical","Comfort","Rivals","Action","Omegaverse"];
-  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
+  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",trustTracker:"off",tensionTracker:"off",dangerTracker:"off",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
   const fields = $$("[data-key]");
@@ -98,6 +98,20 @@
   function block(header,parts) {
     const copy=parts.filter(Boolean).join("\n");
     return copy?"["+header+"]\n"+copy:"";
+  }
+  function trackerRules() {
+    const rules=[];
+    const configured=[
+      ["Trust",state.trustTracker,25,"Increase after honesty, safety and kept promises; decrease after betrayal or coercion. Below 35: guarded. 35–69: cautious cooperation. 70+: earned openness."],
+      ["Tension",state.tensionTracker,20,"Increase with unresolved challenges, attraction or rivalry; decrease with candid resolution or distance. Below 35: calm. 35–69: subtext. 70+: active confrontation or charged restraint."],
+      ["Danger",state.dangerTracker,15,"Increase from established threats and bad decisions; reduce only through credible action. Below 35: quiet. 35–69: warning signs. 70+: immediate stakes. Consequences persist."]
+    ];
+    configured.forEach(([name,mode,initial,behavior])=>{
+      if(!["hidden","visible"].includes(mode))return;
+      rules.push(name+" (0–100; initially "+initial+"): "+behavior+" Update gradually from events, not on every message. "+(mode==="hidden"?"Keep the number invisible; reveal state through behavior, dialogue and narration only.":"Display a compact "+name+" value once per response; do not let numbers replace the scene."));
+    });
+    if(rules.length)rules.unshift("These are optional in-context cues, not a real persistent database. Reconcile them with events during the current chat. They reset between sessions.");
+    return rules;
   }
   function generateBackground() {
     const name=textVal("name")||"{{char}}";
@@ -200,7 +214,8 @@
       return [
         block("CHARACTER",compactCharacter),
         block("STORY & RELATIONSHIP",compactWorld),
-        block("ROLEPLAY RULES",compactRules)
+        block("ROLEPLAY RULES",compactRules),
+        block("IN-CHAT STORY TRACKERS",trackerRules())
       ].filter(Boolean).join("\\n\\n");
     }
     return [
@@ -211,6 +226,7 @@
       block("RELATIONSHIP TO {{user}}",[relationship]),
       block("SETTING & CURRENT CONFLICT",[world]),
       block("ROLEPLAY & FORMATTING RULES",roleplay),
+      block("IN-CHAT STORY TRACKERS",trackerRules()),
       continuity.length?block("CONTINUITY & PROGRESSION",continuity):""
     ].filter(Boolean).join("\n\n");
   }
