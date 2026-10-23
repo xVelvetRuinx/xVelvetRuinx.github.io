@@ -46,11 +46,21 @@
 <div class="section-label">CHOOSE A STARTING ENERGY</div><div class="archetypes" id="archetypes"></div>
 <div class="field-block" id="spark-prompts"></div>
 <div class="hint-box"><b>✧ A strong hook answers three questions</b><p>Who is this person? Why does {{user}} encounter them now? What interesting choice, tension, or mystery can actually play out in chat?</p></div>
+<div class="handoff original-ai">
+  <p class="eyebrow">OPTIONAL · ORIGINAL CHARACTER DRAFTING WITH AI</p>
+  <h3>An entirely new character, <em>built from your idea.</em></h3>
+  <p>Want a complete, genuinely new bot rather than a starter scaffold? Fill the premise and preferences above, then copy an original-character drafting brief into ChatGPT. Its JSON response comes back through the same side-by-side approval process. This site does not secretly call an AI service.</p>
+  <div class="action-row"><button type="button" class="quiet-button" id="copy-original-ai">✧ Copy Original Bot Draft Brief</button></div>
+  <label class="field full" style="margin-top:18px"><span>Paste the assistant's generated character JSON</span>
+    <textarea id="original-ai-paste" rows="4" placeholder='{"fields":{"name":"...","title":"...","bio":"...","traits":"...","initialRaw":"..."}}'></textarea>
+  </label>
+  <button class="mini-link" type="button" id="review-original-ai">Review Generated Bot Fields →</button>
+</div>
 <div class="action-row"><button type="button" class="main-button" id="starter">✧ Build a Starter Concept</button><button type="button" class="quiet-button next" data-next="profile">Next · The Invitation →</button></div>
 </div>
 <div class="panel" id="panel-profile" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER ONE / PUBLIC PROFILE</p><h2>The invitation <em>to click.</em></h2><p>Sell the experience publicly. The Bio is for the player; Core Personality is what the character model uses.</p></div>
-<div id="profile-fields" class="field-block"></div><div class="tag-station"><div class="section-label">DISCOVERY TAGS · UP TO TEN TOTAL</div><p class="micro">Fizzz requires a Gender, POV and Rating choice. The additional discoverability tags below are optional; confirm the exact current options when publishing.</p><div id="tag-chips" class="tag-chips"></div></div>
+<div id="profile-fields" class="field-block"></div><div class="tag-station"><div class="section-label">DISCOVERY TAGS · SEVEN OPTIONAL + THREE REQUIRED</div><p class="micro">Fizzz requires a Gender, POV and Rating choice. Fizzz allows up to ten tags total including the required Gender, POV, and Rating categories. That leaves at most seven additional tags here; confirm exact options when publishing.</p><div id="tag-chips" class="tag-chips"></div></div>
 <div class="action-row"><button class="quiet-button next" data-next="spark">← The Spark</button><button class="main-button next" data-next="core">Next · The Person →</button></div>
 </div>
 <div class="panel" id="panel-core" hidden>
