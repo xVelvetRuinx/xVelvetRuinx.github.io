@@ -449,10 +449,15 @@ function aiBrief(){
  "Preserve initial message prose, spoken lines, emotional tone, chronology and playable closing beat verbatim unless a tiny local correction is absolutely needed.",
  "Never speak for {{user}} or predetermine consent, feelings or outcomes. Flag problems; do not alter unrelated text.",
  "Do not invent content that was not in original. If a better hook, new archetype, new image, new character or missing detail needs author input, write an optional suggestion only.",
- "Return ONLY valid JSON with schema:",
- '{"fields":{"bio":"...only when minimally edited","coreRaw":"...only when minimally edited"},"changeLog":[{"field":"coreRaw","before":"exact changed words","after":"exact replacement words","why":"specific benefit (clarity, tiny trim, consistency)"}],"suggestions":[{"field":"role","note":"Optional issue requiring human decision"}]}',
+ "PREFER EXACT PATCH OPERATIONS, not full rewrites. For large existing Core Personality and Worldbook text, output ONLY a list of short before/after replacements, so no huge JSON fields get cut off.",
+ "Return ONLY valid JSON, preferably this format:",
+ '{"edits":[{"field":"coreRaw","before":"the EXACT unique original sentence or fragment","after":"the minimally improved fragment","why":"why this exact change preserves canon and saves characters"}],"suggestions":[{"field":"voice","note":"An optional human-authored improvement"}]}',
+ "Every edit.before MUST match once, character-for-character, in its field. Include enough surrounding words to identify the location uniquely; if the same text appears multiple times, specify a longer exact substring.",
+ "If one entire SHORT public field should be replaced rather than patched, you may include fields:{\"bio\":\"full revised public bio\"}, but avoid replacing full Core Personality, Worldbook or Initial Message. Patches are preferred. Omitting fields and returning edits only is completely valid.",
+ "Only suggest deleting repeated boilerplate or truly identical duplicate text; never cut unique personality, world mechanics, sealed discoveries, chronology or exact character dialogue.",
+ "Use an empty edits array if no improvement is needed. Keep all output small and finish the closing braces—do NOT allow the JSON to truncate.",
  "Allowed fields: "+keys.join(", "),
- "Never return unrelated commentary, markdown fences or fields that have not been changed. Each changed field needs a specific changeLog entry quoting real before/after text.",
+ "Never return unrelated commentary, markdown fences or fields that have not been changed. Every patch MUST include a one-sentence why explanation and exact original/replacement text.",
  "Original source is authoritative. The extracted mapping may be imperfect.",
  "EXTRACTED FIELDS:\n"+JSON.stringify(context,null,2),
  "ORIGINAL SOURCE:\n"+originalText.slice(0,65000),
@@ -517,30 +522,60 @@ function originalImportStatus(message,level="info"){
 }
 function aiReview(input){
  try{
-  const obj=parseAi(input),updates=obj.fields&&typeof obj.fields==="object"?obj.fields:obj;
-  const real=Object.fromEntries(Object.entries(updates).filter(([k,v])=>allowed.has(k)&&typeof v==="string"&&v.trim()));
-  if(!sourceMapped&&!Object.keys(baseline).length)throw Error("Analyze the original character first so changes can be compared.");
-  const old=Object.fromEntries(proposals.map(x=>[x.key,x.original||x.value]));
-  if(!Object.keys(baseline).length)baseline={...old};
-  if(!Object.keys(real).length){
-    const tips=Array.isArray(obj.suggestions)?obj.suggestions:[];
-    lastAIFeedback=tips.map(x=>"AI suggestion · "+(x.field||"general")+": "+(x.note||"")).filter(Boolean);
-    if(sourceMapped){sourceMapped.notes.push(...lastAIFeedback);showReview(sourceMapped);A().notify("No copyedits proposed. Optional feedback is displayed.");}
+  const obj=parseAi(input);
+  if(!sourceMapped&&!Object.keys(baseline).length)throw Error("First import a character or select Review My Current Draft. The editor must have a source to compare before/after.");
+  if(!Object.keys(baseline).length)baseline=Object.fromEntries(proposals.map(x=>[x.key,x.original||x.value]));
+  const actual={...baseline},log=Array.isArray(obj.changeLog)?obj.changeLog.slice():[],issues=[];
+  // A compact, exact-patch response avoids resending and truncating 10k–25k character fields.
+  for(const change of Array.isArray(obj.edits)?obj.edits:[]){
+    if(!change||typeof change!=="object")continue;
+    const k=change.field,before=change.before,after=change.after;
+    if(!allowed.has(k)||typeof before!=="string"||!before||typeof after!=="string"){
+      issues.push("Skipped malformed edit for "+String(k||"unknown")+"; the editor needs an exact before and a replacement after.");continue;
+    }
+    const current=String(actual[k]||"");
+    if(!current.includes(before)){
+      issues.push("Skipped edit in "+label(k)+": exact original phrase was not found. Nothing was guessed.");continue;
+    }
+    if(current.indexOf(before)!==current.lastIndexOf(before)){
+      issues.push("Skipped ambiguous edit in "+label(k)+": phrase appears multiple times. Ask for a longer, unique before excerpt.");continue;
+    }
+    actual[k]=current.replace(before,after);
+    log.push({field:k,before,after,why:typeof change.why==="string"?change.why:"No explanation supplied"});
+  }
+  // Backward compatible: still review full-field AI response when supplied.
+  const full=obj.fields&&typeof obj.fields==="object"&&!Array.isArray(obj.fields)?obj.fields:{};
+  for(const [k,v] of Object.entries(full)){
+    if(!allowed.has(k)||typeof v!=="string"||!v.trim())continue;
+    actual[k]=v;
+    if(!log.some(x=>x?.field===k))issues.push("Full replacement proposed for "+label(k)+" without a precise explanation; review it carefully.");
+  }
+  const edited=Object.keys(actual).filter(k=>allowed.has(k)&&String(actual[k])!==String(baseline[k]??""));
+  lastAIFeedback=issues.concat((Array.isArray(obj.suggestions)?obj.suggestions:[]).slice(0,8).map(x=>"AI optional feedback · "+(x.field||"general")+": "+(x.note||"")));
+  if(!edited.length){
+    if(!sourceMapped)throw Error("No changes to display. Import or audit a source first.");
+    sourceMapped.notes.push(...lastAIFeedback);
+    showReview(sourceMapped);
+    A().notify("No valid content changes proposed. Any editorial feedback is above the source fields.");
     return;
   }
-  const src=Object.assign({},baseline,real);
-  const logs=Array.isArray(obj.changeLog)?obj.changeLog:[];
-  const data=prepare({fields:src,kind:"AI suggestions · preserve original",notes:{},unmapped:sourceMapped?.leftovers||""},{ai:true,log:logs});
+  const data=prepare({fields:actual,kind:"AI micro-edits · review before applying",notes:{},unmapped:sourceMapped?.leftovers||""},{ai:true,log});
   data.items.forEach(item=>{
-    item.original=Object.prototype.hasOwnProperty.call(baseline,item.key)?String(baseline[item.key]||""):"";
-    if(item.value===item.original){item.status="Source unchanged";item.aiChanged=false;item.reason="AI left this exact original text unchanged.";}
-    else {item.aiChanged=true;item.status="AI copyedit · optional";if(!logs.some(c=>c?.field===item.key))item.reason="AI changed this field without explaining why. Do not approve without a full comparison.";}
+    item.original=String(baseline[item.key]??"");
+    if(item.value===item.original){item.status="Source unchanged";item.aiChanged=false;item.reason="The original text remains exactly as supplied.";}
+    else {
+      item.aiChanged=true;item.status="AI micro-edit · optional";
+      const applicable=log.filter(c=>c?.field===item.key);
+      item.reason=applicable.length
+        ?applicable.map(c=>"Suggested: "+String(c.before).slice(0,120)+" → "+String(c.after).slice(0,120)+". Why: "+String(c.why||"No explanation supplied.")).join(" | ")
+        :"Full-field AI edit without an exact patch; verify no canon or dialogue changed.";
+      item.reductionLog=applicable.map(c=>({kind:"AI suggestion",before:c.before,after:c.after,why:c.why||"No reason supplied.",charactersSaved:String(c.before).length-String(c.after).length}));
+    }
   });
-  lastAIFeedback=(Array.isArray(obj.suggestions)?obj.suggestions:[]).slice(0,8).map(x=>"AI optional feedback · "+(x.field||"general")+": "+(x.note||""));
-  data.notes.push("AI changes are UNCHECKED by default. Inspect every original and explanation. AI may unintentionally change meaning.",...lastAIFeedback);
+  data.notes.push("AI text changes are unchecked by default. Examine the precise before/after, character consistency and exact dialogue.",...lastAIFeedback);
   showReview(data);
-  A().notify("AI copyedits are ready for manual review. Nothing changed in your saved character.");
- }catch(e){A().notify("Could not review AI result: "+e.message);}
+  A().notify("AI micro-edits ready. Nothing was applied; select only the changes you approve.");
+ }catch(e){A().notify("Could not review the AI micro-edits: "+e.message);}
 }
 function demo(){
  const sample="# Character Chat Name\nIona Vesk\n\n# Character Bio\nA coastal investigator returns to the lighthouse she swore never to visit. You have the letter that brought her back.\n\n# Core Personality\nIona is a 36-year-old former rescue diver. Her hair is dark, her gaze unblinking, and her wrists bear pale rope scars. She speaks briefly when afraid; rather than abandon others, she prepares a second exit. Her closest friend vanished during a failed rescue seven years ago. She wants the truth, but distrusts anyone eager to supply it.\n\n# Initial Message\n*The lighthouse beam crossed the harbor for the third time. Iona unfolded a damp letter, then lifted her gaze to {{user}}.* \"Tell me how you found this. I burned the original.\" *The paper remains where {{user}} can read it.*\n\n# Worldbook 1\nThe lighthouse keeper's log was lost in the storm seven years ago. No character may know its contents until it is actually discovered in roleplay.";
