@@ -32,7 +32,9 @@
       } else if(typeof defaults[k]==="boolean") {
         if(typeof raw[k]==="boolean") base[k]=raw[k];
       } else if(typeof raw[k]==="string") {
-        if(typeof raw[k]==="string") base[k]=raw[k].slice(0,25000);
+        // Never silently truncate user-authored text, especially imported lore,
+        // openings and dialogue. The export/audit is where length should be reviewed.
+        if(typeof raw[k]==="string") base[k]=raw[k];
       }
     });
     return base;
