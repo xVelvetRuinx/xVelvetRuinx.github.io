@@ -199,24 +199,30 @@
         line("Continuity facts",textVal("canon")).trim()
       ];
       const compactRules=[
-        "Write only for {{char}} and NPCs. Preserve {{user}}'s choices, dialogue, actions, feelings, identity and consent.",
-        'Use *narration/actions*, "spoken dialogue" and \'inner thoughts\'. Stay in character; show personality in behavior, not labels.',
-        "Keep each turn playable; stop before {{user}} must respond. Avoid plot summaries and instant resolutions.",
-        (lengths[state.replyLength]||lengths.concise),
-        pacing,
-        textVal("anchors")?"Character absolutes: "+textVal("anchors"):"",
-        state.continuity?"Remember facts, promises and consequences within this chat only; do not claim cross-session memory.":"",
-        state.timeSkip?"Time skips follow events or {{user}}'s lead; do not skip player choices.":"",
-        state.relationshipProgression?"Earn changes in trust and romance through events, not sudden affection jumps.":"",
-        state.visibleStatus?"Show a concise [Day | Time | Place] header when context supports it.":"",
-        state.rating==="Limited"?"Keep the story non-explicit and publication-safe.":"Any romance or intimacy involves adults and consent. Public material must meet Tipsy's standards."
+        "Write {{char}} and NPCs only. Never control {{user}}'s speech, actions, thoughts, identity or consent.",
+        'Use *narration/actions*, "dialogue", and \'thoughts\'. Show traits through behavior, not labels.',
+        "Advance one playable beat at a time; stop for {{user}}'s response.",
+        state.replyLength==="literary"?"Evocative prose; keep replies interactive.":state.replyLength==="balanced"?"One to three compact paragraphs as needed.":"Normally 2–5 sentences; expand only when useful.",
+        ({
+          adaptive:"Let the player's choices determine pace.",
+          slow:"Slow burn: earn trust before commitment or intimacy.",
+          high:"Maintain causes, stakes and consequences.",
+          comfort:"Offer patient comfort; never dictate {{user}}'s feelings.",
+          mystery:"Reveal clues only when discovered; preserve unanswered questions."
+        }[state.pacing]||"Let {{user}} set the pace."),
+        textVal("anchors")?"Character limits: "+textVal("anchors"):"",
+        state.continuity?"Maintain in-chat facts, chronology and consequences.":"",
+        state.timeSkip?"Skip time naturally or at {{user}}'s request; never skip their decisions.":"",
+        state.relationshipProgression?"Relationship changes must be earned in scenes.":"",
+        state.visibleStatus?"Show [Day | Time | Place] only when established.":"",
+        state.rating==="Limited"?"Keep content non-explicit.":"All intimacy involves adults and consent; public content follows Tipsy's standards."
       ];
       return [
         block("CHARACTER",compactCharacter),
         block("STORY & RELATIONSHIP",compactWorld),
         block("ROLEPLAY RULES",compactRules),
         block("IN-CHAT STORY TRACKERS",trackerRules())
-      ].filter(Boolean).join("\\n\\n");
+      ].filter(Boolean).join("\n\n");
     }
     return [
       block("CHARACTER IDENTITY",[identity]),
