@@ -36,7 +36,7 @@ Object.entries(aliases).forEach(([key,s])=>s.split("|").forEach(x=>keyLookup.set
 const label=t=>String(t||"").toLowerCase().replace(/[0-9§.*#\[\]()_:—–/-]+/g," ").replace(/\s+/g," ").trim().replace(/^character /,"");
 function fieldName(t) {
  const n=label(t);
- return keyLookup.get(n)||keyLookup.get(n.replace(/ field$/,""))||(/personality.*background|background.*personality/.test(n)?"personality":null);
+ return keyLookup.get(n)||keyLookup.get(n.replace(/ field$/,""))||(/personality.*background|background.*personality/.test(n)?"personality":/tagline.*public.*description|description.*tagline/.test(n)?"hook":/greeting.*opening|opening.*greeting/.test(n)?"customGreeting":/name.*tipsy.*name/.test(n)?"name":/example.*dialogue|dialogue.*example/.test(n)?"sampleChar1":/suggested.*tags/.test(n)?"tags":null);
 }
 function cleanup(s,mode="tuned") {
  let t=String(s||"").replace(/\u0000/g,"").replace(/\r\n?|\u000b|\u000c/g,"\n");
@@ -59,7 +59,8 @@ function parseSections(text){
  const flush=()=>{if(current){current.value=current.lines.join("\n").trim();groups.push(current);current=null;}};
  for(const [i,line] of cleanup(text,"faithful").split("\n").entries()){
    const trim=line.trim();
-   const h=trim.match(/^#{1,6}\s+(.+)$/)||trim.match(/^\[([^\]]{2,65})\]\s*$/)||trim.match(/^\*\*([^*]{2,65})\*\*\s*$/);
+   const numbered=trim.match(/^\d{1,2}\s*[·.\-—]\s*(.+)$/);
+   const h=trim.match(/^#{1,6}\s+(.+)$/)||trim.match(/^\[([^\]]{2,65})\]\s*$/)||trim.match(/^\*\*([^*]{2,65})\*\*\s*$/)||numbered;
    const kv=trim.match(/^([A-Za-z][A-Za-z0-9 \/_-]{1,43})\s*:\s*(.*)$/);
    let name="",key=null,inline="";
    if(h){name=h[1];key=fieldName(name);}
@@ -129,6 +130,7 @@ function distributeDialogues(fields){
  const src=String(fields.sampleChar1||"");
  const labels=[...src.matchAll(/(?:^|\n)\s*\{\{(user|char)\}\}:\s*/gim)];
  if(labels.length<2)return;
+ delete fields.sampleChar1; // Delete the combined text before distributing pairs.
  const pairs=[];
  labels.forEach((found,i)=>{
   const text=src.slice(found.index+found[0].length,i+1<labels.length?labels[i+1].index:src.length).trim();
@@ -137,7 +139,6 @@ function distributeDialogues(fields){
   else pairs.push({u:"",c:text});
  });
  pairs.slice(0,3).forEach((p,i)=>{if(p.u)fields["sampleUser"+(i+1)]=p.u;if(p.c)fields["sampleChar"+(i+1)]=p.c;});
- delete fields.sampleChar1;
 }
 function firstSentences(s,max=255){
  let t=String(s||"").replace(/\*+/g,"").replace(/\s+/g," ").replace(/^\{\{(?:user|char)\}\}:/i,"").trim();
