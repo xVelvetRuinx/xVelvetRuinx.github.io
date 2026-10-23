@@ -11,8 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="atelier.css?v=1">
   <link rel="stylesheet" href="coach.css?v=2">
+  <link rel="stylesheet" href="migration.css?v=1">
   <script defer src="atelier.js?v=2"></script>
   <script defer src="coach.js?v=2"></script>
+  <script defer src="migration.js?v=1"></script>
 </head>
 <body>
 <a class="skip" href="#workspace">Skip to builder</a>
@@ -40,7 +42,8 @@
       <div><p class="overline">THE WORKSHOP</p><h2 id="builder-title">Anatomy of a <em>character</em></h2><p class="muted">Follow the chapters or move freely. Your edits appear in the final manuscript automatically.</p></div>
       <div class="tool-actions">
         <button type="button" class="btn-outline" id="load-demo">Load example</button>
-        <button type="button" class="btn-outline" id="import-project">Import project</button>
+        <button type="button" class="btn-primary" id="open-migration">✦ Migrate a Character</button>
+        <button type="button" class="btn-outline" id="import-project">Restore Atelier Backup</button>
         <input type="file" id="project-file" accept=".json,application/json" hidden>
         <button type="button" class="btn-quiet" id="clear-project">Reset</button>
       </div>
@@ -49,6 +52,7 @@
       <aside class="chapter-rail" aria-label="Builder chapters">
         <p class="rail-label">THE CHAPTERS</p>
         <div class="chapter-buttons" role="tablist" aria-label="Builder sections">
+          <button class="chapter" type="button" role="tab" aria-selected="false" aria-controls="step-migrate" id="tab-migrate" data-step="migrate"><span>00</span><b>Migration Studio</b><small>Import · reshape · review</small></button>
           <button class="chapter active" type="button" role="tab" aria-selected="true" aria-controls="step-concept" id="tab-concept" data-step="concept"><span>01</span><b>The Premise</b><small>The hook & storefront</small></button>
           <button class="chapter" type="button" role="tab" aria-selected="false" aria-controls="step-character" id="tab-character" data-step="character"><span>02</span><b>The Person</b><small>Identity & voice</small></button>
           <button class="chapter" type="button" role="tab" aria-selected="false" aria-controls="step-world" id="tab-world" data-step="world"><span>03</span><b>The World</b><small>Context & relationship</small></button>
@@ -58,6 +62,72 @@
         <div class="save-card"><span class="pulse" aria-hidden="true"></span><span id="save-status" role="status" aria-live="polite">Your work saves locally.</span><small>No prompts are sent to our servers.</small></div>
       </aside>
       <div class="editor-column">
+
+        <section class="editor-step migrate-step" id="step-migrate" role="tabpanel" aria-labelledby="tab-migrate" hidden>
+          <div class="step-top">
+            <span class="step-index">THE RECLAMATION ROOM · CHAPTER 00</span>
+            <h3>The <em>Transmutation.</em></h3>
+            <p>Bring an existing character. We'll extract what is already there, reorganize it for Tipsy, recommend useful edits, and show you every proposed change before it touches your draft.</p>
+          </div>
+          <div class="migrate-intro">
+            <div class="migrate-icon" aria-hidden="true">✦</div>
+            <div><p class="overline">FROM THE ARCHIVE INTO THE ATELIER</p><h4>Your character. <em>A stronger structure.</em></h4><p>Keep the character's identity, history, choices and voice. Strip formatting noise, not personality.</p></div>
+          </div>
+          <div class="migrate-import-options">
+            <label for="migration-file" class="migrate-dropzone" id="migration-dropzone" tabindex="0">
+              <span class="migrate-upload-mark" aria-hidden="true">⌁</span>
+              <strong>Drop a character file here</strong>
+              <span>or <u>browse your files</u></span>
+              <small>TXT · MD · JSON · DOCX · legacy DOC · PDF · RTF · HTML · YAML</small>
+              <input type="file" id="migration-file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.text,text/plain,application/json,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            </label>
+            <div class="migrate-or"><span>OR PASTE AN EXISTING CHARACTER</span></div>
+            <label class="field full" for="migration-paste"><span>Original character concept, profile, lore, bot export or greeting</span>
+              <textarea id="migration-paste" rows="8" placeholder="Paste anything: a Fizzz persona, Tipsy prompt, SillyTavern character card, Markdown with headings, novel-style backstory, another bot platform's fields, or rough notes..."></textarea>
+              <small>Nothing is uploaded. Formatting is interpreted locally in your browser. Maximum 6 MB per file; image-only documents cannot be read.</small>
+            </label>
+            <div class="migrate-file-line" id="migration-file-line" role="status" aria-live="polite">No file chosen. Paste text or upload a file to begin.</div>
+          </div>
+          <div class="migrate-options">
+            <p class="overline">HOW SHOULD THE MANUSCRIPT BE REFINED?</p>
+            <label class="migrate-choice"><input type="radio" name="migration-style" value="tuned" checked><span><strong>Tipsy Tune-Up</strong><small>Extract and reorganize source details, normalize roleplay formatting, make a sharper hook from existing facts, and use compact, consistent creator-field structure.</small></span></label>
+            <label class="migrate-choice"><input type="radio" name="migration-style" value="faithful"><span><strong>Faithful Import</strong><small>Keep phrasing close to the original. Sort fields and clean formatting without shortening character prose.</small></span></label>
+            <div class="migrate-actions">
+              <button class="btn-primary" type="button" id="migration-analyze">✦ Analyze & Optimize for Tipsy</button>
+              <button class="btn-outline" type="button" id="migration-example">See an example migration</button>
+            </div>
+          </div>
+          <div class="migrate-results" id="migration-results" hidden>
+            <div class="migrate-result-header"><div><p class="overline">ARCHIVE ANALYSIS</p><h4 id="migration-summary">Review the proposed character</h4><p class="muted" id="migration-note"></p></div><span id="migration-count" class="migrate-count"></span></div>
+            <div class="migrate-insights" id="migration-insights" aria-live="polite"></div>
+            <div class="migrate-review-toolbar">
+              <strong>REVIEW THE FIELDS</strong>
+              <div><button type="button" id="migration-select-all" class="migrate-link">Select all</button><button type="button" id="migration-select-none" class="migrate-link">Select none</button></div>
+            </div>
+            <div class="migrate-diff" id="migration-diff"></div>
+            <div class="migrate-apply-bar">
+              <fieldset><legend>When your current Atelier draft already contains writing:</legend>
+                <label><input type="radio" name="migration-merge" value="empty" checked> Fill only empty fields</label>
+                <label><input type="radio" name="migration-merge" value="replace"> Replace selected fields</label>
+              </fieldset>
+              <div class="migrate-actions"><button class="btn-primary" type="button" id="migration-apply">Apply Selected Changes →</button><button class="btn-outline" type="button" id="migration-copy-source">↓ Save Original Text</button></div>
+            </div>
+            <div class="migrate-leftovers" id="migration-leftovers" hidden><details><summary>Unmapped source material — preserved for review</summary><p class="muted">These excerpts weren't confidently assigned a creator field. Copy or preserve them; nothing should be silently invented or thrown away.</p><pre id="migration-leftovers-text"></pre></details></div>
+          </div>
+          <div class="migrate-ai" id="migration-ai">
+            <div class="migrate-ai-head"><span class="migrate-ai-symbol" aria-hidden="true">✧</span><div><p class="overline">OPTIONAL SECOND PASS · DEEP CREATIVE REWRITE</p><h4>Let AI refine the story, too.</h4></div></div>
+            <p>Automatic migration can rearrange, clean and prioritize your writing. A genuinely creative rewrite needs a language model. Copy a tailored upgrade brief, open it in ChatGPT or another assistant, and bring its JSON response right back here. No API key required on this website.</p>
+            <div class="migrate-actions">
+              <button type="button" id="migration-copy-ai" class="btn-outline">✧ Copy AI Upgrade Brief</button>
+              <button type="button" id="migration-import-ai" class="btn-outline">Import AI-Refined JSON</button>
+              <input type="file" id="migration-ai-file" accept=".json,application/json" hidden>
+            </div>
+            <label class="field full migrate-ai-response"><span>Or paste the assistant's JSON response</span><textarea id="migration-ai-paste" rows="4" placeholder='{"name":"...", "personality":"...", "scenario":"...", "customGreeting":"..."}'></textarea></label>
+            <button type="button" class="migrate-ai-parse" id="migration-ai-parse">Review pasted AI refinements ↗</button>
+            <p class="migrate-disclaimer">The AI option is optional: copying text to an external assistant shares it with that service under its terms. Uploaded character files stay on your device unless you choose to share them. Always review generated changes for invented lore and respect original creator rights.</p>
+          </div>
+          <div class="step-bottom"><button type="button" class="btn-primary next" data-next="concept">Go to the Premise →</button></div>
+        </section>
         <section class="editor-step active" id="step-concept" role="tabpanel" aria-labelledby="tab-concept">
           <div class="step-top"><span class="step-index">CHAPTER ONE · 01 / 05</span><h3>The <em>Premise.</em></h3><p>Make one promise the story can actually keep. The public copy should sell the experience, not bury the character in lore.</p></div>
           <div class="field-grid">
