@@ -10,9 +10,9 @@
 <link rel="stylesheet" href="atelier.css?v=3">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
-<script defer src="atelier.js?v=2"></script>
+<script defer src="atelier.js?v=3"></script>
 <script defer src="optimizer.js?v=1"></script>
-<script defer src="migration.js?v=3"></script>
+<script defer src="migration.js?v=4"></script>
 <script defer src="coach.js?v=1"></script>
 </head>
 <body>
@@ -33,7 +33,7 @@
   <article><span>02</span><b>Write one chapter at a time</b><p>Each field includes what to write, a strong example, advice on using fewer words, and when more detail is justified. Expand <strong>“Exactly what to write”</strong> beneath any field.</p></article>
   <article><span>03</span><b>Refine without losing the story</b><p>Use <strong>Find Gentle Trims</strong> to review exact repeated paragraphs, formatting waste and a few wordy phrases. Every proposal explains why and shows original versus revised text.</p></article>
   <article><span>04</span><b>Test and publish in Fizzz</b><p>Read the live checks, download a backup and copy your fields. Check visuals, first-turn pacing, voice and player agency in actual Fizzz test chats.</p></article>
- </div><p class="start-disclaimer">Official Fizzz limits are enforced by the checks. Suggested archetypes, length ranges and engagement advice are editorial guidance—not platform mandates or guaranteed popularity. <a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Read official guidelines ↗</a></p></div>
+ </div><p class="start-disclaimer">Official Fizzz character limits are flagged in the checks. Token estimates use ~4 characters per token; actual tokenization varies and Fizzz publishes character limits. Archetypes, editorial length ranges and engagement advice are not platform mandates or guaranteed popularity. <a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Read official guidelines ↗</a></p></div>
 </section>
 <div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Writing saves in this browser. Export JSON to back up your work.</p></div><div class="top-actions"><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button><button type="button" id="export-quick">↓ Back up JSON</button></div></div>
 <div class="workspace">
@@ -140,9 +140,9 @@
 <fieldset class="merge-choices"><legend>When your Atelier draft already contains text</legend><label><input type="radio" name="merge-mode" value="empty" checked> Fill empty fields only</label><label><input type="radio" name="merge-mode" value="replace"> Replace selected fields</label></fieldset>
 <button class="main-button" type="button" id="apply-migration">Apply Approved Fields →</button>
 </div>
-<div class="handoff"><p class="eyebrow">OPTIONAL · AI COPYEDIT & COACHING</p><h3>Polish the language, <em>not the concept.</em></h3><p>This browser has no built-in language model. Copy a precise preservation-first editing brief into ChatGPT or another assistant. Bring its JSON response back to review changes and the reasons behind them.</p>
+<div class="handoff"><p class="eyebrow">OPTIONAL · AI MICRO-EDITS & COACHING</p><h3>Polish the language, <em>not the concept.</em></h3><p>For deeper, source-faithful reduction, copy a precise brief to ChatGPT or another assistant. It now requests <strong>short exact before → after edits with a reason</strong> rather than a giant rewritten bot, reducing incomplete JSON responses. Bring that compact JSON back for side-by-side approval. The website itself does not run an AI model.</p>
 <div class="action-row"><button type="button" class="quiet-button" id="copy-ai-brief">✧ Copy Gentle-Polish Brief</button><button type="button" class="quiet-button" id="import-ai-file-button">Import AI JSON</button><input type="file" id="import-ai-file" accept=".json" hidden></div>
-<label class="field full"><span>Paste AI change JSON</span><textarea id="ai-response" rows="4" placeholder='{"fields":{"voice":"..."},"changeLog":[{"field":"voice","why":"..."}],"suggestions":[]}'></textarea></label><button id="review-ai" type="button" class="mini-link">Review AI changes →</button>
+<label class="field full"><span>Paste the complete AI micro-edit JSON</span><textarea id="ai-response" rows="5" spellcheck="false" placeholder='{"edits":[{"field":"coreRaw","before":"in order to","after":"to","why":"Equivalent purpose phrase with fewer characters."}],"suggestions":[]}'></textarea><small>Each “before” must match a unique excerpt from your actual character. If it does not, that specific edit is skipped rather than guessed. Worldbook and initial dialogue are never rewritten automatically.</small></label><button id="review-ai" type="button" class="mini-link">Review AI before / after suggestions →</button>
 </div>
 </div>
 </section>
