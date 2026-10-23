@@ -366,7 +366,9 @@ function setupNavigation(){
     "Initial Message must contain atmosphere, visible character action, one or two meaningful spoken lines and a playable unresolved beat. Use original, distinctive dialogue, not bland templates. An opening can be rich and novelistic but not over-expository. Set up media visually coherently.",
     "Speaking Style goes near the end of Core Personality; no long example dialogues. Worldbook stores setting rules and NPCs without duplicating the character identity. Secret knowledge must respect in-story discovery conditions.",
     "Offer creator-safe image and voice direction for Fizzz media. Image prompts should favor a single adult subject, clear unobstructed face and consistent visual identity.",
-    "Output ONLY valid JSON: {\"fields\":{\"name\":\"...\",\"title\":\"...\",\"age\":\"...\",\"gender\":\"...\",\"bio\":\"...\",\"occupation\":\"...\",\"appearance\":\"...\",\"backstory\":\"...\",\"traits\":\"...\",\"contradiction\":\"...\",\"motivation\":\"...\",\"relationship\":\"...\",\"behavior\":\"...\",\"boundaries\":\"...\",\"voice\":\"...\",\"initialRaw\":\"...\",\"world1Title\":\"...\",\"world1Body\":\"...\",\"world1Mode\":\"always\",\"world2Title\":\"...\",\"world2Body\":\"...\",\"world2Keywords\":\"...\",\"world2Mode\":\"keyword\",\"coverDirection\":\"...\",\"imageDirection\":\"...\",\"videoDirection\":\"...\",\"voiceDirection\":\"...\"},\"editorNotes\":[\"...\"]}",
+    "Output ONE complete, parseable JSON object (not prose): {\"fields\":{\"name\":\"Character name\",\"title\":\"Interesting public title\",\"bio\":\"Short playable hook\",\"traits\":\"Specific behavioral personality\",\"backstory\":\"Causal history\",\"voice\":\"Speaking style\",\"initialRaw\":\"Full opening in prose and dialogue\"},\"editorNotes\":[\"Optional creator suggestion\"]}.",
+    "The example is illustrative: write actual character text, never placeholder ellipses. You may also include age, gender, occupation, species, appearance, contradiction, motivation, relationship, behavior, boundaries, world1Title, world1Body, world1Mode, world2Title, world2Body, world2Keywords, world2Mode, coverDirection, imageDirection, videoDirection and voiceDirection if meaningful.",
+    "IMPORTANT: Output the entire JSON in ONE response, with both opening { and final closing }. Prioritize completed core personality, greeting and public bio over unnecessary optional material. Aim for under 14,000 output characters to avoid truncation; if details do not fit, omit secondary media/Worldbook fields and list those needs in editorNotes. Never stop mid-string or mid-JSON.",
     "Include Worldbook entries only when the world warrants them. Use valid JSON strings, no comments or markdown fences. Aim for a coherent new playable person, not a loose brainstorm.",
     "SELECTED OPTIONAL ARCHETYPE: "+a.name+" / "+a.tag,
     "AUTHOR'S EXISTING NEW BOT SEED (nonempty fields are requirements; do not rewrite them):",
@@ -375,6 +377,41 @@ function setupNavigation(){
    ].join("\n\n");
    try{await copyText(prompt);notify("Original character drafting brief copied. Paste into ChatGPT and return the JSON for review.");}
    catch{download("fizzz-original-character-brief.txt",prompt);notify("Drafting brief downloaded because clipboard was unavailable.");}
+ });
+ const aiField=$("#original-ai-paste"),aiStatus=$("#original-ai-status");
+ const aiMessage=(message,kind="info")=>{
+    aiStatus.textContent=message;
+    aiStatus.dataset.state=kind;
+    aiStatus.setAttribute("role",kind==="error"?"alert":"status");
+ };
+ aiField.addEventListener("input",()=>{
+    const t=aiField.value.trim();
+    aiMessage(t ? t.length.toLocaleString()+" characters pasted. Select Review to validate and compare this draft.":"No JSON pasted yet. Copy the complete character response from ChatGPT first.");
+ });
+ $("#paste-original-ai").addEventListener("click",async()=>{
+    if(!navigator.clipboard?.readText){
+       aiMessage("Automatic clipboard access isn't available in this browser. Tap and hold the box above, then choose Paste.","error");
+       aiField.focus();return;
+    }
+    try{
+       const response=await navigator.clipboard.readText();
+       if(!response.trim()){aiMessage("The clipboard is empty. Copy the completed JSON character response in ChatGPT, then try again.","error");return;}
+       aiField.value=response;aiField.dispatchEvent(new Event("input",{bubbles:true}));
+       aiMessage("Response pasted from clipboard ("+response.length.toLocaleString()+" characters). Select Review to validate it.","success");
+    }catch{
+       aiMessage("iPhone blocked automatic clipboard access. Tap and hold inside the JSON box above, choose Paste, then Review.","error");aiField.focus();
+    }
+ });
+ $("#upload-original-ai").addEventListener("click",()=>$("#original-ai-upload").click());
+ $("#original-ai-upload").addEventListener("change",async evt=>{
+    const file=evt.target.files?.[0];evt.target.value="";
+    if(!file)return;
+    if(file.size>2*1024*1024){aiMessage("This file is over 2 MB. Export only the completed character JSON, or paste it directly.","error");return;}
+    try{
+       const response=await file.text();
+       aiField.value=response;aiField.dispatchEvent(new Event("input",{bubbles:true}));
+       aiMessage(file.name+" opened ("+response.length.toLocaleString()+" characters). Select Review to validate it.","success");
+    }catch{aiMessage("Couldn't open this text file. Save the AI response as JSON or TXT and retry.","error");}
  });
  $("#review-original-ai").addEventListener("click",()=>{
    if(typeof window.FizzzAtelierReviewGeneratedDraft!=="function")return notify("AI review module is unavailable. Reload the page and try again.");
