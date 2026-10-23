@@ -7,11 +7,13 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=2">
+<link rel="stylesheet" href="atelier.css?v=3">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
 <script defer src="atelier.js?v=2"></script>
-<script defer src="migration.js?v=2"></script>
+<script defer src="optimizer.js?v=1"></script>
+<script defer src="migration.js?v=3"></script>
+<script defer src="coach.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -24,6 +26,15 @@
 <div class="hero-buttons"><button type="button" class="main-button" id="start-new">✦ Create a New Character</button><button type="button" class="quiet-button" id="start-import">⌁ Migrate a Character</button><a href="../#quick-start" class="quiet-button">Read the Fizzz Guide ↗</a></div>
 </section>
 <main id="workbench">
+<section class="atelier-start-here" id="how-to-use" aria-label="How to use the Fizzz Character Atelier">
+ <div class="start-head"><div><p class="eyebrow">START HERE · YOUR CREATOR WORKFLOW</p><h2>From idea to <em>playable character.</em></h2></div><button type="button" id="toggle-howto" class="quiet-button" aria-expanded="true">Hide instructions ↑</button></div>
+ <div id="howto-body"><div class="start-cards">
+  <article><span>01</span><b>Choose your path</b><p><strong>New bot:</strong> choose an optional archetype or write an original hook. <strong>Existing bot:</strong> open Migration Studio and import or paste your original material.</p></article>
+  <article><span>02</span><b>Write one chapter at a time</b><p>Each field includes what to write, a strong example, advice on using fewer words, and when more detail is justified. Expand <strong>“Exactly what to write”</strong> beneath any field.</p></article>
+  <article><span>03</span><b>Refine without losing the story</b><p>Use <strong>Find Gentle Trims</strong> to review exact repeated paragraphs, formatting waste and a few wordy phrases. Every proposal explains why and shows original versus revised text.</p></article>
+  <article><span>04</span><b>Test and publish in Fizzz</b><p>Read the live checks, download a backup and copy your fields. Check visuals, first-turn pacing, voice and player agency in actual Fizzz test chats.</p></article>
+ </div><p class="start-disclaimer">Official Fizzz limits are enforced by the checks. Suggested archetypes, length ranges and engagement advice are editorial guidance—not platform mandates or guaranteed popularity. <a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Read official guidelines ↗</a></p></div>
+</section>
 <div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Writing saves in this browser. Export JSON to back up your work.</p></div><div class="top-actions"><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button><button type="button" id="export-quick">↓ Back up JSON</button></div></div>
 <div class="workspace">
 <aside class="rail"><div class="rail-label">THE CHAPTERS</div>
@@ -102,6 +113,7 @@
 </div>
 <div class="panel" id="panel-review" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER SIX / FINAL MANUSCRIPT</p><h2>Ready to <em>become real?</em></h2><p>Get platform-aware feedback, export each field, or back up the full draft. Final publishing and uploading happen on Fizzz.</p></div>
+<div class="review-coaching-note"><b>✧ The last pass is about performance, not deleting personality.</b><p>Simple familiar hooks often attract the first click; specific reactions, growth and story consequences sustain the chat. If the core is wordy, review exact redundancies—not meaningful lore or dialogue.</p><button type="button" id="review-to-optimizer" class="quiet-button">⌁ Review & reduce my current draft →</button></div>
 <div id="audit-summary" class="audit-summary"></div><div id="audit-list" class="audit-list"></div>
 <div class="export-actions"><button id="download-txt" type="button" class="main-button">↓ Download All Fields (.txt)</button><button id="download-json" type="button" class="quiet-button">↓ Back Up Editable Project (.json)</button><button id="copy-all" type="button" class="quiet-button">✧ Copy All Text</button></div>
 <div id="export-blocks" class="export-blocks"></div>
@@ -118,6 +130,11 @@
 <div id="migration-results" hidden>
 <div class="review-header"><h3>Proposed migration</h3><p id="migration-explanation">Compare each original with the mapped Fizzz field. Inferred content is off by default.</p><div id="migration-notes"></div>
 <div class="action-row"><button type="button" class="mini-link" id="select-mapped">Select mapped</button><button type="button" class="mini-link" id="deselect-mapped">Deselect all</button><button type="button" class="mini-link" id="source-download">↓ Save Original</button><button type="button" class="mini-link" id="report-download">↓ Change Report</button></div></div>
+<div class="optimize-box" id="optimizer-panel"><p class="eyebrow">THE EDITOR'S SCALPEL · NO FULL REWRITES</p><h3>Trim repetition. <em>Keep the soul.</em></h3><p>Find exact duplicate passages, invisible formatting waste, and a few precise word substitutions in character settings. Initial Messages, quoted dialogue and Worldbook facts are never creatively rewritten. Every proposed cut is unchecked for you to review.</p>
+ <div class="optimize-controls"><button type="button" id="optimize-all" class="main-button">✧ Find Gentle Trims in All Fields</button><button type="button" id="audit-quality" class="quiet-button">⌁ Explain What Could Perform Better</button></div>
+ <div class="optimizer-summary" id="optimizer-summary" role="status" aria-live="polite">No reductions have been suggested yet. Your original character remains intact.</div>
+ <div id="optimizer-feedback" class="optimizer-feedback"></div>
+ </div>
 <div id="migration-proposals"></div>
 <details class="leftovers"><summary>View material that could not be confidently mapped</summary><pre id="migration-leftovers"></pre></details>
 <fieldset class="merge-choices"><legend>When your Atelier draft already contains text</legend><label><input type="radio" name="merge-mode" value="empty" checked> Fill empty fields only</label><label><input type="radio" name="merge-mode" value="replace"> Replace selected fields</label></fieldset>
