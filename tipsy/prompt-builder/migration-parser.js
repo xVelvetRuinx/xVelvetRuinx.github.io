@@ -264,6 +264,43 @@ function rtf(source){
  .replace(/\\[a-zA-Z]+-?\d* ?/g,"")
  .replace(/\\[{}\\]/g,x=>x.slice(1)).replace(/[{}]/g,"");
 }
+function cardPng(buffer){
+ const b=new Uint8Array(buffer),dv=new DataView(buffer);
+ if(b.length<16||![137,80,78,71,13,10,26,10].every((x,i)=>b[i]===x))throw Error("Not a readable PNG character card.");
+ let p=8;
+ while(p+12<=b.length){
+   const len=dv.getUint32(p,false);
+   if(len>10000000||p+12+len>b.length)break;
+   const type=new TextDecoder("ascii").decode(b.slice(p+4,p+8));
+   if(type==="tEXt"||type==="iTXt"){
+     const data=b.slice(p+8,p+8+len),nul=data.indexOf(0);
+     if(nul>0){
+       const key=new TextDecoder("ascii").decode(data.slice(0,nul)).toLowerCase();
+       if(key==="chara"||key==="ccv3"||key==="character"){
+         let payload="";
+         if(type==="tEXt")payload=new TextDecoder("latin1").decode(data.slice(nul+1));
+         else {
+           // iTXt: compression flag, compression method, language and translated keyword.
+           let q=nul+3;
+           while(q<data.length&&data[q]!==0)q++;q++;
+           while(q<data.length&&data[q]!==0)q++;q++;
+           if(data[nul+1]===1)throw Error("Compressed PNG character metadata is not supported. Export its JSON card instead.");
+           payload=new TextDecoder("utf-8").decode(data.slice(q));
+         }
+         try{
+           const raw=Uint8Array.from(atob(payload.replace(/\s/g,"")),c=>c.charCodeAt(0));
+           const text=new TextDecoder("utf-8").decode(raw);
+           JSON.parse(text);return text;
+         }catch{
+           try{JSON.parse(payload);return payload;}catch{}
+         }
+       }
+     }
+   }
+   p+=12+len;
+ }
+ throw Error("This PNG has no readable embedded character card. A portrait alone does not contain its personality or lore; import the character's TXT/JSON instead.");
+}
 async function extract(file){
  if(!file||!file.arrayBuffer)throw Error("Choose a file first.");
  if(file.size>12*1024*1024)throw Error("Please use a file smaller than 12 MB.");
@@ -272,6 +309,7 @@ async function extract(file){
    let text=decode(buf);if(ext==="rtf")text=rtf(text);
    return {text,format:ext==="json"?"json":"text",filename:file.name,warnings:[]};
  }
+ if(ext==="png")return {text:cardPng(buf),format:"json",filename:file.name,warnings:["Embedded character card detected in PNG metadata. Review the migrated facts."]};
  if(ext==="docx"){
    await script("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.13.0/mammoth.browser.min.js",()=>!!window.mammoth);
    const data=await window.mammoth.extractRawText({arrayBuffer:buf});
