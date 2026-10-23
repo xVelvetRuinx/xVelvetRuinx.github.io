@@ -80,13 +80,13 @@
               <span class="migrate-upload-mark" aria-hidden="true">⌁</span>
               <strong>Drop a character file here</strong>
               <span>or <u>browse your files</u></span>
-              <small>TXT · MD · JSON · DOCX · legacy DOC · PDF · RTF · HTML · YAML</small>
-              <input type="file" id="migration-file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.text,text/plain,application/json,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              <small>TXT · MD · JSON · DOCX · DOC · PDF · RTF · HTML · YAML · character-card PNG</small>
+              <input type="file" id="migration-file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.text,.png,text/plain,application/json,application/pdf,application/msword,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
             </label>
             <div class="migrate-or"><span>OR PASTE AN EXISTING CHARACTER</span></div>
             <label class="field full" for="migration-paste"><span>Original character concept, profile, lore, bot export or greeting</span>
               <textarea id="migration-paste" rows="8" placeholder="Paste anything: a Fizzz persona, Tipsy prompt, SillyTavern character card, Markdown with headings, novel-style backstory, another bot platform's fields, or rough notes..."></textarea>
-              <small>Nothing is uploaded. Formatting is interpreted locally in your browser. Maximum 6 MB per file; image-only documents cannot be read.</small>
+              <small>Nothing is uploaded. Formatting is interpreted locally in your browser. Maximum 6 MB per file; image-only documents cannot be read. PNG import works only for character cards with embedded metadata.</small>
             </label>
             <div class="migrate-file-line" id="migration-file-line" role="status" aria-live="polite">No file chosen. Paste text or upload a file to begin.</div>
           </div>
