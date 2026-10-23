@@ -6,7 +6,7 @@ const app=()=>window.VelvetRuinAtelier,engine=()=>window.AtelierMigrator;
 const priority=["title","name","age","gender","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","tags","rating","replyLength","promptMode"];
 const labels={title:"Storefront title",name:"Character name",age:"Adult age",gender:"Gender",hook:"Public hook",userRole:"Player role",appearance:"Appearance",personality:"Personality",contradiction:"Contradiction",voice:"Speech and voice",mannerisms:"Habits and tells",occupation:"Role",surfaceGoal:"Immediate goal",hiddenGoal:"Secret motivation",backstory:"Backstory",anchors:"Character rules",setting:"Setting",lore:"World rules",scenario:"Story scenario",relationship:"Starting relationship",supporting:"Supporting cast",canon:"Canonical facts",customGreeting:"Opening / First Message",sampleChar1:"Character Dialogue 1",sampleChar2:"Character Dialogue 2",sampleChar3:"Character Dialogue 3",sampleUser1:"User Dialogue 1",sampleUser2:"User Dialogue 2",sampleUser3:"User Dialogue 3",tags:"Suggested tags",rating:"Rating"};
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x};
-let current=null,source="",lastFormat="text",fileName="",sourceWarnings=[],notifyTimer;
+let current=null,source="",lastFormat="text",fileName="",sourceWarnings=[],notifyTimer,baseline=null;
 const token=v=>Math.ceil(String(v||"").length/4);
 function alertUser(message,err=false){
  const target=$("#migration-file-line");target.textContent=message;target.classList.toggle("error",err);
@@ -44,73 +44,184 @@ function analyze(input,format,mode){
  current=engine().analyze(raw,{format:detected,mode:mode||($('input[name="migration-style"]:checked')||{}).value||"tuned"});
  render(current);return current;
 }
+/* The reviewer compares exact text, not a model-generated claim of similarity. */
+function stringOf(value){return Array.isArray(value)?value.join(", "):String(value??"");}
+function changeMagnitude(before,after){
+ const a=stringOf(before).trim(),b=stringOf(after).trim();
+ if(!a||a===b)return {large:false,ratio:a===b?0:1};
+ const words=t=>t.toLowerCase().match(/[\p{L}\p{N}']+/gu)||[];
+ const aa=words(a),bb=words(b),aset=new Set(aa),bset=new Set(bb);
+ const union=new Set([...aset,...bset]).size||1,common=[...aset].filter(x=>bset.has(x)).length;
+ const lexical=1-common/union,length=Math.abs(a.length-b.length)/Math.max(a.length,b.length,1);
+ return {large:lexical>.50||length>.35,ratio:Math.max(lexical,length)};
+}
+const protectedCore=new Set(["title","name","age","gender","personality","voice","backstory","lore","anchors","canon","scenario","relationship","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3"]);
+function needsExplicitApproval(key,before,after){
+ const old=stringOf(before).trim(),now=stringOf(after).trim();
+ if(!old||old===now)return false;
+ if(["title","name","age","gender"].includes(key))return true;
+ return protectedCore.has(key)&&changeMagnitude(old,now).large;
+}
+function defaultSelection(item){
+ // Inferred additions and AI edits are opt-in, not silently selected.
+ return !item.proposed&&!item.aiChanged;
+}
+function summarizeReview(){
+ const cards=$$(".migrate-review-card");
+ let unchanged=0,relocated=0,light=0,suggested=0,flagged=0,modified=0;
+ cards.forEach(card=>{
+   const key=card.dataset.key,item=current.review.find(x=>x.key===key);
+   if(!item)return;
+   const editor=$("[data-migration-field]",card),after=editor.value;
+   const before=item.original;
+   if(item.proposed||item.aiChanged&&!before)suggested++;
+   else if(item.confidence==="Reorganized")relocated++;
+   else if(stringOf(before).trim()===after.trim())unchanged++;
+   else if(needsExplicitApproval(key,before,after))flagged++;
+   else light++;
+   if(before!==null&&before!==undefined&&after!==stringOf(before))modified++;
+ });
+ const place=$("#migration-change-summary");place.replaceChildren();
+ const facts=[
+   ["Unchanged",unchanged],["Reorganized",relocated],
+   ["Small edits",light],["Optional proposals",suggested],["Needs approval",flagged]
+ ];
+ facts.forEach(([label,n])=>{if(!n)return;const badge=el("span","migrate-summary-badge");badge.append(el("b","",String(n)),document.createTextNode(" "+label));place.append(badge);});
+ if(!place.children.length)place.append(el("p","", "No proposed changes."));
+}
 function render(result){
  const name=result.fields.name||"Imported character";
- $("#migration-summary").textContent=name+" — proposed field mapping";
+ $("#migration-summary").textContent=name+" — preservation review";
  $("#migration-count").textContent=result.review.length+" fields";
- $("#migration-note").textContent="Source preserved. Your existing draft is unchanged until you click Apply Selected Changes.";
+ $("#migration-note").textContent="Your original story remains available. Unchanged text is retained; all edits are optional until you apply them.";
  const insights=$("#migration-insights");insights.replaceChildren();
- const note=(txt,good=false)=>{const a=el("p",good?"migrate-insight good":"migrate-insight warn",txt);insights.append(a);};
- note(result.review.length+" usable sections detected. Review and edit each proposed field.",true);
- sourceWarnings.forEach(s=>note(s));
- result.tips.slice(0,7).forEach(s=>note(s));
- if(result.unmapped)note("Some source text could not be assigned confidently. Preserve and review the full original.");
- const leftovers=$("#migration-leftovers");leftovers.hidden=!Boolean(result.unmapped);
+ const note=(txt,good=false)=>{insights.append(el("p",good?"migrate-insight good":"migrate-insight warn",txt));};
+ note("Original canon and dialogue are never intentionally rewritten in automatic mode. Each proposed alteration is explained below.",true);
+ sourceWarnings.forEach(noteText=>note(noteText));
+ result.tips.slice(0,8).forEach(noteText=>note(noteText));
+ result.conflicts?.slice(0,3).forEach(noteText=>note("Duplicate source field needs review: "+noteText));
+ if(result.unmapped)note("Some source text was not assigned to a field. Save and review the original before publishing.");
+ $("#migration-leftovers").hidden=!Boolean(result.unmapped);
  $("#migration-leftovers-text").textContent=result.unmapped||"";
  const dest=$("#migration-diff");dest.replaceChildren();
- const existing=app().getData(),known=new Set(app().keys());
- result.review.sort((a,b)=>(priority.indexOf(a.key)+100)%100-(priority.indexOf(b.key)+100)%100).forEach(item=>{
-   if(!known.has(item.key))return;
-   const card=el("article","migrate-review-card");
+ const existing=app().getData(),allowed=new Set(app().keys());
+ const sorted=[...result.review].sort((a,b)=>priority.indexOf(a.key)-priority.indexOf(b.key));
+ sorted.forEach(item=>{
+   if(!allowed.has(item.key))return;
+   const key=item.key,hasBefore=item.original!==null&&item.original!==undefined,oldText=hasBefore?stringOf(item.original):"";
+   const card=el("article","migrate-review-card");card.dataset.key=key;
    const head=el("div","migrate-review-head"),label=el("label","migrate-review-label");
-   const checkbox=el("input");checkbox.type="checkbox";checkbox.checked=true;checkbox.dataset.migrationSelect=item.key;
-   label.append(checkbox,el("b","",labels[item.key]||item.key));
-   head.append(label,el("span","migrate-review-confidence",item.confidence));
+   const checkbox=el("input");checkbox.type="checkbox";checkbox.checked=defaultSelection(item);checkbox.dataset.migrationSelect=key;
+   label.append(checkbox,el("b","",labels[key]||key));
+   const meta=el("span","migrate-review-confidence",item.confidence);
+   meta.classList.toggle("needs-attention",item.aiChanged||item.substantial);
+   head.append(label,meta);
    const body=el("div","migrate-review-body");
-   body.append(el("p","migrate-review-reason",item.reason));
+   const reason=el("p","migrate-review-reason",item.reason||"Recovered without a substantive edit.");
+   body.append(reason);
    const edit=el("textarea","migrate-review-editor");
-   edit.value=Array.isArray(item.value)?item.value.join(", "):String(item.value);
-   edit.rows=Math.min(9,Math.max(3,Math.ceil(edit.value.length/90)));
-   edit.dataset.migrationField=item.key;edit.setAttribute("aria-label","Edit imported "+(labels[item.key]||item.key));
+   edit.value=stringOf(item.value);
+   edit.rows=Math.min(10,Math.max(3,Math.ceil(edit.value.length/90)));
+   edit.dataset.migrationField=key;
+   edit.setAttribute("aria-label","Review imported "+(labels[key]||key));
    const budget=el("div","migrate-review-budget");
-   const recount=()=>budget.textContent=token(edit.value)+" estimated tokens · "+edit.value.length+" characters";
-   edit.addEventListener("input",recount);recount();body.append(edit,budget);
-   if(item.original!==null && item.original!==undefined &&
-      String(item.original)!==String(item.value)){
-      const original=el("details","migrate-old migrate-original"),
-        heading=el("summary","migrate-old-summary","✦ See original source before this field was tuned"),
-        pre=el("pre","",Array.isArray(item.original)?item.original.join(", "):String(item.original));
-      original.append(heading,pre);body.append(original);
+   const comparison=el("details","migrate-old migrate-original");
+   const summary=el("summary","migrate-old-summary","View original and proposed side by side");
+   const pair=el("div","migrate-side-by-side");
+   const original=el("div","migrate-side");
+   original.append(el("span","migrate-side-title","ORIGINAL · PROTECTED"),el("pre","",hasBefore?oldText:"No matching field existed in the source. This is an optional proposal."));
+   const proposal=el("div","migrate-side");
+   const proposedContent=el("pre","",edit.value);
+   proposal.append(el("span","migrate-side-title","PROPOSED · EDITABLE"),proposedContent);
+   pair.append(original,proposal);comparison.append(summary,pair);
+   if(hasBefore){
+     const restore=el("button","migrate-restore","↶ Restore exact original");
+     restore.type="button";restore.addEventListener("click",()=>{
+       edit.value=oldText;checkbox.checked=true;approve.checked=false;
+       refresh();alertUser((labels[key]||key)+" restored to original wording.");
+     });
+     body.append(restore);
    }
-   const prev=existing[item.key];
-   if(prev && String(prev)!==String(item.value)){
-     const d=el("details","migrate-old"),s=el("summary","migrate-old-summary","Compare your current Atelier draft"),pre=el("pre","",Array.isArray(prev)?prev.join(", "):String(prev));
-     d.append(s,pre);body.append(d);
+   const approval=el("label","migrate-approval");
+   const approve=el("input");approve.type="checkbox";approve.dataset.migrationApprove=key;
+   approval.append(approve,el("span","","I compared this significant wording change and explicitly approve it."));
+   const refresh=()=>{
+     const updated=edit.value,old=hasBefore?oldText:null,delta=token(updated)-(hasBefore?token(oldText):0);
+     const altered=hasBefore&&updated!==oldText;
+     budget.textContent="Estimated tokens: "+(hasBefore?token(oldText)+" → ":"new ")+token(updated)+" ("+(delta>=0?"+":"")+delta+"). "+(altered?"Original preserved for comparison.":"Wording unchanged.");
+     proposedContent.textContent=updated;
+     const risk=hasBefore&&needsExplicitApproval(key,old,updated);
+     approval.hidden=!risk;
+     if(!risk)approve.checked=false;
+     const restored=hasBefore&&old===updated;
+     meta.textContent=restored?"Unchanged":risk?"Significant edit":item.aiChanged?"AI proposal":item.proposed?"Optional proposal":item.confidence;
+     meta.classList.toggle("needs-attention",risk);
+     comparison.open=Boolean(risk&& !approve.checked);
+     summarizeReview();
+   };
+   edit.addEventListener("input",refresh);
+   body.append(edit,budget);
+   if(hasBefore||item.proposed)body.append(comparison);
+   body.append(approval);
+   const prior=existing[key];
+   if(prior&&stringOf(prior)!==stringOf(item.value)){
+     const compare=el("details","migrate-old"),title=el("summary","migrate-old-summary","Compare the currently saved Atelier draft");
+     compare.append(title,el("pre","",stringOf(prior)));body.append(compare);
    }
    card.append(head,body);dest.append(card);
+   refresh();
  });
  $("#migration-results").hidden=false;
+ summarizeReview();
  $("#migration-results").scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
 }
 function changes(){
- const patch={},tags=new Set(app().tags());
- $$("[data-migration-field]").forEach(a=>{
-    const k=a.dataset.migrationField,c=$('[data-migration-select="'+k+'"]');
-    if(!c?.checked||!a.value.trim())return;
-    if(k==="tags")patch.tags=Array.from(new Set(a.value.split(/[,;\n]+/g).map(x=>x.trim()).filter(x=>tags.has(x)))).slice(0,10);
-    else patch[k]=a.value;
+ const patch={},blocked=[],tagSet=new Set(app().tags());
+ $$("[data-migration-field]").forEach(editor=>{
+   const key=editor.dataset.migrationField,selected=$('[data-migration-select="'+key+'"]');
+   if(!selected?.checked||!editor.value.trim())return;
+   const item=current.review.find(x=>x.key===key),before=item?.original;
+   if(before!==null&&before!==undefined&&needsExplicitApproval(key,before,editor.value) && !$('[data-migration-approve="'+key+'"]')?.checked){
+      blocked.push(labels[key]||key);return;
+   }
+   if(key==="tags"){
+     patch.tags=Array.from(new Set(editor.value.split(/[,;\n]+/g).map(v=>v.trim()).filter(v=>tagSet.has(v)))).slice(0,10);
+   }else patch[key]=editor.value;
  });
- return patch;
+ return {patch,blocked};
+}
+function changeReport(){
+ if(!current)throw Error("Analyze the character before saving a change report.");
+ const lines=["VELVETRUIN · CHARACTER MIGRATION CHANGE REPORT","Date: "+new Date().toISOString(),"Source: "+(fileName||"pasted character"),"Mode: "+current.mode,"","Original writing is preserved; automated optimization is structural, not creative.",""];
+ current.review.forEach(item=>{
+  const area=$('[data-migration-field="'+item.key+'"]');
+  if(!area)return;
+  const before=item.original===null||item.original===undefined?"[No source field]":stringOf(item.original),after=area.value;
+  const selected=$('[data-migration-select="'+item.key+'"]')?.checked?"YES":"NO";
+  lines.push("═".repeat(50),labels[item.key]||item.key,"Status: "+item.confidence,"Selected for import: "+selected,
+    "Why: "+item.reason,"Original tokens (est.): "+(before==="[No source field]"?0:token(before)),
+    "Proposed tokens (est.): "+token(after),
+    "ORIGINAL:\n"+before,"PROPOSED:\n"+after,"");
+ });
+ if(current.tips.length)lines.push("EDITORIAL FEEDBACK:",...current.tips,"");
+ if(current.unmapped)lines.push("UNMAPPED SOURCE:",current.unmapped);
+ return lines.join("\n");
 }
 function apply(){
  if(!current){alertUser("Analyze a character first.",true);return;}
- const patch=changes();
- if(!Object.keys(patch).length){alertUser("Select at least one field to apply.",true);return;}
+ const {patch,blocked}=changes();
+ if(blocked.length){
+    alertUser("Please compare and explicitly approve substantial edits in: "+blocked.slice(0,3).join(", ")+(blocked.length>3?"…":""),true);
+    const field=$('[data-migration-approve="'+current.review.find(x=>blocked.includes(labels[x.key]||x.key))?.key+'"]');
+    field?.closest(".migrate-review-card")?.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+ }
+ if(!Object.keys(patch).length){alertUser("Select at least one field. Inferred suggestions and AI edits are unchecked by default.",true);return;}
  const replace=($('input[name="migration-merge"]:checked')||{}).value==="replace";
- if(replace&&!confirm("Replace selected existing draft fields? Download a JSON backup first if you want an undo point."))return;
- const result=app().apply(patch,{replace});
- if(!result.applied.length){alertUser("No empty fields to fill. Select Replace selected fields to overwrite existing writing.",true);return;}
- alertUser(result.applied.length+" fields applied. Review the five Atelier chapters before publishing.");
+ if(replace&&!confirm("Replace only your selected Atelier fields? Save a JSON backup first if you want to undo later."))return;
+ const applied=app().apply(patch,{replace});
+ if(!applied.applied.length){alertUser("No empty fields to fill. Choose Replace selected fields to overwrite existing writing.",true);return;}
+ alertUser(applied.applied.length+" reviewed fields applied. Your original file remains unchanged.");
  app().go("concept");
 }
 function example(){
