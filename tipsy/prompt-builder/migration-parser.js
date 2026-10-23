@@ -94,8 +94,9 @@ function fromJson(obj) {
  if(!obj||typeof obj!=="object"||Array.isArray(obj))throw Error("The JSON must contain a character object.");
  const main=(obj.project&&typeof obj.project==="object"?obj.project:obj.data&&typeof obj.data==="object"?obj.data:obj.character&&typeof obj.character==="object"?obj.character:obj);
  const fields={};
+ const canonical=new Set(["title","name","age","gender","rating","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","tags","promptMode","replyLength"]);
  for(const [k,v] of Object.entries(main)){
-   const target=fieldName(k);
+   const target=canonical.has(k)?k:fieldName(k);
    if(target && typeof v==="string"&&v.trim())fields[target]=v;
  }
  const variations={
