@@ -199,7 +199,10 @@ function changeReport(){
   if(!area)return;
   const before=item.original===null||item.original===undefined?"[No source field]":stringOf(item.original),after=area.value;
   const selected=$('[data-migration-select="'+item.key+'"]')?.checked?"YES":"NO";
+  const requires=before!=="[No source field]"&&needsExplicitApproval(item.key,before,after);
+  const approved=Boolean($('[data-migration-approve="'+item.key+'"]')?.checked);
   lines.push("═".repeat(50),labels[item.key]||item.key,"Status: "+item.confidence,"Selected for import: "+selected,
+    "Substantial edit approval: "+(requires?(approved?"EXPLICITLY APPROVED":"NOT YET APPROVED"):"Not required"),
     "Why: "+item.reason,"Original tokens (est.): "+(before==="[No source field]"?0:token(before)),
     "Proposed tokens (est.): "+token(after),
     "ORIGINAL:\n"+before,"PROPOSED:\n"+after,"");
