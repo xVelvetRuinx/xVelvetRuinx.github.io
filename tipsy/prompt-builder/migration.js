@@ -160,7 +160,7 @@ function render(result){
      comparison.open=Boolean(risk&& !approve.checked);
      summarizeReview();
    };
-   edit.addEventListener("input",refresh);
+   edit.addEventListener("input",()=>{approve.checked=false;refresh();});
    body.append(edit,budget);
    if(hasBefore||item.proposed)body.append(comparison);
    body.append(approval);
@@ -308,7 +308,15 @@ function fromAI(text){
   const original=baseline||current?.fields||{};
   const allowed=new Set(app().keys());
   const edits=Object.entries(proposed).filter(([key,v])=>allowed.has(key)&&typeof v==="string"&&v.trim());
-  if(!edits.length){alertUser("The assistant proposed no field edits. Your original character is unchanged.");return;}
+  if(!edits.length){
+     const suggestions=Array.isArray(value.suggestions)?value.suggestions:[];
+     if(!suggestions.length){alertUser("The assistant proposed no edits. Your original character is unchanged.");return;}
+     const base=baseline||current?.fields||{};
+     const result=engine().analyze(base,{format:"json",mode:"faithful"});
+     result.review.forEach(item=>{item.original=Object.prototype.hasOwnProperty.call(base,item.key)?base[item.key]:null;item.confidence="Unchanged";item.reason="Original wording preserved; no AI edit proposed.";});
+     suggestions.slice(0,10).forEach(x=>{if(x?.note)result.tips.push("Optional feedback"+(x.field?" for "+x.field:"")+": "+x.note);});
+     current=result;render(current);alertUser("The assistant recommended no text changes. Optional feedback is shown above the fields.");return;
+  }
   const merged={...original,...Object.fromEntries(edits)};
   const result=engine().analyze(merged,{mode:"faithful",format:"json"});
   const editKeys=new Set(edits.map(([k])=>k));
@@ -359,6 +367,19 @@ function init(){
  ["dragleave","drop"].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.remove("dragging");}));
  drop.addEventListener("drop",e=>{if(e.dataTransfer?.files?.length)readImportedFile(e.dataTransfer.files[0]);});
  $("#migration-paste").addEventListener("input",()=>{lastFormat="text";fileName="";current=null;baseline=null;$("#migration-results").hidden=true;});
+ $("#migration-review-current").addEventListener("click",()=>{
+   try{
+     const draft=app().getData();
+     const written=Object.entries(draft).filter(([k,v])=>
+       typeof v==="string"&&v.trim()&&!["rating","replyLength","promptMode","pacing","artStyle"].includes(k)
+     );
+     if(!written.length){alertUser("This draft is empty. Import a character or write a few fields first.",true);return;}
+     const mapped=engine().analyze(draft,{format:"json",mode:($('input[name="migration-style"]:checked')||{}).value||"tuned"});
+     source=JSON.stringify(draft,null,2);lastFormat="json";fileName="Current Atelier draft";sourceWarnings=[];
+     baseline=JSON.parse(JSON.stringify(mapped.fields));current=mapped;render(mapped);
+     alertUser("Your current draft has been audited without changing it. Each suggested edit is optional.");
+   }catch(e){alertUser(e.message||"Could not audit current draft.",true);}
+ });
  $("#migration-example").addEventListener("click",example);
  $("#migration-analyze").addEventListener("click",()=>{
    try{analyze();alertUser("Character mapped. Review and select improvements before applying.");}
