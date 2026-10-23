@@ -70,7 +70,8 @@
   function quote(line) {
     if(!line) return "";
     const l=line.trim().replace(/^\{\{(?:char|user)\}\}:\s*/i,"");
-    return /^[\"“]/.test(l)?l:'"'+l+'"';
+    // Preserve imported *actions* and already-quoted dialogue; do not wrap them in nested quotes.
+    return /["“”]/.test(l)||/^\*/.test(l)?l:'"'+l+'"';
   }
   function action(line) {
     const s=(line||"").trim();
