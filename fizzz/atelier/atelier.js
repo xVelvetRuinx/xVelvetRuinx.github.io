@@ -84,9 +84,10 @@ function worldFields(){const result=[];
  return result;
 }
 const definitions={spark:sparkle,profile,core,opening,world:worldFields(),media};
-let state,selectedTags=[],toastTimer,lastExport="",page="spark";
+let state,selectedTags=[],toastTimer,lastExport="",page="spark",appendCoreNotes=false;
 const load=()=>{try{const obj=JSON.parse(localStorage.getItem(STORAGE)||"null");if(!obj||typeof obj!=="object")return {...INITIAL};const result={...INITIAL};for(const k of EDITABLE)if(typeof obj[k]==="string")result[k]=obj[k];return result;}catch{return {...INITIAL};}};
 state=load();
+try{appendCoreNotes=localStorage.getItem(STORAGE+".appendCoreNotes")==="1"}catch{}
 try{selectedTags=JSON.parse(localStorage.getItem(STORAGE+".tags")||"[]").filter(x=>TAGS.includes(x)).slice(0,7)}catch{}
 function save(){
  try{localStorage.setItem(STORAGE,JSON.stringify(state));localStorage.setItem(STORAGE+".tags",JSON.stringify(selectedTags));$("#save-status").textContent="Saved locally";}catch{$("#save-status").textContent="Storage full · export a backup";}
@@ -104,15 +105,33 @@ function coreCompiled(){
  const items=[];
  const add=(title,value)=>{if(value)items.push("# "+title+"\n"+value);};
  const identity=[val("name")&&"Name: "+val("name"),val("age")&&"Age: "+val("age"),val("gender")&&"Gender: "+val("gender"),val("species")&&"Species: "+val("species"),val("occupation")&&"Role: "+val("occupation")].filter(Boolean).join("\n");
- const structured=[["Identity & Basics",identity],["Appearance",val("appearance")],["Background",val("backstory")],["Core Personality & Behavior",val("traits")],["Internal Contradiction",val("contradiction")],["Character Goals",val("motivation")],["Relationship With {{user}}",val("relationship")||val("dynamic")],["Relationship & Growth Logic",val("behavior")||val("arc")],["Behavioral Boundaries",val("boundaries")],["Speaking Style",val("voice")]];
- if(val("coreRaw")){add("Preserved Core Personality",val("coreRaw"));const clar=structured.filter(([title,v])=>v&&title!=="Identity & Basics");for(const [t,v] of clar)add("Optional Clarification · "+t,v);
- if(identity)add("Identity & Basics",identity);
- }else{for(const [title,v] of structured)add(title,v);}
+ const structured=[
+ ["Identity & Basics",identity],["Appearance",val("appearance")],
+ ["Background",val("backstory")],["Core Personality & Behavior",val("traits")],
+ ["Internal Contradiction",val("contradiction")],["Character Goals",val("motivation")],
+ ["Current Story Premise",val("concept")],["Current Story Conflict",val("conflict")],
+ ["{{user}}'s Entry Role",val("role")],
+ ["Relationship With {{user}}",val("relationship")||val("dynamic")],
+ ["Relationship & Growth Logic",val("behavior")||val("arc")],
+ ["Behavioral Boundaries",val("boundaries")],["Speaking Style",val("voice")]
+ ];
+ if(val("coreRaw")){
+   // Absolute preservation by default; supplemental inputs stay available
+   // in the editor until deliberately included by the creator.
+   if(!appendCoreNotes)return val("coreRaw");
+   add("Preserved Original Core Personality",val("coreRaw"));
+   for(const [title,value] of structured)if(value)add("Creator Addition · "+title,value);
+ }else for(const [title,value] of structured)add(title,value);
  return items.join("\n\n").trim();
 }
 function openingCompiled(){
  if(val("initialRaw"))return val("initialRaw");
- const parts=[val("openingScene"),val("openingAction"),val("openingLine"),val("openingBeat")];
+ // Treat split beats as scaffolding for an actual narrated scene.
+ const italic=text=>text?(/^\*.*\*$/.test(text)?text:"*"+text+"*"):"";
+ const actor=text=>text.replace(/^The character\b/i,val("name")||"The character");
+ const dialogue=val("openingLine");
+ const parts=[italic(val("openingScene")),italic(actor(val("openingAction"))),
+ dialogue,italic(actor(val("openingBeat")))];
  return parts.filter(Boolean).join("\n\n");
 }
 const wbData=()=>[1,2,3].map(i=>({number:i,title:val("world"+i+"Title"),mode:val("world"+i+"Mode")||"always",keywords:val("world"+i+"Keywords"),content:val("world"+i+"Body")})).filter(x=>x.title||x.content||x.keywords);
@@ -271,6 +290,7 @@ function audit(){
  if(!core)push("error","No Core Personality","Write identity, appearance, personality and voice for stable roleplay.");
  else if(core.length>25000)push("error","Core Personality exceeds 25,000","Trim carefully without deleting distinctive canon.");
  else if(core.length>10000)push("warning","Core Personality exceeds Fizzz's recommended 10,000","This may still be valid; consider moving lore to Worldbook if it rarely affects each response.");
+ if(val("coreRaw")&&!appendCoreNotes&&[val("traits"),val("appearance"),val("voice"),val("relationship"),val("role")].some(Boolean))push("warning","Separate draft notes are not appended","Preservation mode keeps the imported Core Personality verbatim. Turn on Append structured notes only if you want those extra fields included.");
  if(!val("voice")&&!val("coreRaw"))push("warning","No speaking style","Describe sentence rhythm, mannerisms and emotion shifts near the end of Core Personality.");
  if(!val("appearance")&&!val("coreRaw"))push("warning","Text model lacks written appearance","Character Images alone do not teach the text model how the person looks.");
  if(!opening)push("error","Initial Message required","Up to 5,000 characters; create scene, visible action and speaking voice.");
@@ -278,6 +298,7 @@ function audit(){
  else if(!/["“”]/.test(opening))push("warning","No spoken dialogue detected","Fizzz Opening Film benefits from a few lines of spoken dialogue.");
  if(/\{\{user\}\}\s+(?:felt|thought|decided|agreed|obeyed|kissed)/i.test(opening))push("warning","Possible player agency issue","Check whether the opening describes {{user}}'s feelings or actions without consent.");
  if(wbData().length>3)push("error","Worldbook entry limit","Fizzz supports at most three entries.");
+ if(wbData().length)push("warning","Turn on Worldbook in Fizzz","Worldbook is disabled by default on the platform. Enable it manually and configure the exported activation mode and keywords.");
  wbData().forEach(w=>{
   if(w.content.length>10000)push("error","Worldbook "+w.number+" exceeds 10,000","Split carefully across available entries.");
   if(w.mode==="keyword"&&!w.keywords)push("warning","Worldbook "+w.number+" needs keywords","Set natural distinctive triggers or change to Always Active.");
@@ -361,6 +382,6 @@ function setupNavigation(){
  });
 }
 window.FizzzAtelier=Object.freeze({getState:()=>({...state}),keys:()=>[...EDITABLE],coreCompiled,openingCompiled,sections,audit,chapter,save,notify,download,copyText,update,backup,meta:definitions});
-function init(){mountFields();mountTags();mountArchetypes();setupNavigation();update();if(typeof window.initFizzzMigration==="function")window.initFizzzMigration({$, $$, el, state:()=>state, set:(key,value)=>{state[key]=value;save();mountFields();update()}, apply:(patch,{replace=false}={})=>{const result=[];for(const [k,v] of Object.entries(patch)){if(!EDITABLE.has(k)||typeof v!=="string")continue;if(replace||!val(k)||(["gender","pov","rating"].includes(k)&&val(k)===INITIAL[k])||(k.endsWith("Mode")&&val(k)===INITIAL[k])){state[k]=v;result.push(k)}}mountFields();save();update();return result},note:notify});}
+function init(){mountFields();mountTags();mountArchetypes();setupNavigation();$("#append-core-notes").checked=appendCoreNotes;$("#append-core-notes").addEventListener("change",e=>{appendCoreNotes=e.target.checked;try{localStorage.setItem(STORAGE+".appendCoreNotes",appendCoreNotes?"1":"0")}catch{}update()});update();if(typeof window.initFizzzMigration==="function")window.initFizzzMigration({$, $$, el, state:()=>state, set:(key,value)=>{state[key]=value;save();mountFields();update()}, apply:(patch,{replace=false}={})=>{const result=[];for(const [k,v] of Object.entries(patch)){if(!EDITABLE.has(k)||typeof v!=="string")continue;if(replace||!val(k)||(["gender","pov","rating"].includes(k)&&val(k)===INITIAL[k])||(k.endsWith("Mode")&&val(k)===INITIAL[k])){state[k]=v;result.push(k)}}mountFields();save();update();return result},note:notify});}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
