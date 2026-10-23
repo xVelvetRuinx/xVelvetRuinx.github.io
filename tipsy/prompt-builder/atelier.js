@@ -3,7 +3,7 @@
   const STORAGE = "velvetruin.tipsy.atelier.v1";
   const STEPS = ["concept","character","world","opening","export"];
   const TAGS = ["Original Character","Slow Burn","Romance","Drama","Fantasy","Modern","Mystery","Angst","Fluff","Horror","Adventure","Supernatural","Vampire","Werewolf","Sci-Fi","Enemies to Lovers","Friends to Lovers","Forced Proximity","Protective","Found Family","Crime","Historical","Comfort","Rivals","Action","Omegaverse"];
-  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",trustTracker:"off",tensionTracker:"off",dangerTracker:"off",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
+  const defaults = { title:"",name:"",age:"",gender:"",rating:"Limited",hook:"",userRole:"",tease:"",trope:"",appearance:"",personality:"",contradiction:"",voice:"",mannerisms:"",occupation:"",surfaceGoal:"",hiddenGoal:"",backstory:"",anchors:"",sampleUser1:"",sampleChar1:"",sampleUser2:"",sampleChar2:"",sampleUser3:"",sampleChar3:"",setting:"",lore:"",scenario:"",relationship:"",pacing:"adaptive",promptMode:"lean",trustTracker:"off",tensionTracker:"off",dangerTracker:"off",supporting:"",canon:"",continuity:true,timeSkip:true,relationshipProgression:true,visibleStatus:false,openingScene:"",openingAction:"",openingDialogue:"",openingBeat:"",openingImage:"",customGreeting:"",replyLength:"concise",artStyle:"cinematic photorealism",artLighting:"",artDirection:"",tags:[] };
   const $ = (q, root=document) => root.querySelector(q);
   const $$ = (q, root=document) => [...root.querySelectorAll(q)];
   const fields = $$("[data-key]");
@@ -231,7 +231,7 @@
     ].filter(Boolean).join("\n\n");
   }
   function generateExamples() {
-    return [[textVal("sampleUser1"),textVal("sampleChar1")],[textVal("sampleUser2"),textVal("sampleChar2")]]
+    return [[textVal("sampleUser1"),textVal("sampleChar1")],[textVal("sampleUser2"),textVal("sampleChar2")],[textVal("sampleUser3"),textVal("sampleChar3")]]
       .filter(([u,c])=>u||c).map(([u,c])=>[u?"{{user}}: "+quote(u):"",c?"{{char}}: "+quote(c):""].filter(Boolean).join("\n")).join("\n\n");
   }
   function generateArt() {
