@@ -61,10 +61,12 @@ function parseSections(text){
  for(const [i,line] of textLines.entries()){
    const trim=line.trim();
    const numbered=trim.match(/^\d{1,2}\s*[·.\-—]\s*(.+)$/);
+   const loreHeader=trim.match(/^<character_lore:\s*(.+)>\s*$/i);
    const h=trim.match(/^#{1,6}\s+(.+)$/)||trim.match(/^\[([^\]]{2,65})\]\s*$/)||trim.match(/^\*\*([^*]{2,65})\*\*\s*$/)||numbered;
    const kv=trim.match(/^([A-Za-z][A-Za-z0-9 \/_-]{1,43})\s*:\s*(.*)$/);
    let name="",key=null,inline="";
    if(h){name=h[1];key=fieldName(name);}
+   else if(loreHeader){name=loreHeader[1];key="lore";}
    else if(kv){name=kv[1];key=fieldName(name);inline=kv[2];}
    else if(trim.length<65&&fieldName(trim)&&(i===0||!textLines[i-1].trim())){name=trim;key=fieldName(name);}
    if(key && !/^\{\{(?:user|char)\}\}/i.test(trim)){
@@ -190,8 +192,9 @@ function analyze(input,{mode="tuned",format="text"}={}){
  distributeDialogues(fields);
  if(!fields.name){
    const first=parsed.unmapped.split("\n").map(x=>x.trim()).find(Boolean);
-   if(first&&/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){0,2}$/u.test(first)){
-     add("name",first,"Inferred from a standalone heading; verify it.");
+   const plausible=first?first.replace(/^#+\s*|^\*+\s*/g,"").split(/\s+[—|]\s+/)[0].replace(/\s*\(\d{2,3}\)\s*$/,"").trim():"";
+   if(plausible&&/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){0,2}$/u.test(plausible)){
+     add("name",plausible,"Inferred from a standalone heading; verify it.");
      tips.push("The character name was inferred from a heading. Check it.");
    }
  }
