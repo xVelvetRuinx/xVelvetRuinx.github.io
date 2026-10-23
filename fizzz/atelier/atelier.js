@@ -87,7 +87,7 @@ const definitions={spark:sparkle,profile,core,opening,world:worldFields(),media}
 let state,selectedTags=[],toastTimer,lastExport="",page="spark";
 const load=()=>{try{const obj=JSON.parse(localStorage.getItem(STORAGE)||"null");if(!obj||typeof obj!=="object")return {...INITIAL};const result={...INITIAL};for(const k of EDITABLE)if(typeof obj[k]==="string")result[k]=obj[k];return result;}catch{return {...INITIAL};}};
 state=load();
-try{selectedTags=JSON.parse(localStorage.getItem(STORAGE+".tags")||"[]").filter(x=>TAGS.includes(x)).slice(0,10)}catch{}
+try{selectedTags=JSON.parse(localStorage.getItem(STORAGE+".tags")||"[]").filter(x=>TAGS.includes(x)).slice(0,7)}catch{}
 function save(){
  try{localStorage.setItem(STORAGE,JSON.stringify(state));localStorage.setItem(STORAGE+".tags",JSON.stringify(selectedTags));$("#save-status").textContent="Saved locally";}catch{$("#save-status").textContent="Storage full · export a backup";}
 }
@@ -184,7 +184,7 @@ function mountTags(){
  TAGS.forEach(tag=>{const b=el("button","tag-chip",tag);b.type="button";b.classList.toggle("selected",selectedTags.includes(tag));b.setAttribute("aria-pressed",String(selectedTags.includes(tag)));
  b.addEventListener("click",()=>{
   if(selectedTags.includes(tag))selectedTags=selectedTags.filter(x=>x!==tag);
-  else if(selectedTags.length>=10)return notify("Fizzz allows up to 10 selected discovery tags.");
+  else if(selectedTags.length>=7)return notify("Fizzz allows 10 total tags; reserve 3 for required Gender, POV, Rating, leaving 7 optional.");
   else selectedTags.push(tag);
   mountTags();save();update();
  });area.append(b)});
@@ -333,6 +333,32 @@ function setupNavigation(){
  $("#download-json").addEventListener("click",()=>download(slug()+"-fizzz-project.json",backup(),"application/json"));
  $("#download-txt").addEventListener("click",()=>download(slug()+"-fizzz-fields.txt",sections().map(([k,v])=>"# "+k+"\n\n"+v).join("\n\n"+"═".repeat(55)+"\n\n")));
  $("#copy-all").addEventListener("click",()=>copyText(sections().map(([k,v])=>"# "+k+"\n"+v).join("\n\n")).then(()=>notify("All character fields copied.")).catch(()=>notify("Copy unavailable.")));
+ $("#copy-original-ai").addEventListener("click",async()=>{
+   const a=arch.find(x=>x.id===state.archetype)||arch[0];
+   const prompt=[
+    "You are a specialist author designing a genuinely NEW original Fizzz.ai video-roleplay character, not adapting an uploaded concept.",
+    "Create a distinctive adult character with their own personality, role, background, emotional contradictions, motivation, speech style, and a playable first encounter.",
+    "Use the creator's selections as the AUTHORITATIVE seed. Preserve all nonempty author-entered fields faithfully; invent only missing details that fit the chosen direction. If an author specified a name, use it exactly. Avoid generic mafia/fantasy names, repeated names, formulaic melodrama and recycled character beats.",
+    "Fizzz official structure: Profile Title and Chat Name required, public Bio does not instruct the roleplay model. Gender, POV and Rating required. Core Personality maximum 25,000 characters; recommend within 10,000. Initial Message maximum 5,000 characters. Worldbook optional, at most three entries with 10,000 characters each. Voice required, character images 9:16, cover recommended 3:4.",
+    "Build a strong public hook showing who the character is, what is happening NOW and a player-directed choice. Explain what the character wants independent of romantic attention. Personality should show observable behavior under pressure and a specific contradiction. Keep the connection emotionally compelling without predetermined outcomes.",
+    "Everyone in romantic scenarios must be adult. Do not predetermine {{user}}'s gender, internal feelings, actions, sexual consent or decisions. Never make player agency disappear.",
+    "Initial Message must contain atmosphere, visible character action, one or two meaningful spoken lines and a playable unresolved beat. Use original, distinctive dialogue, not bland templates. An opening can be rich and novelistic but not over-expository. Set up media visually coherently.",
+    "Speaking Style goes near the end of Core Personality; no long example dialogues. Worldbook stores setting rules and NPCs without duplicating the character identity. Secret knowledge must respect in-story discovery conditions.",
+    "Offer creator-safe image and voice direction for Fizzz media. Image prompts should favor a single adult subject, clear unobstructed face and consistent visual identity.",
+    "Output ONLY valid JSON: {\"fields\":{\"name\":\"...\",\"title\":\"...\",\"age\":\"...\",\"gender\":\"...\",\"bio\":\"...\",\"occupation\":\"...\",\"appearance\":\"...\",\"backstory\":\"...\",\"traits\":\"...\",\"contradiction\":\"...\",\"motivation\":\"...\",\"relationship\":\"...\",\"behavior\":\"...\",\"boundaries\":\"...\",\"voice\":\"...\",\"initialRaw\":\"...\",\"world1Title\":\"...\",\"world1Body\":\"...\",\"world1Mode\":\"always\",\"world2Title\":\"...\",\"world2Body\":\"...\",\"world2Keywords\":\"...\",\"world2Mode\":\"keyword\",\"coverDirection\":\"...\",\"imageDirection\":\"...\",\"videoDirection\":\"...\",\"voiceDirection\":\"...\"},\"editorNotes\":[\"...\"]}",
+    "Include Worldbook entries only when the world warrants them. Use valid JSON strings, no comments or markdown fences. Aim for a coherent new playable person, not a loose brainstorm.",
+    "SELECTED OPTIONAL ARCHETYPE: "+a.name+" / "+a.tag,
+    "AUTHOR'S EXISTING NEW BOT SEED (nonempty fields are requirements; do not rewrite them):",
+    JSON.stringify(Object.fromEntries(Object.entries(state).filter(([k,v])=>v&&v.trim())),null,2),
+    "Generate the original bot JSON now."
+   ].join("\n\n");
+   try{await copyText(prompt);notify("Original character drafting brief copied. Paste into ChatGPT and return the JSON for review.");}
+   catch{download("fizzz-original-character-brief.txt",prompt);notify("Drafting brief downloaded because clipboard was unavailable.");}
+ });
+ $("#review-original-ai").addEventListener("click",()=>{
+   if(typeof window.FizzzAtelierReviewGeneratedDraft!=="function")return notify("AI review module is unavailable. Reload the page and try again.");
+   window.FizzzAtelierReviewGeneratedDraft($("#original-ai-paste").value);
+ });
 }
 window.FizzzAtelier=Object.freeze({getState:()=>({...state}),keys:()=>[...EDITABLE],coreCompiled,openingCompiled,sections,audit,chapter,save,notify,download,copyText,update,backup,meta:definitions});
 function init(){mountFields();mountTags();mountArchetypes();setupNavigation();update();if(typeof window.initFizzzMigration==="function")window.initFizzzMigration({$, $$, el, state:()=>state, set:(key,value)=>{state[key]=value;save();mountFields();update()}, apply:(patch,{replace=false}={})=>{const result=[];for(const [k,v] of Object.entries(patch)){if(!EDITABLE.has(k)||typeof v!=="string")continue;if(replace||!val(k)||(["gender","pov","rating"].includes(k)&&val(k)===INITIAL[k])||(k.endsWith("Mode")&&val(k)===INITIAL[k])){state[k]=v;result.push(k)}}mountFields();save();update();return result},note:notify});}
