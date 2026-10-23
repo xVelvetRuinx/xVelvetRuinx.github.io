@@ -99,7 +99,7 @@ function fromJson(obj) {
  const canonical=new Set(["title","name","age","gender","rating","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","tags","promptMode","replyLength"]);
  for(const [k,v] of Object.entries(main)){
    const target=canonical.has(k)?k:fieldName(k);
-   if(target && typeof v==="string"&&v.trim())fields[target]=v;
+   if(target && (typeof v==="string"&&v.trim()||typeof v==="number"&&Number.isFinite(v)))fields[target]=String(v);
  }
  const variations={
  title:["title","display_name","bot_title"],name:["name","char_name"],
@@ -117,10 +117,19 @@ function fromJson(obj) {
     const found=sourceKeys.find(key=>main[key]!==undefined&&main[key]!==null);
     if(!found)continue;
     const v=main[found];
-    if(typeof v==="string")fields[k]=v;
+    if(typeof v==="string"||typeof v==="number")fields[k]=String(v);
     if(k==="tags"&&Array.isArray(v))fields.tags=v.filter(x=>typeof x==="string");
  }
- if(main.character_book&&Array.isArray(main.character_book.entries)){
+ if(!fields.hook && main.description && main.personality &&
+    String(main.description)!==String(main.personality) && String(main.description).length<1100){
+    fields.hook=String(main.description);
+ }
+ if(!fields.personality && main.character_definition)fields.personality=String(main.character_definition);
+ if(!fields.customGreeting && main.firstMes)fields.customGreeting=String(main.firstMes);
+ if(!fields.customGreeting && main.initialMessage)fields.customGreeting=String(main.initialMessage);
+ if(!fields.sampleChar1 && main.example_dialogue)fields.sampleChar1=String(main.example_dialogue);
+ if(!fields.tags && Array.isArray(main.tags))fields.tags=main.tags.filter(x=>typeof x==="string");
+  if(main.character_book&&Array.isArray(main.character_book.entries)){
    const lore=main.character_book.entries.slice(0,40).map(e=>e.content||e.text||"").filter(Boolean).join("\n\n");
    if(lore)fields.lore=[fields.lore,lore].filter(Boolean).join("\n\n");
  }
