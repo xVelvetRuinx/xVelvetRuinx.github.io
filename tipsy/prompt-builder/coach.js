@@ -63,7 +63,7 @@ const GUIDES={
  principle:"Write behavior, not a thesaurus. Use disposition + trigger + observable reaction + private contradiction. Then spend meaningful tokens showing that behavior in sample dialogue.",
  weak:"Dominant, mysterious, loyal, caring, smart, secretly soft, dangerous, protective, jealous.",
  strong:"Hollis is precise and slow to trust. When alarmed, his answers grow shorter and he checks his stopped watch. He warns strangers away from Platform Nine yet leaves its gate open in case someone he lost returns.",
- steps:["Official Tipsy target: approximately 700–800 tokens for the combined Personality and Example Dialogue.","Official Tipsy guidance: approximately 250–350 tokens of example dialogue can improve grammar and flow; use exchanges that show different behavior.","Practical starting allocation: roughly 450–550 tokens for compiled Background and 250–300 for Examples, adjusted to the character. These are planning ranges, not hard limits."],
+ steps:["Tipsy suggests roughly 700–800 tokens for combined Personality and Example Dialogue, and at least 500 total characters across personality, greeting and examples.","Tipsy recommends about 250–350 tokens of example dialogue. Use contrasting exchanges to reinforce wording, choices and preferences; examples alone cannot enforce accents or reply lengths.","VelvetRuin planning split: approximately 450–550 tokens for compiled Background and 250–350 for Examples. This is not a requirement, a maximum or a guarantee.","Specify speech style and response length in Personality / Background; do not rely on sample dialogue to force them."],
  caveat:"For a simple conversational bot, spend fewer tokens on lore and more on speech and reactions. A mystery, ensemble cast or rule-driven scenario may need more. Test whether added facts actually prevent mistakes; longer does not automatically mean better."
  },
  world:{
@@ -230,6 +230,11 @@ function init(){
  });
  const uploader=$("#project-file");
  if(uploader)uploader.addEventListener("change",()=>setTimeout(updateAll,120));
+ const output=$("#output-list");
+ if(output && typeof MutationObserver!=="undefined"){
+   const observer=new MutationObserver(()=>updateAll());
+   observer.observe(output,{childList:true});
+ }
  const options=["concept","character","world","opening","export"];
  const tabButtons=$$(".chapter");
  tabButtons.forEach((el,i)=>el.addEventListener("keydown",()=>setTimeout(updateAll,0)));
