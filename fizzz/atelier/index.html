@@ -7,11 +7,11 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=1">
+<link rel="stylesheet" href="atelier.css?v=2">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
-<script defer src="atelier.js?v=1"></script>
-<script defer src="migration.js?v=1"></script>
+<script defer src="atelier.js?v=2"></script>
+<script defer src="migration.js?v=2"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -49,12 +49,22 @@
 <div class="handoff original-ai">
   <p class="eyebrow">OPTIONAL · ORIGINAL CHARACTER DRAFTING WITH AI</p>
   <h3>An entirely new character, <em>built from your idea.</em></h3>
-  <p>Want a complete, genuinely new bot rather than a starter scaffold? Fill the premise and preferences above, then copy an original-character drafting brief into ChatGPT. Its JSON response comes back through the same side-by-side approval process. This site does not secretly call an AI service.</p>
-  <div class="action-row"><button type="button" class="quiet-button" id="copy-original-ai">✧ Copy Original Bot Draft Brief</button></div>
-  <label class="field full" style="margin-top:18px"><span>Paste the assistant's generated character JSON</span>
-    <textarea id="original-ai-paste" rows="4" placeholder='{"fields":{"name":"...","title":"...","bio":"...","traits":"...","initialRaw":"..."}}'></textarea>
+  <p>Want a complete, genuinely new bot instead of a starter scaffold? Use the steps below. The website does not run an AI model itself: <strong>Review</strong> imports the response you bring back; it does not generate a character.</p>
+  <div class="ai-steps" aria-label="How to generate and import an original Fizzz character">
+    <span><b>01</b> Copy the drafting brief</span><span><b>02</b> Paste it into ChatGPT and request the character</span><span><b>03</b> Copy the <strong>whole JSON response</strong> back here</span>
+  </div>
+  <div class="action-row"><button type="button" class="quiet-button" id="copy-original-ai">✧ 1. Copy Original Bot Draft Brief</button></div>
+  <label class="field full" style="margin-top:18px" for="original-ai-paste"><span>2. Paste the completed character JSON from ChatGPT</span>
+    <textarea id="original-ai-paste" rows="6" spellcheck="false" autocomplete="off" placeholder='Paste the complete response here, starting with { and ending with }. Example: {"fields":{"name":"Example","title":"The Keeper","traits":"...", "initialRaw":"..."}}'></textarea>
+    <small>Plain narrative text is not JSON. Markdown ```json fences are okay. If an assistant cuts off halfway through, ask it for a shorter, complete JSON response before importing.</small>
   </label>
-  <button class="mini-link" type="button" id="review-original-ai">Review Generated Bot Fields →</button>
+  <div class="ai-response-actions">
+    <button class="quiet-button" type="button" id="paste-original-ai">⌁ Paste from Clipboard</button>
+    <button class="quiet-button" type="button" id="upload-original-ai">↑ Open JSON or TXT File</button>
+    <input id="original-ai-upload" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+    <button class="main-button" type="button" id="review-original-ai">✦ 3. Review Generated Bot Fields →</button>
+  </div>
+  <p class="ai-import-status" id="original-ai-status" role="status" aria-live="polite">No JSON pasted yet. Copy the assistant's completed response or open its file above.</p>
 </div>
 <div class="action-row"><button type="button" class="main-button" id="starter">✧ Build a Starter Concept</button><button type="button" class="quiet-button next" data-next="profile">Next · The Invitation →</button></div>
 </div>
