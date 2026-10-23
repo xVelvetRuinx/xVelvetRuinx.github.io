@@ -44,7 +44,7 @@ const aliases={
  coverDirection:["cover direction","cover prompt"],imageDirection:["character images","character image prompt","image direction","art prompt"],
  voiceDirection:["voice direction","voice notes"],
  world1Title:["worldbook 1 title","worldbook1 title","lorebook 1 title"],
- world1Body:["worldbook 1","worldbook entry 1","worldbook1","lorebook 1"],
+ world1Body:["worldbook 1","worldbook entry 1","worldbook1","lorebook 1","worldbook","lorebook","lore"],
  world2Title:["worldbook 2 title","worldbook2 title","lorebook 2 title"],
  world2Body:["worldbook 2","worldbook entry 2","worldbook2","lorebook 2"],
  world3Title:["worldbook 3 title","worldbook3 title","lorebook 3 title"],
@@ -177,7 +177,7 @@ function describe(key,source){
  return "Existing source facts assigned to the corresponding creator field, with original wording intact.";
 }
 function prepare(parsed,{source="file",ai=false,log=[]}={}){
- const data=normalizeSelections(parsed.fields||{}),items=[],s=A().getState(),keys=new Set(A().keys());
+ const data=normalizeSelections(parsed.fields||{}),items=[],s=A().getState(),keys=new Set([...A().keys(),"tags"]);
  for(const [key,v] of Object.entries(data)){
   if(!keys.has(key)||typeof v!=="string"||!v.trim())continue;
   const old=ai?baseline[key]:v,proposal=String(v);
@@ -190,7 +190,11 @@ function prepare(parsed,{source="file",ai=false,log=[]}={}){
   if(ai&&changed)reason+=" • External AI can alter meaning despite instructions. Compare every word before approval.";
   items.push({key,value:proposal,original:old==null?"":String(old),status,reason,inferred:!ai&&!!(parsed.generated?.includes(key)||parsed.unstructured),aiChanged:ai&&changed,sourceChanged:changed});
  }
- const leftovers=Array.isArray(parsed.unmapped)?parsed.unmapped.join("\n\n"):String(parsed.unmapped||"");
+ if(Array.isArray(parsed.tags)&&parsed.tags.length){
+  const tags=[...new Set(parsed.tags.filter(x=>typeof x==="string"))];
+  items.push({key:"tags",value:tags.join(", "),original:tags.join(", "),status:"Optional source tags",reason:"Original discovery categories recovered from the source. Some tags may not exist in Fizzz; only supported tags will be carried over, and the ten-tag limit includes the three required categories.",inferred:true,aiChanged:false});
+ }
+  const leftovers=Array.isArray(parsed.unmapped)?parsed.unmapped.join("\n\n"):String(parsed.unmapped||"");
  return {items,leftovers,notes:[...extraWarnings,...(parsed.notesGlobal||[])],tags:parsed.tags||[],kind:parsed.kind||source,source,s};
 }
 function prospective(jsonOrText,sourceFormat){
@@ -305,7 +309,12 @@ function apply(){
  if(!Object.keys(patch).length){A().notify("Select at least one reviewed field to apply.");return}
  const replace=$('input[name="merge-mode"]:checked')?.value==="replace";
  if(replace&&!confirm("Replace only your selected fields in the current draft? Back up first if needed."))return;
+ const importedTags=typeof patch.tags==="string"?patch.tags.split(/[,;\n]+/g).map(s=>s.trim()).filter(Boolean):null;
+ delete patch.tags;
  const done=api.apply(patch,{replace});
+ if(importedTags?.length&&(replace||!A().getTags().length)){
+    A().setTags(importedTags);done.push("tags");
+ }
  if(!done.length){A().notify("No empty fields to fill. Choose Replace selected fields if you want to overwrite your draft.");return}
  A().notify(done.length+" reviewed fields applied. Check the manuscript and media before publishing.");
  A().chapter("profile");
