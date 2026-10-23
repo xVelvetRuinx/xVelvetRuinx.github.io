@@ -160,12 +160,35 @@ function firstSentences(s,max=255){
  const sentences=(t.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[]).map(x=>x.trim()).filter(x=>x.length>18);
  return sentences.slice(0,2).join(" ").slice(0,max).trim();
 }
+/* Preservation policy: file extraction and field mapping may reformat text, but may
+   never silently shorten dialogue, scenes, character histories or world rules. */
+function auditEditing(before,after,{suggested=false,relocated=false}={}){
+ const old=typeof before==="string"?before:Array.isArray(before)?before.join(", "):"";
+ const next=typeof after==="string"?after:Array.isArray(after)?after.join(", "):String(after??"");
+ const prev=old.trim(),now=next.trim();
+ const delta=Math.ceil(next.length/4)-Math.ceil(old.length/4);
+ if(suggested)return {status:"Suggested addition",reason:"Inferred from existing text, not supplied as an explicit source field. Optional: approve only if accurate.",delta,changed:true,substantial:false};
+ if(relocated)return {status:"Reorganized",reason:"Existing information was separated into a Tipsy creator field without inventing plot or dialogue.",delta,changed:true,substantial:false};
+ if(prev===now)return {status:"Unchanged",reason:"Preserved the original wording. The change is where the information is placed, not what it says.",delta:0,changed:false,substantial:false};
+ // Word overlap is a conservative warning, NOT a semantic similarity score.
+ const words=x=>x.toLowerCase().match(/[\p{L}\p{N}']+/gu)||[];
+ const A=words(prev),B=words(now),setA=new Set(A),setB=new Set(B);
+ const common=[...setA].filter(w=>setB.has(w)).length,union=new Set([...setA,...setB]).size||1;
+ const shift=1-common/union;
+ const lengthShift=Math.abs(now.length-prev.length)/Math.max(prev.length,now.length,1);
+ const substantial=Boolean(prev)&& (shift>0.50||lengthShift>0.35);
+ return {
+  status: substantial?"Review wording":"Light formatting",
+  reason:substantial?"The wording or length differs noticeably from the source. This is a warning, not evidence that the meaning was improved. Compare every sentence before approving.":"Minor cleanup: whitespace, role placeholders, formatting, or field-specific normalization. Compare the exact text if it matters.",
+  delta,changed:true,substantial
+ };
+}
 function analyze(input,{mode="tuned",format="text"}={}){
  if(input===null||input===undefined)throw Error("No character text supplied.");
  let parsed,source;
  if(typeof input==="string"){
   source=input;
-  if(format==="json") {
+  if(format==="json"){
     try{parsed=fromJson(JSON.parse(input));}catch(e){throw Error("Unable to parse JSON: "+e.message);}
   }else{
     parsed=fromText(input);
@@ -174,76 +197,106 @@ function analyze(input,{mode="tuned",format="text"}={}){
     }
   }
  }else{parsed=fromJson(input);source=JSON.stringify(input,null,2);}
- let fields={...parsed.fields};
- const notes=[],tips=[],originalValues={...fields},add=(key,v,why)=>{
+ const original={...parsed.fields},fields={...parsed.fields};
+ const tips=[],suggestions={},relocated={},notices=[];
+ const add=(key,v,reason)=>{
   if(fields[key]!==undefined&&String(fields[key]).trim())return;
-  if(!String(v||"").trim())return;
-  fields[key]=cleanup(v,mode);notes.push({key,why});
+  if(!String(v??"").trim())return;
+  fields[key]=cleanup(v,"faithful");
+  suggestions[key]=reason;
  };
- for(const [k,v] of Object.entries(fields))if(typeof v==="string")fields[k]=cleanup(v,mode);
- // Recognize structured properties nested inside a long imported description.
- if(fields.personality) {
-    const p=fromText(fields.personality);
-    if(Object.keys(p.fields).length>=2){
-      for(const [k,v] of Object.entries(p.fields))if(k!=="personality")add(k,v,"Recovered from a labeled part of the imported personality.");
-      if(p.fields.personality||p.unmapped)fields.personality=[p.fields.personality,p.unmapped].filter(Boolean).join("\n\n");
-    }
+ const narrative=new Set(["personality","backstory","lore","anchors","canon","scenario","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","relationship","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3"]);
+ for(const [k,v] of Object.entries(fields)){
+  if(typeof v==="string")fields[k]=cleanup(v,narrative.has(k)?"faithful":mode);
  }
- distributeDialogues(fields);
- if(!fields.name){
-   const first=parsed.unmapped.split("\n").map(x=>x.trim()).find(Boolean);
-   const plausible=first?first.replace(/^#+\s*|^\*+\s*/g,"").split(/\s+[—|]\s+/)[0].replace(/\s*\(\d{2,3}\)\s*$/,"").trim():"";
-   if(plausible&&/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){0,2}$/u.test(plausible)){
-     add("name",plausible,"Inferred from a standalone heading; verify it.");
-     tips.push("The character name was inferred from a heading. Check it.");
+ if(fields.personality){
+  const inner=fromText(fields.personality);
+  const keys=Object.keys(inner.fields);
+  if(keys.length>=2){
+   for(const [k,v] of Object.entries(inner.fields)){
+     if(k!=="personality"&&!(k in fields)){
+       fields[k]=cleanup(v,"faithful");
+       relocated[k]="Moved from a labeled section of the original character profile. The text itself was preserved.";
+     }
    }
+   const remainder=[inner.fields.personality,inner.unmapped].filter(Boolean).join("\n\n");
+   if(remainder && remainder.trim()!==fields.personality.trim()){
+     fields.personality=remainder;
+     relocated.personality="Separated clearly labeled appearance, history or lore into dedicated Tipsy fields. Compare against the original and check that no detail was misplaced.";
+     notices.push("The imported personality contained labeled subsections. Compare its original text with the separated fields for completeness.");
+   }
+  }
  }
- add("title",fields.name,"Used the original character name as a starting storefront title.");
+ const beforeDialogue={...fields};
+ distributeDialogues(fields);
+ for(const k of ["sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3"]){
+  if(fields[k]!==undefined && fields[k]!==beforeDialogue[k]){
+   relocated[k]="Separated an existing {{user}} / {{char}} exchange into the corresponding Tipsy example slot without rewriting the lines.";
+  }
+ }
+ if(!fields.name){
+  const first=parsed.unmapped.split("\n").map(x=>x.trim()).find(Boolean);
+  const possible=first?first.replace(/^#+\s*|^\*+\s*/g,"").split(/\s+[—|]\s+/)[0].replace(/\s*\(\d{2,3}\)\s*$/,"").trim():"";
+  if(possible&&/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){0,2}$/u.test(possible)){
+   add("name",possible,"Possible name inferred from a standalone heading; verify spelling.");
+  }
+ }
+ add("title",fields.name,"Proposed the source character's existing name as a storefront title; optional.");
  if(!fields.hook){
-   add("hook",firstSentences(fields.scenario||fields.customGreeting||fields.personality||parsed.unmapped),"Built a provisional public hook from existing facts; refine the stakes.");
-   if(fields.hook)tips.push("The proposed hook is drawn from existing prose. Rewrite it as a sharp premise with stakes.");
+  add("hook",firstSentences(fields.scenario||fields.customGreeting||fields.personality||parsed.unmapped),"Excerpt taken from existing source text, NOT a newly written hook. Improve manually if it does not express the playable conflict.");
  }
  if(!fields.scenario&&fields.customGreeting){
-   add("scenario",firstSentences(fields.customGreeting,500),"Inferred a starting scene from the original greeting; confirm accuracy.");
+  add("scenario",firstSentences(fields.customGreeting,500),"A provisional scenario summary extracted from the existing greeting; verify that it preserves context.");
  }
- // Do not fabricate behavior, memories, lore or pronouns.
  if(!fields.personality&&parsed.unmapped){
-    add("personality",parsed.unmapped.slice(0,2600),"Unstructured prose retained for characterization; manually sort relevant facts.");
-    tips.push("Your concept was not labeled. Review the proposed personality carefully.");
+  add("personality",parsed.unmapped,"Unstructured source copied in full for sorting. NOT rewritten or condensed; review placement before applying.");
+  tips.push("Your source is mainly freeform. Its wording is intact, but you should decide which parts belong in Personality, Scenario, or Lore.");
  }
- if(mode==="tuned"){
-   if(fields.hook&&fields.hook.length>350){fields.hook=firstSentences(fields.hook,330);tips.push("Condensed long public copy; full source remains available to save.");}
-   if(fields.title)fields.title=fields.title.split("\n")[0];
-   if(fields.name)fields.name=fields.name.split("\n")[0];
-   for(const k of ["personality","backstory","lore","anchors"]){
-     if(!fields[k]||typeof fields[k]!=="string")continue;
-     const seen=new Set();fields[k]=fields[k].split(/\n\s*\n/).filter(p=>{
-      const norm=p.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,140);
-      if(seen.has(norm))return false;seen.add(norm);return true;
-     }).join("\n\n");
-   }
+ // No arbitrary cap or paragraph deduplication: repeated dialogue, lore or story
+ // details may be intentional. The reviewer decides what actually gets cut.
+ if(fields.age){
+  const age=String(fields.age).trim();
+  if(/^\d{2,3}(?:\s*(?:years old|yrs?))?$/i.test(age))fields.age=(age.match(/^\d+/)||[])[0]||age;
+  else tips.push("Age includes more than a simple number (possibly apparent versus actual age). Review rather than silently changing it.");
  }
- if(fields.age){const m=String(fields.age).match(/\d{2,3}/);if(m)fields.age=m[0];}
  if(fields.gender){
-    const x=String(fields.gender).toLowerCase();
-    fields.gender=x.startsWith("m")?"Male":x.startsWith("f")?"Female":x.includes("non")?"Non-binary":"";
+  const g=String(fields.gender).trim().toLowerCase();
+  if(["male","man"].includes(g))fields.gender="Male";
+  else if(["female","woman"].includes(g))fields.gender="Female";
+  else if(["non-binary","nonbinary","non binary"].includes(g))fields.gender="Non-binary";
+  else {
+   tips.push("Gender could not be mapped confidently to the Tipsy selector. Set it manually; no guess was made.");
+   delete fields.gender;
+  }
  }
- if(fields.rating)fields.rating=/limitless|nsfw|adult/i.test(fields.rating)?"Limitless":"Limited";
- if(!fields.name)tips.push("Name not confidently identified — set it manually.");
- if(fields.age&&Number(fields.age)<18)tips.unshift("Age appears under 18. Tipsy requires adult characters; the importer will not silently alter it.");
- if(!fields.voice)tips.push("No speech pattern identified. Show sentence length, humor and reactions to pressure.");
- if(!fields.userRole)tips.push("Define {{user}}'s starting role without deciding their feelings or actions.");
- if(!fields.customGreeting)tips.push("Add an opening scene with character dialogue and a playable decision.");
- if(!fields.sampleChar1)tips.push("Add 2–3 contrasting example dialogues to demonstrate voice.");
- const knownKeys=new Set(["title","name","age","gender","rating","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","tags","promptMode","replyLength"]);
- const review=Object.entries(fields).filter(([k,v])=>knownKeys.has(k)&&v!==undefined&&String(v).trim()).map(([key,value])=>({
-   key,value,
-   original:originalValues[key]===undefined?null:originalValues[key],
-   confidence:notes.some(x=>x.key===key)?"Suggestion":originalValues[key]!==undefined&&String(originalValues[key])!==String(value)?"Tidied":"Source",
-   reason:notes.find(x=>x.key===key)?.why||"Recognized from source. Review the meaning and completeness."
- }));
- if(!review.length)throw Error("No usable character details were recognized. Paste the character's text or use a different export.");
- return {fields,review,tips,conflicts:parsed.conflicts,unmapped:parsed.unmapped,source,format,mode};
+ if(fields.rating){
+  const r=String(fields.rating).trim().toLowerCase();
+  if(r==="limited")fields.rating="Limited";
+  else if(r==="limitless")fields.rating="Limitless";
+  else {
+   tips.push("Imported rating is not exactly Limited or Limitless. Choose the correct public rating manually.");
+   delete fields.rating;
+  }
+ }
+ if(fields.age&&/^\d+$/.test(fields.age)&&Number(fields.age)<18)tips.unshift("Source lists an age under 18. Tipsy requires adult characters; the import does not alter ages.");
+ if(!fields.name)tips.push("No reliable name was found. Add it manually; never invent a new identity.");
+ if(!fields.voice)tips.push("No explicit voice guidance found. You could add sentence rhythm, vocabulary, and stress reactions without rewriting dialogue.");
+ if(!fields.userRole)tips.push("No player role found. Define {{user}}'s initial position without prescribing their decisions or emotions.");
+ if(!fields.customGreeting)tips.push("No complete first message detected. Add a playable opening, but keep any original scene that exists.");
+ if(!fields.sampleChar1)tips.push("No example dialogue detected. You can add separate samples without altering original conversations.");
+ if(fields.personality&&fields.personality.length>2800)tips.push("Personality is long. Consider moving unrelated world history into Lore, but do not cut unique behaviors or canon to meet a token target.");
+ if(fields.customGreeting&&fields.customGreeting.length>1800)tips.push("Greeting is lengthy. Shorten only redundant exposition, if any; preserve the scene, distinctive dialogue, and player choice.");
+ if(fields.hook&&fields.hook.length>350)tips.push("Public hook is long. A separate optional shorter tagline might help visibility; the imported wording is preserved.");
+ const reviewKeys=new Set(["title","name","age","gender","rating","hook","userRole","tease","trope","appearance","personality","contradiction","voice","mannerisms","occupation","surfaceGoal","hiddenGoal","backstory","anchors","sampleUser1","sampleChar1","sampleUser2","sampleChar2","sampleUser3","sampleChar3","setting","lore","scenario","relationship","supporting","canon","customGreeting","openingScene","openingAction","openingDialogue","openingBeat","tags","promptMode","replyLength"]);
+ const review=Object.entries(fields).filter(([k,v])=>reviewKeys.has(k)&&v!==undefined&&(Array.isArray(v)?v.length>0:String(v).trim())).map(([key,value])=>{
+  const before=Object.prototype.hasOwnProperty.call(original,key)?original[key]:null;
+  const check=auditEditing(before,value,{suggested:!!suggestions[key],relocated:!!relocated[key]});
+  if(suggestions[key])check.reason=suggestions[key];
+  if(relocated[key])check.reason=relocated[key];
+  return {key,value,original:before,confidence:check.status,reason:check.reason,changed:check.changed,substantial:check.substantial,delta:check.delta,proposed:!!suggestions[key]};
+ });
+ if(!review.length)throw Error("No recognizable character information found. Paste the profile or a text-based export.");
+ return {fields,review,tips,conflicts:parsed.conflicts||[],unmapped:parsed.unmapped,source,format,mode,preservation:true};
 }
 async function script(src,test){
  if(test())return;
