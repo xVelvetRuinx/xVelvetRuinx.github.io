@@ -219,6 +219,7 @@ function prospective(jsonOrText,sourceFormat){
 function setImported(text,{name="",formatHint="text",warnings=[]}={}){
  originalText=String(text||"");fileName=name;format=formatHint;
  extraWarnings=[...warnings];sourceMapped=null;baseline={};lastAIFeedback=[];
+ const emptyMode=$('input[name="merge-mode"][value="empty"]');if(emptyMode)emptyMode.checked=true;
  $("#migration-paste").value=originalText;$("#migration-results").hidden=true;$("#migration-file-status").textContent=(name||"Pasted content")+" · "+originalText.length.toLocaleString()+" characters ready. "+warnings.join(" ");
 }
 async function importFile(file){
@@ -427,6 +428,7 @@ function auditCurrent(){
  const project=A().getState(),real=Object.fromEntries(Object.entries(project).filter(([k,v])=>allowed.has(k)&&typeof v==="string"&&v.trim()&&!["gender","pov","rating"].includes(k)));
  if(!Object.keys(real).length){A().notify("The current draft is empty. Write something or load an example first.");return}
  originalText=JSON.stringify(project,null,2);fileName="Current Fizzz draft";format="json";baseline={...project};lastAIFeedback=[];
+ const replaceMode=$('input[name="merge-mode"][value="replace"]');if(replaceMode)replaceMode.checked=true;
  const p=prepare({fields:real,kind:"Current draft review",notes:{},unmapped:[]});
  p.items.forEach(item=>{item.reason="Audited existing field without altering wording. Use the creator checklist for improvements.";item.status="Source unchanged"});
  showReview(p);
@@ -594,6 +596,7 @@ function initFizzzMigration(context){
   try{
     originalText=$("#migration-paste").value;
     if(!originalText.trim())throw Error("Choose a file or paste an existing character.");
+    const emptyMode=$('input[name="merge-mode"][value="empty"]');if(emptyMode)emptyMode.checked=true;
     sourceMapped=prospective(originalText,format);baseline=Object.fromEntries(sourceMapped.items.map(x=>[x.key,x.original]));
     showReview(sourceMapped);A().notify("Original text mapped for review. No changes applied.");
   }catch(e){A().notify("Could not map character: "+e.message)}
