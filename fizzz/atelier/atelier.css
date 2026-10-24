@@ -99,3 +99,68 @@
  .optimize-box{padding:13px}
  .optimize-controls button{flex:1 1 100%}
 }
+
+/* Fizzz Quick Start and Advanced Handbook integrated into the Atelier */
+.handbook-shortcut{display:block;width:100%;margin:10px 0 18px;padding:13px 16px;text-align:left;border:1px solid rgba(215,184,128,.36);background:linear-gradient(110deg,rgba(115,54,80,.27),rgba(10,8,16,.3));color:#f0d6e0;font-size:11.5px}
+.handbook-shortcut:hover{border-color:var(--gold);color:#fff}
+.guide-notice{border:1px solid rgba(215,184,128,.33);border-left:3px solid var(--gold);background:rgba(91,48,76,.14);padding:15px 16px;margin:0 0 20px}
+.guide-notice strong{font:500 23px var(--display);color:#f2dbe6}
+.guide-notice p{margin:5px 0 0;font-size:11px;line-height:1.8;color:var(--muted)}
+.handbook-find{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:23px 0 14px;padding:15px;border:1px solid var(--line2);background:#0f0c15}
+.handbook-find label{display:block;width:100%;font-size:11px;color:#e9dce4}
+.handbook-find input{flex:1 1 240px;min-width:0;background:#0b0910;color:var(--ivory);border:1px solid #6e4b64;padding:11px 12px;font:11.5px var(--body)}
+.handbook-find button{padding:11px 14px;background:#261725;border:1px solid var(--line);color:var(--gold);font-size:11px}
+.handbook-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:16px 0}
+.handbook-fact{min-width:0;background:#100c17;border:1px solid var(--line2);padding:11px 12px}
+.handbook-fact b{display:block;font:9px var(--caps);letter-spacing:.10em;color:var(--gold);margin-bottom:6px}
+.handbook-fact span{display:block;color:#dfd2da;font-size:10.5px;line-height:1.7}
+.handbook-index{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:25px 0 31px}
+.handbook-index-group{border:1px solid var(--line2);padding:15px 13px;background:rgba(11,8,16,.44);display:grid;gap:4px;align-content:start}
+.handbook-index-group>strong{font:9.5px var(--caps);letter-spacing:.11em;color:var(--gold);margin:0 0 8px}
+.handbook-index-button{text-align:left;border:0;border-bottom:1px solid rgba(210,180,191,.13);background:transparent;color:#e6d4df;font-size:10.5px;line-height:1.45;padding:8px 5px}
+.handbook-index-button:hover{color:var(--gold);background:rgba(111,54,84,.1)}
+.handbook-part{margin:20px 0 37px}
+.handbook-part h3{font:500 clamp(30px,4vw,42px)/1.08 var(--display);margin:0 0 17px;color:#eddae5;border-bottom:1px solid var(--line2);padding-bottom:10px}
+.handbook-entry{border:1px solid var(--line2);margin:9px 0;background:#110d17;scroll-margin-top:18px}
+.handbook-entry[open]{border-color:rgba(215,184,128,.55);background:linear-gradient(135deg,rgba(89,44,65,.16),#120f18)}
+.handbook-entry-heading{display:flex;flex-direction:column;gap:5px;padding:14px 15px;cursor:pointer}
+.handbook-entry-heading b{font:500 23px/1.07 var(--display);color:#eedfe7}
+.handbook-entry-heading span{font-size:10.5px;color:var(--muted)}
+.handbook-entry-heading:hover b{color:var(--gold)}
+.handbook-entry-content{border-top:1px solid var(--line2);padding:18px 18px 19px}
+.handbook-paragraph{margin:0 0 18px}
+.handbook-paragraph h4{font:500 20px/1.15 var(--display);margin:0 0 7px;color:var(--gold)}
+.handbook-paragraph p{font-size:11.5px;line-height:1.82;color:#e1d3dc;white-space:pre-line;margin:0 0 8px;overflow-wrap:anywhere}
+.handbook-paragraph p:last-child{margin-bottom:0}
+.handbook-entry-footer{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:15px 0 0;border-top:1px solid var(--line2)}
+.handbook-entry-footer .quiet-button{font-size:10px}
+.handbook-source-link{font-size:10.5px;color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+.handbook-empty{border-left:3px solid #b9617b;padding:13px;font-size:11px;color:#f0d5df}
+.official-inline-card{border:1px solid rgba(215,184,128,.37);background:rgba(115,53,77,.10);margin:16px 0 23px}
+.official-inline-card summary{font-size:11px;font-weight:600;color:#eacbd9;cursor:pointer;padding:12px 14px}
+.official-inline-card[open] summary{border-bottom:1px solid var(--line2)}
+.official-inline-body{padding:13px 14px 16px}
+.official-inline-body p{font-size:11px;line-height:1.8;color:#d9c9d2;margin:0 0 13px}
+.official-inline-links{display:flex;flex-wrap:wrap;gap:7px}
+.official-topic-button{font-size:10px;line-height:1.45;background:#261928;color:var(--gold);border:1px solid #6b4959;padding:8px 9px;text-align:left}
+.official-topic-button:hover{border-color:var(--gold)}
+.publication-checklist{border:1px solid rgba(215,184,128,.39);margin:25px 0;background:rgba(12,9,17,.53);padding:21px 18px}
+.publication-checklist h3{font:500 31px/1.1 var(--display);margin:0 0 7px;color:#f1dbe7}
+.publication-checklist>p{color:var(--muted);font-size:11px;line-height:1.7}
+#publication-checks{display:grid;gap:8px;margin:19px 0}
+.pubcheck-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;background:#18121d;border:1px solid var(--line2);padding:11px 12px;cursor:pointer}
+.pubcheck-row:hover{border-color:rgba(215,184,128,.54)}
+.pubcheck-row input{accent-color:#b8809d;width:17px;height:17px;margin:1px 0 0}
+.pubcheck-row span{font-size:11px;line-height:1.6;color:#e1d3db}
+.pubcheck-row small{font-size:9px;color:var(--gold);white-space:nowrap}
+.checklist-status{padding:10px 13px;border-left:2px solid var(--gold);color:#e8d6e0;background:#3e26362b}
+.checklist-status.complete{color:#d6e8cd;border-left-color:#a4c28e;background:#2c453229}
+@media(max-width:700px){
+ .handbook-facts{grid-template-columns:1fr}
+ .handbook-index{grid-template-columns:1fr;gap:10px}
+ .handbook-entry-content{padding:14px}
+ .handbook-entry-heading b{font-size:21px}
+ .pubcheck-row{grid-template-columns:auto 1fr}
+ .pubcheck-row small{grid-column:2}
+ .handbook-find button{flex:0 0 auto}
+}
