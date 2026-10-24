@@ -5,7 +5,7 @@
 const $=(s,root=document)=>root.querySelector(s),$$=(s,root=document)=>Array.from(root.querySelectorAll(s));
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x};
 const STORAGE="velvetruin.fizzz.atelier.v1";
-const PAGES=["spark","profile","core","opening","world","media","review","migrate"];
+const PAGES=["spark","profile","core","opening","world","media","review","migrate","handbook"];
 const EDITABLE=new Set(["concept","archetype","dynamic","conflict","role","arc","name","title","age","gender","pov","rating","bio","warning","appearance","occupation","species","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice","coreRaw","initialRaw","openingScene","openingAction","openingLine","openingBeat","world1Title","world1Mode","world1Keywords","world1Body","world2Title","world2Mode","world2Keywords","world2Body","world3Title","world3Mode","world3Keywords","world3Body","coverDirection","imageDirection","videoDirection","voiceDirection","musicDirection"]);
 const TAGS=["Original Character","Romance","Slow Burn","Enemies to Lovers","Friends to Lovers","Forced Proximity","Arranged Marriage","Marriage Drama","Boss","Workplace","Protective","Mafia","Crime","Biker","Sports","College","Comfort","Angst","Mystery","Supernatural","Vampire","Werewolf","Omegaverse","Fantasy","Gothic","Horror","Sci-Fi","Historical","Adventure","Drama","Slice of Life","Found Family","Green Flag","Rivals","Western","Non-human"];
 const INITIAL={};
