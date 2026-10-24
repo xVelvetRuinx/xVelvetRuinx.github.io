@@ -44,7 +44,7 @@ function go(topic){
  if(found){found.hidden=false;found.open=true;found.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}
 }
 function buildEntry(x){
- const card=node("details","handbook-entry");card.id="guide-"+x.id;card.dataset.topic=x.id;
+ const card=node("details","handbook-entry");card.id="guide-"+x.id;card.dataset.topic=x.id;if(x.id==="quick-start")card.open=true;
  const summary=node("summary","handbook-entry-heading");
  summary.append(node("b","",x.title),node("span","",x.short));
  card.append(summary);
@@ -104,7 +104,7 @@ function showContent(){
  for(const [chapter,info] of Object.entries(snapshots)){
    const mount=$('.official-inline[data-official="'+chapter+'"]');
    if(!mount)continue;
-   const details=node("details","official-inline-card"),heading=node("summary","", "✧ Fizzz handbook · "+info.title);
+   const details=node("details","official-inline-card"),heading=node("summary","", "✧ Fizzz handbook · "+info.title);details.open=true;
    const body=node("div","official-inline-body");body.append(node("p","",info.text));
    const buttons=node("div","official-inline-links");
    for(const topic of info.topics){
