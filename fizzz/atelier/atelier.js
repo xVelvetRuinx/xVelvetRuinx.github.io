@@ -6,7 +6,7 @@ const $=(s,root=document)=>root.querySelector(s),$$=(s,root=document)=>Array.fro
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x};
 const STORAGE="velvetruin.fizzz.atelier.v1";
 const PAGES=["spark","profile","core","opening","world","media","review","migrate","handbook"];
-const EDITABLE=new Set(["concept","archetype","dynamic","conflict","role","arc","name","title","age","gender","pov","rating","bio","warning","appearance","occupation","species","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice","coreRaw","initialRaw","openingScene","openingAction","openingLine","openingBeat","world1Title","world1Mode","world1Keywords","world1Body","world2Title","world2Mode","world2Keywords","world2Body","world3Title","world3Mode","world3Keywords","world3Body","coverDirection","imageDirection","videoDirection","voiceDirection","musicDirection"]);
+const EDITABLE=new Set(["concept","archetype","dynamic","conflict","role","arc","name","title","age","gender","pov","rating","bio","warning","appearance","occupation","species","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice","coreRaw","initialRaw","openingScene","openingAction","openingLine","openingBeat","world1Title","world1Mode","world1Keywords","world1Body","world2Title","world2Mode","world2Keywords","world2Body","world3Title","world3Mode","world3Keywords","world3Body","coverDirection","imageDirection","videoDirection","voiceDirection","voiceDesignPrompt","voiceId","musicDirection"]);
 const TAGS=["Original Character","Romance","Slow Burn","Enemies to Lovers","Friends to Lovers","Forced Proximity","Arranged Marriage","Marriage Drama","Boss","Workplace","Protective","Mafia","Crime","Biker","Sports","College","Comfort","Angst","Mystery","Supernatural","Vampire","Werewolf","Omegaverse","Fantasy","Gothic","Horror","Sci-Fi","Historical","Adventure","Drama","Slice of Life","Found Family","Green Flag","Rivals","Western","Non-human"];
 const INITIAL={};
 for(const k of EDITABLE)INITIAL[k]="";
@@ -71,6 +71,8 @@ const media=[
  field("imageDirection","Character Images · 9:16 up to three","Design consistent single-subject images for video generation. Face, lighting, clothes and age should match Core Personality.","9:16 photorealistic single adult male, dark cropped hair, brown eyes, charcoal coat; medium portrait in candlelit archive, face entirely visible.","Avoid multiple people, heavy blur and obscured faces.","Describe alternate outfit/scene images if the identity remains recognizable.",{rows:5}),
  field("videoDirection","Opening Film & movement notes","Match the opening text's lighting, pose and actions to the character image.","Opening at desk: hands rest on ledger, he glances at its seal and speaks one measured line.","Avoid unfilmable poses, props changing hands and scene contradictions.","Add one precise gesture if central to the first impression.",{rows:4}),
  field("voiceDirection","Required voice · casting notes","Fizzz voice is mandatory; describe timbre, accent, pace and tone, then choose a voice on the platform.","Mature low-mid register, measured tempo, unhurried diction, dry undertone.","Don't select based on accent stereotypes alone.","Include emotion shifts for a layered character.",{rows:3}),
+ field("voiceDesignPrompt","Design Voice · 20-word maximum","Fizzz Design Voice descriptions may be at most 20 words. Prioritize language, adult age feel, pitch, timbre, pace, emotion and clean recording quality.","Native English. Male, 30s. Low-pitched, raspy, calm, slow pacing. Warm and steady.","Remove effects words such as reverb, echo, phone, tape; they can harm voice quality.","A voice with distinct language and pacing may use the full 20-word allowance.",{rows:2}),
+ field("voiceId","Optional ElevenLabs V3 Voice ID","If you have an authorized ElevenLabs V3 Voice ID, copy it here for your production notes. Paste into Fizzz where supported; verify availability in your account.","An authorized voice ID from your selected ElevenLabs V3 library voice.","Do not paste private credentials or API keys.","Include the ID only if you are actually selecting a supported custom voice."),
  field("musicDirection","Optional background music","Keep music subtle enough to complement dialogue and scene.","Sparse piano, distant rain ambience, restrained and cinematic.","Avoid music that contradicts the scene.","Music can change by location if important.",{rows:2})
 ];
 const WB="world";
@@ -138,7 +140,7 @@ function openingCompiled(){
 const wbData=()=>[1,2,3].map(i=>({number:i,title:val("world"+i+"Title"),mode:val("world"+i+"Mode")||"always",keywords:val("world"+i+"Keywords"),content:val("world"+i+"Body")})).filter(x=>x.title||x.content||x.keywords);
 function mediaCompiled(){
  const lines=[];
- for(const [title,k] of [["Cover 3:4", "coverDirection"],["Character Images 9:16", "imageDirection"],["Opening Film","videoDirection"],["Voice (required on Fizzz)","voiceDirection"],["Music (optional)","musicDirection"]])if(val(k))lines.push(title+"\n"+val(k));
+ for(const [title,k] of [["Cover 3:4", "coverDirection"],["Character Images 9:16", "imageDirection"],["Opening Film","videoDirection"],["Voice (required on Fizzz)","voiceDirection"],["Design Voice description (max 20 words)","voiceDesignPrompt"],["ElevenLabs V3 Voice ID (optional)","voiceId"],["Music (optional)","musicDirection"]])if(val(k))lines.push(title+"\n"+val(k));
  return lines.length?lines.join("\n\n"):"Add media directions here, then upload and select the actual assets on Fizzz.";
 }
 const titleValue=()=>val("title")||val("name");
@@ -160,7 +162,7 @@ function buildControl(meta){
  if(box.tagName==="INPUT")box.type="text";
  if(opts)meta.choices.forEach(v=>{const o=el("option","",v);o.value=v;box.append(o)});
  box.value=state[meta.key]||"";
- const refresh=()=>{const n=box.value.length,max=meta.key.endsWith("Body")?10000:meta.key==="coreRaw"?25000:meta.key==="initialRaw"?5000:null;count.textContent=n?(max?n.toLocaleString()+"/"+max.toLocaleString():n.toLocaleString())+" chars · ~"+tokens(box.value)+" tokens":"";count.classList.toggle("over",max!==null&&n>max)};
+ const refresh=()=>{const n=box.value.length,max=meta.key.endsWith("Body")?10000:meta.key==="coreRaw"?25000:meta.key==="initialRaw"?5000:null;const voiceWords=meta.key==="voiceDesignPrompt"?words(box.value):null;count.textContent=voiceWords!==null?voiceWords+"/20 words":n?(max?n.toLocaleString()+"/"+max.toLocaleString():n.toLocaleString())+" chars · ~"+tokens(box.value)+" tokens":"";count.classList.toggle("over",(max!==null&&n>max)||(voiceWords!==null&&voiceWords>20))};
  box.addEventListener(opts?"change":"input",()=>{state[meta.key]=box.value;refresh();save();update()});
  refresh();
  const small=el("small","",meta.guide);
@@ -190,6 +192,7 @@ function mountFields(){
  const checked=[
   ["Checked 3:4 cover preview and visible face","coverReady"],
   ["Prepared up to three consistent 9:16 character images","imagesReady"],
+  ["All published media is original or authorized, non-watermarked, and age appropriate","rightsReady"],
   ["Selected voice in Fizzz (required)","voiceReady"],
   ["Verified image, first scene and film continuity","filmReady"],
   ["Completed trial roleplay chats and corrected drift","tested"]
@@ -247,7 +250,7 @@ function sample(){
  coverDirection:"3:4 poster framing, adult archivist with unobstructed face, rainy archive, parchment-and-gold gothic details.",
  imageDirection:"9:16 photorealistic portrait, same adult archivist, dark coat, single person, clear face and stable warm lamp lighting.",
  videoDirection:"Seated behind archival desk; restrained movement, looks from record to visitor and speaks a line from greeting.",
- voiceDirection:"Low-mid adult male register, precise measured diction, dry undertone."
+ voiceDirection:"Low-mid adult male register, precise measured diction, dry undertone.",voiceDesignPrompt:"Native English. Male, 30s. Low-pitched, calm, slow pacing. Clear and steady."
  };
  state=demo;selectedTags=["Original Character","Mystery","Slow Burn","Drama"];
  mountFields();mountTags();mountArchetypes();save();update();chapter("profile");notify("Example character loaded. Explore every chapter and its writing guidance.");
@@ -305,6 +308,11 @@ function audit(){
   if(w.mode==="keyword"&&!w.keywords)push("warning","Worldbook "+w.number+" needs keywords","Set natural distinctive triggers or change to Always Active.");
   if(!w.content)push("warning","Worldbook "+w.number+" has no content","A title alone does not establish rules.");
  });
+ if(val("voiceDesignPrompt")&&words(val("voiceDesignPrompt"))>20)push("warning","Design Voice over 20 words","The supplied Fizzz guide sets a 20-word maximum for Design Voice description; currently "+words(val("voiceDesignPrompt"))+" words. Trim without losing timbre, pace and language.");
+ if(val("voiceDesignPrompt")&&/\b(?:reverb|echo|phone|tape)\b/i.test(val("voiceDesignPrompt")))push("warning","Voice effects can hurt clarity","The Fizzz guide discourages reverb, echo, phone and tape keywords in Design Voice prompts.");
+ if(/\b(?:death|funeral|suicide|betrayal|gore|torture|abuse|horror|oppressive|dark relationship|stalking)\b/i.test([val("bio"),val("concept"),val("initialRaw"),core].join(" "))&&!val("warning")&&!/\b(?:content warning|content note|cw:|tw:)\b/i.test(val("bio")))
+   push("warning","Consider a public content warning","High-intensity fictional themes may call for a visible Bio advisory so readers can choose their experience.");
+ if(!val("coverDirection"))push("warning","Cover poster guidance missing","Fizzz recommends a 3:4 cover crop with the face visible; Cover does not generate chat video.");
  if(!val("voiceDirection"))push("warning","Voice selection still needed","Voice is required in Fizzz; cast one that matches personality and age.");
  if(!val("imageDirection"))push("warning","Character image direction missing","Create up to 3 consistent 9:16 images for the video pipeline.");
  if(/(?:under\s*1[0-7]|age\s*1[0-7]|high.school.boy|high.school.girl)/i.test([val("age"),val("bio"),core].join(" ")))push("warning","Check adult presentation","Fizzz does not allow inappropriate depictions involving minors.");
