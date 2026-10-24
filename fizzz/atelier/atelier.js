@@ -356,6 +356,7 @@ function setupNavigation(){
  $$(".next").forEach(b=>b.addEventListener("click",()=>chapter(b.dataset.next)));
  $("#start-new").addEventListener("click",()=>chapter("spark"));
  $("#start-import").addEventListener("click",()=>chapter("migrate"));
+ $("#open-handbook").addEventListener("click",()=>chapter("handbook"));
  $("#starter").addEventListener("click",starter);
  $("#sample").addEventListener("click",sample);
  $("#reset").addEventListener("click",()=>{if(!confirm("Reset the entire character draft? Back up first if you wish to keep it."))return;state={...INITIAL};selectedTags=[];mountFields();mountTags();mountArchetypes();save();update();chapter("spark");notify("Character draft reset.")});
