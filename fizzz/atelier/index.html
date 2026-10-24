@@ -7,13 +7,14 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=3">
+<link rel="stylesheet" href="atelier.css?v=4">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
 <script defer src="atelier.js?v=3"></script>
 <script defer src="optimizer.js?v=1"></script>
 <script defer src="migration.js?v=5"></script>
 <script defer src="coach.js?v=1"></script>
+<script defer src="handbook.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -47,13 +48,24 @@
 <button class="step" data-step="media" type="button"><span>05</span><b>The Presence</b><small>Images, voice & film</small></button>
 <button class="step" data-step="review" type="button"><span>06</span><b>The Manuscript</b><small>Feedback & copy-ready export</small></button>
 <button class="step migration-link" data-step="migrate" type="button"><span>✦</span><b>Migration Studio</b><small>Bring an existing bot</small></button>
+<button class="step" data-step="handbook" type="button"><span>✧</span><b>Fizzz Creator Handbook</b><small>Quick Start + Advanced Guide</small></button>
 </div>
 <div class="save-box"><span class="save-pulse"></span><div><b id="save-status">Saved locally</b><small>No character files are uploaded to this site.</small></div></div>
 <div class="sources-box"><b>PLATFORM FACTS</b><small>Based on Fizzz's public creator guide. Mandatory fields and character limits are marked. Archetypes and writing budgets are editorial inspiration, not official requirements.</small><a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Official Fizzz guidelines ↗</a></div>
 </aside>
 <section class="editor">
+<div class="panel" id="panel-handbook" hidden>
+ <div class="panel-title"><p class="eyebrow">FIZZZ CREATOR HANDBOOK · QUICK START & ADVANCED</p><h2>Every setting. <em>Every reason.</em></h2><p>Read the complete creation framework alongside your draft. The handbook covers profile, settings, multimodal media, public review, long-form character consistency, voice design, testing and maintenance. Select any topic to expand it or jump straight to that creation chapter.</p></div>
+ <div class="guide-notice"><strong>About this handbook</strong><p>Built from the Fizzz creator guidance you supplied. Official limits and publishing standards are marked; VelvetRuin writing suggestions are separately labeled editorial. Fizzz can change quotas, review criteria and available voices—confirm them in Fizzz before publishing.</p></div>
+ <div class="handbook-find"><label for="handbook-search">Find a topic, requirement or technique</label><input id="handbook-search" type="search" autocomplete="off" placeholder="Search: voice, 20 words, cover, keywords, age, video, secrets…" aria-controls="handbook-sections"><button id="handbook-clear" type="button">Clear</button></div>
+ <div class="handbook-facts" id="handbook-facts"></div>
+ <nav class="handbook-index" id="handbook-index" aria-label="Handbook contents"></nav>
+ <div id="handbook-sections" class="handbook-sections"></div>
+ <div class="action-row"><button class="main-button next" type="button" data-next="spark">Begin Creating a Character →</button><button class="quiet-button next" data-next="review" type="button">Open Publishing Checklist →</button></div>
+</div>
 <div class="panel active" id="panel-spark">
 <div class="panel-title"><p class="eyebrow">CHAPTER ZERO / THE CREATIVE SPARK</p><h2>Start with a <em>reason to stay.</em></h2><p>These are optional story archetypes inspired by familiar romance and roleplay premises. Fizzz does <strong>not</strong> require a particular trope or character type.</p></div>
+<button type="button" class="handbook-shortcut" data-handbook-topic="quick-start">✧ New to Fizzz? Read “Create a character in 1 minute” →</button>
 <div class="section-label">CHOOSE A STARTING ENERGY</div><div class="archetypes" id="archetypes"></div>
 <div class="field-block" id="spark-prompts"></div>
 <div class="hint-box"><b>✧ A strong hook answers three questions</b><p>Who is this person? Why does {{user}} encounter them now? What interesting choice, tension, or mystery can actually play out in chat?</p></div>
@@ -81,32 +93,32 @@
 </div>
 <div class="panel" id="panel-profile" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER ONE / PUBLIC PROFILE</p><h2>The invitation <em>to click.</em></h2><p>Sell the experience publicly. The Bio is for the player; Core Personality is what the character model uses.</p></div>
-<div id="profile-fields" class="field-block"></div><div class="tag-station"><div class="section-label">DISCOVERY TAGS · SEVEN OPTIONAL + THREE REQUIRED</div><p class="micro">Fizzz requires a Gender, POV and Rating choice. Fizzz allows up to ten tags total including the required Gender, POV, and Rating categories. That leaves at most seven additional tags here; confirm exact options when publishing.</p><div id="tag-chips" class="tag-chips"></div></div>
+<div class="official-inline" data-official="profile"></div><div id="profile-fields" class="field-block"></div><div class="tag-station"><div class="section-label">DISCOVERY TAGS · SEVEN OPTIONAL + THREE REQUIRED</div><p class="micro">Fizzz requires a Gender, POV and Rating choice. Fizzz allows up to ten tags total including the required Gender, POV, and Rating categories. That leaves at most seven additional tags here; confirm exact options when publishing.</p><div id="tag-chips" class="tag-chips"></div></div>
 <div class="action-row"><button class="quiet-button next" data-next="spark">← The Spark</button><button class="main-button next" data-next="core">Next · The Person →</button></div>
 </div>
 <div class="panel" id="panel-core" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER TWO / AI-READ CHARACTER SETTINGS</p><h2>The person <em>behind the premise.</em></h2><p>Fizzz permits up to <b>25,000 characters</b> in Core Personality and recommends staying within <b>10,000</b>. Build identity, causal psychology, consistent behavior and speaking style. You can use more when complexity genuinely requires it.</p></div>
-<div id="core-fields" class="field-block"></div>
+<div class="official-inline" data-official="core"></div><div id="core-fields" class="field-block"></div>
 <label class="toggle-row core-extra-toggle"><input type="checkbox" id="append-core-notes"> <span><strong>Append new structured notes to a preserved Core Personality.</strong><br>Off by default. When importing an established persona, your original text is the entire final Core Personality unless you deliberately enable this.</span></label>
 <div class="live-compiled"><div class="section-label">LIVE CORE PERSONALITY <span class="counter" id="core-count"></span></div><pre id="core-preview"></pre></div>
 <div class="action-row"><button class="quiet-button next" data-next="profile">← The Invitation</button><button class="main-button next" data-next="opening">Next · The Encounter →</button></div>
 </div>
 <div class="panel" id="panel-opening" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER THREE / FIRST IMPRESSION</p><h2>Open a door. <em>Don't finish the story.</em></h2><p>Up to <b>5,000 characters</b>. A strong opening gives players a scene, visible movement, a natural spoken line for the Opening Film, and something to respond to—without dictating {{user}}'s feelings or actions.</p></div>
-<div id="opening-fields" class="field-block"></div>
+<div class="official-inline" data-official="opening"></div><div id="opening-fields" class="field-block"></div>
 <div class="live-compiled"><div class="section-label">LIVE INITIAL MESSAGE <span class="counter" id="opening-count"></span></div><pre id="opening-preview"></pre></div>
 <div class="action-row"><button class="quiet-button next" data-next="core">← The Person</button><button class="main-button next" data-next="world">Next · The World →</button></div>
 </div>
 <div class="panel" id="panel-world" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER FOUR / OPTIONAL WORLDBOOK</p><h2>Give the world <em>its own memory.</em></h2><p>Fizzz allows up to <b>three entries</b>, each up to <b>10,000 characters</b>. Use Always Active for indispensable rules and keyword-triggered entries for specific NPCs, locations, secrets and scenes.</p></div>
-<div id="world-fields" class="field-block"></div>
+<div class="official-inline" data-official="world"></div><div id="world-fields" class="field-block"></div>
 <div class="hint-box"><b>✧ Keyword trigger advice</b><p>Use natural, distinctive words players or characters might actually say. Avoid generic terms that fire every turn. A keyword does not automatically reveal a secret; write what the character knows and when they should share it.</p></div>
 <div class="action-row"><button class="quiet-button next" data-next="opening">← The Encounter</button><button class="main-button next" data-next="media">Next · The Presence →</button></div>
 </div>
 <div class="panel" id="panel-media" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER FIVE / CHARACTER MEDIA</p><h2>Make every element <em>the same person.</em></h2><p>Fizzz is multimodal: text, images, voice and video must reinforce one another. This studio prepares a media brief and checklist; actual assets are uploaded in Fizzz.</p></div>
 <div class="media-check"><b>OFFICIAL IMAGE SHAPES</b><p><strong>Cover:</strong> recommended 3:4, face visible. <strong>Character Images:</strong> up to three, recommended 9:16, recognizable single subject, stable lighting. <strong>Voice:</strong> required. Opening Film and Loop Videos are created in Fizzz.</p></div>
-<div id="media-fields" class="field-block"></div>
+<div class="official-inline" data-official="media"></div><div id="media-fields" class="field-block"></div>
 <div class="field-block media-toggles" id="media-toggles"></div>
 <div class="live-compiled"><div class="section-label">IMAGE & VIDEO DIRECTION BRIEF</div><pre id="media-preview"></pre></div>
 <div class="action-row"><button class="quiet-button next" data-next="world">← The World</button><button class="main-button next" data-next="review">Review & Export →</button></div>
@@ -114,6 +126,8 @@
 <div class="panel" id="panel-review" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER SIX / FINAL MANUSCRIPT</p><h2>Ready to <em>become real?</em></h2><p>Get platform-aware feedback, export each field, or back up the full draft. Final publishing and uploading happen on Fizzz.</p></div>
 <div class="review-coaching-note"><b>✧ The last pass is about performance, not deleting personality.</b><p>Simple familiar hooks often attract the first click; specific reactions, growth and story consequences sustain the chat. If the core is wordy, review exact redundancies—not meaningful lore or dialogue.</p><button type="button" id="review-to-optimizer" class="quiet-button">⌁ Review & reduce my current draft →</button></div>
+<div class="official-inline" data-official="review"></div>
+<div class="publication-checklist"><h3>Before You Publish · Fizzz Readiness</h3><p>Check items you have verified in the actual Fizzz creator. These are not guesses based on written descriptions.</p><div id="publication-checks"></div><p class="checklist-status" id="publication-progress"></p></div>
 <div id="audit-summary" class="audit-summary"></div><div id="audit-list" class="audit-list"></div>
 <div class="export-actions"><button id="download-txt" type="button" class="main-button">↓ Download All Fields (.txt)</button><button id="download-json" type="button" class="quiet-button">↓ Back Up Editable Project (.json)</button><button id="copy-all" type="button" class="quiet-button">✧ Copy All Text</button></div>
 <div id="export-blocks" class="export-blocks"></div>
@@ -128,7 +142,7 @@
 <div id="migration-file-status" role="status" class="muted">No file selected.</div>
 <div class="action-row"><button class="main-button" id="analyze-file" type="button">✦ Map & Review Character</button><button class="quiet-button" id="audit-current" type="button">Review My Current Draft</button><button class="quiet-button" id="migration-sample" type="button">Use Example File</button></div>
 <div id="migration-results" hidden>
-<div class="review-header"><h3>Proposed migration</h3><p id="migration-explanation">Compare each original with the mapped Fizzz field. Inferred content is off by default.</p><div id="migration-notes"></div>
+<div class="official-inline" data-official="migrate"></div><div class="review-header"><h3>Proposed migration</h3><p id="migration-explanation">Compare each original with the mapped Fizzz field. Inferred content is off by default.</p><div id="migration-notes"></div>
 <div class="action-row"><button type="button" class="mini-link" id="select-mapped">Select mapped</button><button type="button" class="mini-link" id="deselect-mapped">Deselect all</button><button type="button" class="mini-link" id="source-download">↓ Save Original</button><button type="button" class="mini-link" id="report-download">↓ Change Report</button></div></div>
 <div class="optimize-box" id="optimizer-panel"><p class="eyebrow">THE EDITOR'S SCALPEL · NO FULL REWRITES</p><h3>Trim repetition. <em>Keep the soul.</em></h3><p>Find exact duplicate passages, invisible formatting waste, and a few precise word substitutions in character settings. Initial Messages, quoted dialogue and Worldbook facts are never creatively rewritten. Every proposed cut is unchecked for you to review.</p>
  <div class="optimize-controls"><button type="button" id="optimize-all" class="main-button">✧ Find Gentle Trims in All Fields</button><button type="button" id="audit-quality" class="quiet-button">⌁ Explain What Could Perform Better</button></div>
