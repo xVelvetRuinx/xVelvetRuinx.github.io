@@ -428,7 +428,30 @@ function setupNavigation(){
    window.FizzzAtelierReviewGeneratedDraft($("#original-ai-paste").value);
  });
 }
-window.FizzzAtelier=Object.freeze({getState:()=>({...state}),keys:()=>[...EDITABLE],getTags:()=>selectedTags.slice(),setTags:list=>{selectedTags=[...new Set(list.filter(x=>TAGS.includes(x)))].slice(0,7);mountTags();save();update()},coreCompiled,openingCompiled,sections,audit,chapter,save,notify,download,copyText,update,backup,meta:definitions});
+function importDraft(patch,{replace=false,tags=[]}={}){
+ const applied=[],skipped=[];
+ for(const [k,v] of Object.entries(patch||{})){
+  if(!EDITABLE.has(k)||typeof v!=="string"||!v.trim())continue;
+  // Ignore built-in default choices when importing real user data.
+  const contains=Boolean(val(k))&&val(k)!==String(INITIAL[k]||"");
+  if(contains&&!replace){skipped.push(k);continue}
+  state[k]=v;applied.push(k);
+ }
+ if(Array.isArray(tags)&&tags.length&&(!selectedTags.length||replace)){
+  selectedTags=[...new Set(tags.filter(t=>TAGS.includes(t)))].slice(0,7);
+  applied.push("tags");
+ }
+ mountFields();mountTags();mountArchetypes();save();update();
+ return {applied,skipped};
+}
+function beginFreshDraft(){
+ if(!confirm("Start a completely new Fizzz character? Your current draft will be replaced. Download a JSON backup first if you want to keep it."))return false;
+ download((val("name")||"previous-character").toLowerCase().replace(/[^a-z0-9-]+/g,"-")+"-before-new-bot.json",backup(),"application/json");
+ state={...INITIAL};selectedTags=[];
+ mountFields();mountTags();mountArchetypes();save();update();
+ return true;
+}
+window.FizzzAtelier=Object.freeze({getState:()=>({...state}),keys:()=>[...EDITABLE],importDraft,beginFreshDraft,getTags:()=>selectedTags.slice(),setTags:list=>{selectedTags=[...new Set(list.filter(x=>TAGS.includes(x)))].slice(0,7);mountTags();save();update()},coreCompiled,openingCompiled,sections,audit,chapter,save,notify,download,copyText,update,backup,meta:definitions});
 function init(){mountFields();mountTags();mountArchetypes();setupNavigation();$("#append-core-notes").checked=appendCoreNotes;$("#append-core-notes").addEventListener("change",e=>{appendCoreNotes=e.target.checked;try{localStorage.setItem(STORAGE+".appendCoreNotes",appendCoreNotes?"1":"0")}catch{}update()});update();if(typeof window.initFizzzMigration==="function")window.initFizzzMigration({$, $$, el, state:()=>state, set:(key,value)=>{state[key]=value;save();mountFields();update()}, apply:(patch,{replace=false}={})=>{const result=[];for(const [k,v] of Object.entries(patch)){if(!EDITABLE.has(k)||typeof v!=="string")continue;if(replace||!val(k)||(["gender","pov","rating"].includes(k)&&val(k)===INITIAL[k])||(k.endsWith("Mode")&&val(k)===INITIAL[k])){state[k]=v;result.push(k)}}mountFields();save();update();return result},note:notify});const requested=window.location?.hash?.replace(/^#/,"");if(PAGES.includes(requested))chapter(requested);}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
