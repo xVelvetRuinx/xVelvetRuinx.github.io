@@ -7,7 +7,7 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=5">
+<link rel="stylesheet" href="atelier.css?v=6">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
 <script defer src="atelier.js?v=4"></script>
@@ -17,6 +17,7 @@
 <script defer src="handbook-quick.js?v=2"></script>
 <script defer src="handbook-advanced.js?v=1"></script>
 <script defer src="handbook.js?v=2"></script>
+<script defer src="concept-builder.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -68,7 +69,21 @@
 <div class="panel active" id="panel-spark">
 <div class="panel-title"><p class="eyebrow">CHAPTER ZERO / THE CREATIVE SPARK</p><h2>Start with a <em>reason to stay.</em></h2><p>These are optional story archetypes inspired by familiar romance and roleplay premises. Fizzz does <strong>not</strong> require a particular trope or character type.</p></div>
 <button type="button" class="handbook-shortcut" data-handbook-topic="quick-start">✧ New to Fizzz? Read “Create a character in 1 minute” →</button>
-<div class="section-label">CHOOSE A STARTING ENERGY</div><div class="archetypes" id="archetypes"></div>
+<section class="concept-from-paste" id="concept-from-paste">
+ <p class="eyebrow">NEW · TURN A PASTED IDEA INTO A FIZZZ CHARACTER</p>
+ <h3>Paste a concept. <em>Build a bot.</em></h3>
+ <p>Paste a rough idea, a full character synopsis, a Tipsy character, or even a copied editing brief containing <strong>ORIGINAL USER-SUPPLIED CHARACTER TEXT</strong>. Click <strong>Build Fizzz Draft</strong> to populate real creator fields here—no JSON required. Existing names, dialogue, world rules and story facts are preserved.</p>
+ <label class="field full" for="concept-source"><span>Your concept, story notes or existing character</span>
+ <textarea id="concept-source" rows="9" placeholder="Example: Kier Duvall, 31, owns Blackthorn House, a haunted attraction staffed by real supernatural creatures. He's a playful demon. The new seasonal employee discovers the monsters are real. On Halloween their disguises fail. First scene: a creature disappears through his office wall. Kier says, &quot;Before you say anything, I can explain about eighty percent of that.&quot;"></textarea>
+ <small>Start with what you have, not a template. You can paste an entire existing concept or a creator brief. The conversion happens locally in this browser and does not call a language model.</small></label>
+ <div class="concept-actions"><button type="button" id="build-from-concept" class="main-button">✦ Build Fizzz Draft from Paste</button><button type="button" id="concept-clipboard" class="quiet-button">⌁ Paste from Clipboard</button><button type="button" id="concept-example" class="quiet-button">Load Demonstration</button></div>
+ <p class="concept-status" id="concept-status" role="status" aria-live="polite">Paste your concept above and press Build Fizzz Draft. You will see what was created, why, and what still needs writing.</p>
+ <div id="concept-results" class="concept-results" hidden>
+  <h4 id="concept-results-title">Draft assembled</h4><div id="concept-report"></div>
+  <div class="concept-actions"><button type="button" class="main-button" id="concept-open-profile">Edit Your Fizzz Character →</button><button type="button" class="quiet-button" id="concept-review-migration">Review the source side by side →</button><button type="button" class="quiet-button" id="concept-save-source">↓ Save Original Source</button></div>
+ </div>
+</section>
+<div class="section-label">OR START WITH AN ARCHETYPE</div><div class="archetypes" id="archetypes"></div>
 <div class="field-block" id="spark-prompts"></div>
 <div class="hint-box"><b>✧ A strong hook answers three questions</b><p>Who is this person? Why does {{user}} encounter them now? What interesting choice, tension, or mystery can actually play out in chat?</p></div>
 <div class="handoff original-ai">
@@ -142,7 +157,7 @@
 <div class="separator">OR PASTE YOUR EXISTING MATERIAL</div>
 <label class="field full"><span>Original concept, bot prompt, worldbook, lore or greeting</span><textarea id="migration-paste" rows="7" placeholder="Paste a Fizzz persona, bot export, character sheet, story notes, or another platform's character file..."></textarea><small>File extraction runs in your browser. Some Word/PDF readers need an external script to load, but your document is not sent to this site.</small></label>
 <div id="migration-file-status" role="status" class="muted">No file selected.</div>
-<div class="action-row"><button class="main-button" id="analyze-file" type="button">✦ Map & Review Character</button><button class="quiet-button" id="audit-current" type="button">Review My Current Draft</button><button class="quiet-button" id="migration-sample" type="button">Use Example File</button></div>
+<div class="action-row"><button class="main-button" id="build-from-migration" type="button">✦ Create Fizzz Bot from This Concept</button><button class="quiet-button" id="analyze-file" type="button">Map Existing Fields</button><button class="quiet-button" id="audit-current" type="button">Review My Current Draft</button><button class="quiet-button" id="migration-sample" type="button">Use Example File</button></div>
 <div id="migration-results" hidden>
 <div class="official-inline" data-official="migrate"></div><div class="review-header"><h3>Proposed migration</h3><p id="migration-explanation">Compare each original with the mapped Fizzz field. Inferred content is off by default.</p><div id="migration-notes"></div>
 <div class="action-row"><button type="button" class="mini-link" id="select-mapped">Select mapped</button><button type="button" class="mini-link" id="deselect-mapped">Deselect all</button><button type="button" class="mini-link" id="source-download">↓ Save Original</button><button type="button" class="mini-link" id="report-download">↓ Change Report</button></div></div>
