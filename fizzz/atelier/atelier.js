@@ -424,8 +424,20 @@ function setupNavigation(){
     }catch{aiMessage("Couldn't open this text file. Save the AI response as JSON or TXT and retry.","error");}
  });
  $("#review-original-ai").addEventListener("click",()=>{
+   const raw=$("#original-ai-paste").value.trim();
+   if(!raw)return aiMessage("Nothing pasted yet. Paste a character description, story concept or complete AI JSON response above.","error");
+   // This button used to accept ONLY JSON. It now also recognizes plain
+   // character synopses and Tipsy editing briefs with original source text.
+   const looksLikeJSON=/^\\s*\\{|^\\s*```(?:json)?|\\"fields\\"\\s*:/i.test(raw);
+   if(!looksLikeJSON){
+     $("#concept-source").value=raw;
+     chapter("spark");
+     $("#build-from-concept").click();
+     aiMessage("Story outline recognized: drafted directly into Fizzz character fields. See the report in The Spark.","success");
+     return;
+   }
    if(typeof window.FizzzAtelierReviewGeneratedDraft!=="function")return notify("AI review module is unavailable. Reload the page and try again.");
-   window.FizzzAtelierReviewGeneratedDraft($("#original-ai-paste").value);
+   window.FizzzAtelierReviewGeneratedDraft(raw);
  });
 }
 function importDraft(patch,{replace=false,tags=[]}={}){
