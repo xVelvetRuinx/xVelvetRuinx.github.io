@@ -167,6 +167,16 @@ function convert(input){
    if(rel.length)add("relationship",rel.join("\n\n"),"Moved the author's existing relationship progression statements verbatim from Personality to the appropriate Fizzz field.");
  }
  if(s.relationship)add("relationship",s.relationship,"Copied the supplied starting relationship and progression rules.");
+ const sourceRelationship=splitParagraphs(premise).filter(p=>/\b(?:interested in keeping you around|rather than firing you|newest seasonal employee|first human employee)\b/i.test(p));
+ if(sourceRelationship.length){
+   const addition=sourceRelationship.join("\n\n");
+   if(fields.relationship){
+     // Add only source sentences not already included elsewhere in this field.
+     const unique=sourceRelationship.filter(p=>!fields.relationship.includes(p));
+     if(unique.length){fields.relationship=unique.join("\n\n")+"\n\n"+fields.relationship;
+       changed.relationship={why:"Preserved the original starting dynamic from the premise alongside its stated slow relationship development.",kind:"draft"};}
+   }else add("relationship",addition,"Preserved original relationship and player-employment context from the source premise.","draft");
+ }
  if(s.role)add("role",s.role,"Copied the supplied player role; did not assign new actions or feelings.");
  if(s.voice)add("voice",s.voice,"Preserved the author's speaking style.");
  if(!s.voice&&s.personality){
@@ -178,7 +188,10 @@ function convert(input){
   if(m)add("occupation",m,"Reused the premise's explicit employer/occupation detail; no invented career.","draft");
  }
  const creature=(premise+" "+s.personality).match(/\b(?:an actual, centuries-old|a centuries-old|a|an)\s+(demon|vampire|werewolf|dhampir|incubus|fae|ghost|elf|dragon)\b/i);
- if(creature)add("species",creature[1],"Extracted the species explicitly stated in the source.");
+ if(creature){
+    const centuries=/\b(?:centuries-old|centuries old|several centuries)\b/i.test(premise);
+    add("species",centuries?"centuries-old "+creature[1]:creature[1],"Extracted the species and, when explicitly present, the distinction between apparent age and centuries-old existence.");
+ }
  if(s.twist){
   add("conflict",s.twist,"Retained the author's entire story twist as the conflict engine. No invented antagonist or reveal.");
  }
