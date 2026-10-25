@@ -382,6 +382,10 @@ function setupNavigation(){
     "Include Worldbook entries only when the world warrants them. Use valid JSON strings, no comments or markdown fences. Aim for a coherent new playable person, not a loose brainstorm.",
     "SELECTED OPTIONAL ARCHETYPE: "+a.name+" / "+a.tag,
     "AUTHOR'S EXISTING NEW BOT SEED (nonempty fields are requirements; do not rewrite them):",
+    "SOURCE FIDELITY: An existing authored synopsis may have been pasted into the Fizzz Atelier. Treat its exact names, canon, supernatural rules, dialog, and scene progression as authoritative. Fill only absent or underspecified fields; do not overwrite distinctive text to chase generic trends.",
+    "When a source already includes an opening dialogue line, preserve those exact quoted words. Expand atmosphere or action only if it can be done without scripting the player's feelings, decisions or reactions. Explain optional edits in editorNotes.",
+    "CREATOR SOURCE (if previously pasted):",
+    String($("#concept-source")?.value||"").slice(0,28000),
     JSON.stringify(Object.fromEntries(Object.entries(state).filter(([k,v])=>v&&v.trim())),null,2),
     "Generate the original bot JSON now."
    ].join("\n\n");
