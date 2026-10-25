@@ -428,7 +428,7 @@ function setupNavigation(){
    if(!raw)return aiMessage("Nothing pasted yet. Paste a character description, story concept or complete AI JSON response above.","error");
    // This button used to accept ONLY JSON. It now also recognizes plain
    // character synopses and Tipsy editing briefs with original source text.
-   const looksLikeJSON=raw.startsWith("{")||raw.startsWith("```")||/"fields"\s*:/.test(raw);
+   const looksLikeJSON=raw.startsWith("{")||raw.startsWith("```")||(/^Here(?:\x27s| is) (?:the )?JSON\b/i.test(raw)&&raw.includes("{"));
    if(!looksLikeJSON){
      $("#concept-source").value=raw;
      chapter("spark");
