@@ -164,3 +164,27 @@
  .pubcheck-row small{grid-column:2}
  .handbook-find button{flex:0 0 auto}
 }
+
+.concept-from-paste{border:1px solid #b7937599;background:#1e1521;padding:20px;margin:16px 0 28px}
+.concept-from-paste h3{font:500 clamp(35px,4vw,49px)/1 'Cormorant Garamond',serif;margin:8px 0}
+.concept-from-paste h3 em{color:#d7a1b7}
+.concept-from-paste>p{font-size:11.5px;line-height:1.8;color:#d8c6d0}
+.concept-from-paste textarea{width:100%;min-height:170px;background:#0b0911;border:1px solid #795568;color:#f2e6eb;padding:13px;resize:vertical;font:11px/1.75 'DM Sans',sans-serif}
+.concept-actions{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+.concept-actions button{flex:1 1 150px}
+.concept-actions .main-button{flex:2 1 220px}
+.concept-reset{display:flex;gap:11px;align-items:center;background:#1b1420;border:1px solid #6c475949;padding:10px;margin:12px 0;color:#d8cad2;font-size:11px;line-height:1.65}
+.concept-reset input{accent-color:#a66582;width:18px;height:18px;flex:none}
+.concept-status{border-left:3px solid #d7b880;padding:12px 14px;background:#3824354d;color:#f3e5ed;font-size:11px;line-height:1.7}
+.concept-status[data-level=error]{border-left-color:#e28b9e}
+.concept-status[data-level=success]{border-left-color:#9db889}
+.concept-results{margin-top:18px;border-top:1px solid #59404e;padding-top:16px}
+.concept-results h4{font:500 29px 'Cormorant Garamond',serif;color:#eac1d1;margin:6px 0}
+#concept-report{display:grid;gap:9px;max-height:430px;overflow:auto}
+.concept-result{border:1px solid #74546a55;background:#120e18;padding:12px}
+.concept-result b{color:#f1cada;font-size:12px}
+.concept-result p,.concept-missing p{font-size:11px;color:#c9b5c3;line-height:1.7}
+.concept-result pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c0a11;border:1px solid #513749;color:#eadde5;padding:10px;font:11px/1.7 'DM Sans',sans-serif;max-height:190px;overflow:auto}
+.concept-missing{border:1px solid #b195685c;padding:13px;background:#291b25}
+.concept-missing b{color:#d7b880}
+@media(max-width:600px){.concept-from-paste{padding:15px 12px}.concept-actions button{flex:1 1 100%!important}}
