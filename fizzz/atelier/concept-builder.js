@@ -133,13 +133,20 @@ function convert(input){
  let identity=detectIdentity(s.front,s.premise,text);
  if(identity.name)add("name",identity.name,"Read the character's exact name from the supplied text.");
  if(identity.age)add("age",identity.age,"Read the stated age from the existing concept; did not invent an age.");
+ if(/\bHis Personality\b|\bhe[’']s\s+(?:a|also|playful|handsome)\b/i.test(text))
+   add("gender","Male","Inferred male classification from consistent he/his references; verify it matches the actual character.","draft");
+ else if(/\bHer Personality\b|\bshe[’']s\s+(?:a|also|playful|beautiful)\b/i.test(text))
+   add("gender","Female","Inferred female classification from consistent she/her references; verify it matches the actual character.","draft");
  if(identity.title)add("title",identity.title,"Reused the author's clickable subtitle as the public title.");
  const tropes=s.tropes||"";const hook=s.hook||"";
  if(hook)add("concept",hook,"Mapped the original hook as the story promise without changing the character's premise.");
  else if(s.premise)add("concept",firstSentences(s.premise,1),"Used the first source premise sentence as the seed hook; no new plot facts were introduced.","draft");
  if(tropes)add("dynamic",tropes,"Retained the supplied tropes and relationship promise verbatim.");
  const premise=s.premise||"";
- const originalBio=[hook||firstSentences(premise,2)].filter(Boolean).join(" ");
+ const premiseBits=splitParagraphs(premise);
+ const characterIntroduction=premiseBits.find(p=>identity.name&&p.includes(identity.name))||"";
+ const supernaturalReveal=premiseBits.find(p=>/^(?:He|She|They)[’']s also an? (?:demon|vampire|ghost|werewolf|fae|dhampir)\./i.test(p))||"";
+ const originalBio=[hook||firstSentences(premise,2),characterIntroduction,supernaturalReveal].filter(Boolean).join("\n\n");
  if(s.bio)add("bio",s.bio,"Copied the supplied public bio exactly.");
  else if(originalBio)add("bio",originalBio,"Built the short public introduction from an existing hook, keeping the source wording.","draft");
  if(s.appearance)add("appearance",s.appearance,"Copied the author-provided appearance without inventing visual traits.");
@@ -162,6 +169,10 @@ function convert(input){
  if(s.relationship)add("relationship",s.relationship,"Copied the supplied starting relationship and progression rules.");
  if(s.role)add("role",s.role,"Copied the supplied player role; did not assign new actions or feelings.");
  if(s.voice)add("voice",s.voice,"Preserved the author's speaking style.");
+ if(!s.voice&&s.personality){
+    const spoken=splitParagraphs(s.personality).find(p=>/\b(?:sarcastic|playful|flirtatious|dry humor|wry|teases|soft-spoken|blunt|measured)\b/i.test(p));
+    if(spoken)add("voice",spoken,"Provisional speaking-style direction borrowed verbatim from the author's personality. Refine phrasing and sentence rhythm in The Person.","draft");
+ }
  if(s.tropes&&/workplace|boss/i.test(tropes)&&s.premise){
   const m=findExplicit(s.premise,/\b[\p{L}][\p{L} '-]{2,70}\s*,\s*\d{2,3},\s*owns[^.\n]+\./iu);
   if(m)add("occupation",m,"Reused the premise's explicit employer/occupation detail; no invented career.","draft");
@@ -173,8 +184,9 @@ function convert(input){
  }
  if(s.conflict)add("conflict",s.conflict,"Kept the author's own conflict text.");
  if(!fields.role){
-   const roleLine=hook||findExplicit(premise,/[^\n.]*newest seasonal employee[^\n.]*/i);
-   if(roleLine)add("role",roleLine,"Used the player's role already established in the source; edit pronouns and assumptions if needed.","draft");
+   const employeeMatch=premise.match(/\bnewest seasonal employee\b/i);
+   const roleLine=employeeMatch&&identity.name?"{{user}} is "+identity.name+"'s newest seasonal employee at Blackthorn House.":hook||findExplicit(premise,/[^\n.]*newest seasonal employee[^\n.]*/i);
+   if(roleLine)add("role",roleLine,"Derived the starting player role from an existing employee reference; did not decide {{user}}'s feelings or future response.","draft");
  }
  const opening=s.greeting?{text:s.greeting,source:"Kept the existing full greeting verbatim."}:
       openingDraft(s.scene,identity.name,fields.role);
@@ -184,6 +196,8 @@ function convert(input){
  if(!s.personality)notes.push("There is no clearly labeled Character Personality section. Add specific triggers, contradictions and speaking style rather than relying only on the premise.");
  if(!s.voice)notes.push("Speaking Style wasn't separately supplied. The bot needs your distinctive sentence rhythm, vocabulary, and behavior under stress.");
  if(!s.appearance&&!fields.appearance)notes.push("Written appearance wasn't stated. Fizzz's TEXT model does not learn appearance from uploaded images: add height/build, face, hair, eyes and distinguishing features.");
+ if(fields.appearance&&!/\b(?:height|build|hair|skin|tall|short|feet|eyes? (?:are|is))\b/i.test(fields.appearance))
+   notes.push("Some visual traits were extracted, but the full look is not established. Add height, build, hairstyle, eyes, clothing and any canonical tattoos/scars rather than letting the bot invent them.");
  if(s.worldbook)add("world1Body",s.worldbook,"Moved prewritten lore into Worldbook without changing facts.");
  else{
   const worldFacts=splitParagraphs(premise).filter(p=>/entire staff|vampires handle|ghosts manage|werewolves|supernatural creatures pretending|haunted attraction|Blackthorn House exists/i.test(p));
