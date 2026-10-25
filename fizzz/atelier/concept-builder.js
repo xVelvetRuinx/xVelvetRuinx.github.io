@@ -185,7 +185,7 @@ function convert(input){
  if(s.conflict)add("conflict",s.conflict,"Kept the author's own conflict text.");
  if(!fields.role){
    const employeeMatch=premise.match(/\bnewest seasonal employee\b/i);
-   const roleLine=employeeMatch&&identity.name?"{{user}} is "+identity.name+"'s newest seasonal employee at Blackthorn House.":hook||findExplicit(premise,/[^\n.]*newest seasonal employee[^\n.]*/i);
+   const roleLine=employeeMatch&&identity.name?"{{user}} is "+identity.name+"'s newest seasonal employee.":hook||findExplicit(premise,/[^\n.]*newest seasonal employee[^\n.]*/i);
    if(roleLine)add("role",roleLine,"Derived the starting player role from an existing employee reference; did not decide {{user}}'s feelings or future response.","draft");
  }
  const opening=s.greeting?{text:s.greeting,source:"Kept the existing full greeting verbatim."}:
@@ -273,7 +273,7 @@ function start(){
     last=data;field.value=input;
     try{localStorage.setItem("velvetruin.fizzz.lastConceptSource",input)}catch{}
     results(data,applied,skipped);
-    say("✓ Fizzz draft created: "+applied.length+" fields filled"+(skipped.length?"; "+skipped.length+" existing fields preserved. Tick ‘Start a new character project’ if you want a completely separate bot.":"")+". Review the mapping, then edit the fields in The Invitation and The Person.");
+    say("✓ Fizzz draft created: "+applied.length+" fields filled"+(skipped.length?"; "+skipped.length+" existing fields preserved. Tick ‘Start a new character project’ if you want a completely separate bot":"")+". Review the mapping, then edit the fields in The Invitation and The Person.");
     return data;
   }catch(e){say(e.message||"Could not assemble a draft from this paste.",true);return null;}
  };
