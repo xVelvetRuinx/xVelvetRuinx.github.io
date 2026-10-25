@@ -228,7 +228,7 @@ function start(){
  const say=(msg,error=false)=>{status.textContent=msg;status.dataset.level=error?"error":"success";};
  const results=(converted,applied,skipped)=>{
   report.replaceChildren();
-  const lead=document.createElement("p");lead.textContent=applied.length+" real Fizzz fields filled"+(skipped.length?" · "+skipped.length+" existing fields protected":"")+". Original source retained. New draft is editable below.";report.append(lead);
+  const lead=document.createElement("p");lead.textContent=applied.length+" real Fizzz fields filled"+(skipped.length?" · "+skipped.length+" existing fields protected":"")+". Original source retained. New draft is editable below."+(!applied.length?" To replace a previous character, tick Start a new character project and build again.":"");report.append(lead);
   for(const [key,value] of Object.entries(converted.fields)){
    const card=document.createElement("article");card.className="concept-result";
    const label=document.createElement("b");label.textContent=key+" · "+value.length+" chars";const why=document.createElement("p");
@@ -251,11 +251,15 @@ function start(){
     const data=C.convert(input);
     const a=window.FizzzAtelier;
     if(!a?.importDraft)throw Error("Character editor hasn't loaded. Refresh the page and retry.");
+    if($("#concept-start-fresh").checked){
+      if(!a.beginFreshDraft()){say("Fresh-project creation was cancelled. Your current character remains unchanged.",true);return null;}
+      $("#concept-start-fresh").checked=false;
+    }
     const {applied,skipped}=a.importDraft(data.fields,{replace:false,tags:data.tags});
     last=data;field.value=input;
     try{localStorage.setItem("velvetruin.fizzz.lastConceptSource",input)}catch{}
     results(data,applied,skipped);
-    say("✓ Fizzz draft created from your source: "+applied.length+" fields filled. Read the mapping and open The Invitation or The Person to edit.");
+    say("✓ Fizzz draft created: "+applied.length+" fields filled"+(skipped.length?"; "+skipped.length+" existing fields preserved. Tick ‘Start a new character project’ if you want a completely separate bot.":"")+". Review the mapping, then edit the fields in The Invitation and The Person.");
     return data;
   }catch(e){say(e.message||"Could not assemble a draft from this paste.",true);return null;}
  };
