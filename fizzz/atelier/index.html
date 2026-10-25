@@ -76,7 +76,8 @@
  <label class="field full" for="concept-source"><span>Your concept, story notes or existing character</span>
  <textarea id="concept-source" rows="9" placeholder="Example: Kier Duvall, 31, owns Blackthorn House, a haunted attraction staffed by real supernatural creatures. He's a playful demon. The new seasonal employee discovers the monsters are real. On Halloween their disguises fail. First scene: a creature disappears through his office wall. Kier says, &quot;Before you say anything, I can explain about eighty percent of that.&quot;"></textarea>
  <small>Start with what you have, not a template. You can paste an entire existing concept or a creator brief. The conversion happens locally in this browser and does not call a language model.</small></label>
- <div class="concept-actions"><button type="button" id="build-from-concept" class="main-button">✦ Build Fizzz Draft from Paste</button><button type="button" id="concept-clipboard" class="quiet-button">⌁ Paste from Clipboard</button><button type="button" id="concept-example" class="quiet-button">Load Demonstration</button></div>
+ <label class="concept-reset"><input type="checkbox" id="concept-start-fresh"> <span><strong>Start a new character project.</strong> Back up and replace the current draft instead of filling only empty fields (asks for confirmation).</span></label>
+<div class="concept-actions"><button type="button" id="build-from-concept" class="main-button">✦ Build Fizzz Draft from Paste</button><button type="button" id="concept-clipboard" class="quiet-button">⌁ Paste from Clipboard</button><button type="button" id="concept-example" class="quiet-button">Load Demonstration</button></div>
  <p class="concept-status" id="concept-status" role="status" aria-live="polite">Paste your concept above and press Build Fizzz Draft. You will see what was created, why, and what still needs writing.</p>
  <div id="concept-results" class="concept-results" hidden>
   <h4 id="concept-results-title">Draft assembled</h4><div id="concept-report"></div>
@@ -96,7 +97,7 @@
   <div class="action-row"><button type="button" class="quiet-button" id="copy-original-ai">✧ 1. Copy Original Bot Draft Brief</button></div>
   <label class="field full" style="margin-top:18px" for="original-ai-paste"><span>2. Paste the completed character JSON from ChatGPT</span>
     <textarea id="original-ai-paste" rows="6" spellcheck="false" autocomplete="off" placeholder='Paste the complete response here, starting with { and ending with }. Example: {"fields":{"name":"Example","title":"The Keeper","traits":"...", "initialRaw":"..."}}'></textarea>
-    <small>Plain narrative text is not JSON. Markdown ```json fences are okay. If an assistant cuts off halfway through, ask it for a shorter, complete JSON response before importing.</small>
+    <small>Already have <strong>story notes instead of JSON?</strong> You can paste those too: selecting Review will direct them to the <strong>Paste a concept → Build a bot</strong> converter. Markdown ```json fences are supported for JSON responses.</small>
   </label>
   <div class="ai-response-actions">
     <button class="quiet-button" type="button" id="paste-original-ai">⌁ Paste from Clipboard</button>
