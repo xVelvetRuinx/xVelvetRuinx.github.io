@@ -598,9 +598,32 @@ function initFizzzMigration(context){
     originalText=$("#migration-paste").value;
     if(!originalText.trim())throw Error("Choose a file or paste an existing character.");
     const emptyMode=$('input[name="merge-mode"][value="empty"]');if(emptyMode)emptyMode.checked=true;
-    sourceMapped=prospective(originalText,format);baseline=Object.fromEntries(sourceMapped.items.map(x=>[x.key,x.original]));
-    showReview(sourceMapped);A().notify("Original text mapped for review. No changes applied.");
+    const C=window.VelvetRuinFizzzConceptConverter;
+    const isOutline=/ORIGINAL USER[-‑– ]SUPPLIED CHARACTER TEXT|\\b(?:The Premise|Opening Scene Concept|His Personality|Her Personality|The Halloween Twist)\\b/i.test(originalText);
+    if(C&&isOutline){
+      const converted=C.convert(originalText);
+      extraWarnings=[];
+      sourceMapped=prepare({
+        fields:converted.fields,
+        notes:Object.fromEntries(Object.entries(converted.explanations).map(([key,x])=>[key,x.why])),
+        notesGlobal:converted.notes,
+        generated:Object.entries(converted.explanations).filter(([key,x])=>x.kind==="draft").map(([key])=>key),
+        kind:"Source-based Fizzz character draft",
+        unmapped:converted.remainder||"",
+        tags:converted.tags
+      });
+      sourceMapped.notes.push("Recognized a story outline rather than an already-configured bot. Use Create Fizzz Bot from This Concept above to fill editor fields directly.");
+    }else sourceMapped=prospective(originalText,format);
+    baseline=Object.fromEntries(sourceMapped.items.map(x=>[x.key,x.original]));
+    showReview(sourceMapped);A().notify("Character material mapped to actual Fizzz fields for your review. No fields overwritten.");
   }catch(e){A().notify("Could not map character: "+e.message)}
+ });
+ $("#build-from-migration").addEventListener("click",()=>{
+   const source=$("#migration-paste").value;
+   if(!source.trim())return A().notify("Choose a file or paste a concept first.");
+   const concept=$("#concept-source");concept.value=source;
+   A().chapter("spark");
+   $("#build-from-concept").click();
  });
  $("#optimize-all").addEventListener("click",optimizeAll);
  $("#audit-quality").addEventListener("click",()=>{
