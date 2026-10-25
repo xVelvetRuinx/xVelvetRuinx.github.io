@@ -599,7 +599,7 @@ function initFizzzMigration(context){
     if(!originalText.trim())throw Error("Choose a file or paste an existing character.");
     const emptyMode=$('input[name="merge-mode"][value="empty"]');if(emptyMode)emptyMode.checked=true;
     const C=window.VelvetRuinFizzzConceptConverter;
-    const isOutline=/ORIGINAL USER[-‑– ]SUPPLIED CHARACTER TEXT|\\b(?:The Premise|Opening Scene Concept|His Personality|Her Personality|The Halloween Twist)\\b/i.test(originalText);
+    const isOutline=/ORIGINAL USER[-‑– ]SUPPLIED CHARACTER TEXT|The Premise|Opening Scene Concept|His Personality|Her Personality|The Halloween Twist/i.test(originalText);
     if(C&&isOutline){
       const converted=C.convert(originalText);
       extraWarnings=[];
