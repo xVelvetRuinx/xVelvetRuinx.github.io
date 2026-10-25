@@ -297,6 +297,11 @@ function start(){
     $("#build-from-migration").click();
  });
  $("#concept-save-source").addEventListener("click",()=>{if(last)window.FizzzAtelier?.download("fizzz-original-character-source.txt",last.rawInput);});
+ $("#concept-expand-ai").addEventListener("click",()=>{
+   if(!last)return say("Build a source-based draft first, then request help finishing what's missing.",true);
+   $("#copy-original-ai").click();
+   say("An original-character drafting brief was copied for ChatGPT. Paste it into ChatGPT to develop only missing areas; then return its complete JSON to the 'Original Character Drafting with AI' section for approval.");
+ });
  // Allow Migration Studio to recognize pasted natural language (and formerly Tipsy)
  // copyedit instructions containing an original text block.
  window.VelvetRuinFizzzBuildFromPaste=build;
