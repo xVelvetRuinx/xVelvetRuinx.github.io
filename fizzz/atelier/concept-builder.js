@@ -22,7 +22,7 @@ function extractSource(input){
 }
 const headingMap=[
  [/^tropes?\s*:/i,"tropes"],[/^(?:the\s+)?hook\s*:/i,"hook"],[/^(?:the\s+)?premise\s*:?\s*$/i,"premise"],
- [/^(?:the\s+)?(?:halloween|seasonal|plot)\s+twist\s*:?\s*$/i,"twist"],[/^(?:his|her|their|the\s+)?personality\s*:?\s*$/i,"personality"],
+ [/^(?:the\s+)?(?:halloween|seasonal|plot)\s+twist\s*:?\s*$/i,"twist"],[/^(?:his\s+|her\s+|their\s+|the\s+)?personality\s*:?\s*$/i,"personality"],
  [/^(?:opening scene concept|opening scene|first scene concept|first encounter|scene setup)\s*:?\s*$/i,"scene"],
  [/^(?:initial message|first message|greeting|custom greeting)\s*:?\s*$/i,"greeting"],
  [/^(?:public\s+)?(?:character\s+)?bio\s*:?\s*$/i,"bio"],
@@ -38,7 +38,7 @@ function headings(input){
  for(const line of trim(input).split("\n")){
   const stripped=line.trim();
   let match=null;
-  if(stripped.length<95){
+  if(stripped.length<220){
     for(const [re,key] of headingMap){
       const m=stripped.match(re);if(m){match={key,inline:stripped.slice(m[0].length).trim()};break;}
     }
@@ -114,7 +114,8 @@ function openingDraft(section,name,roleHint){
    .replace(/^You[’']ve been sent backstage to find the owner because/i,"Backstage, the owner is needed because")
    .replace(/^You find ([\p{L} -]+) in his office, arguing with /iu,"$1 is in his office, arguing with ")
    .replace(/^You find ([\p{L} -]+) in her office, arguing with /iu,"$1 is in her office, arguing with ")
-   .replace(/^You initially assume /i,"The scene initially appears to show ");
+   .replace(/^You initially assume /i,"The scene initially appears to show ")
+   .replace(/\blooks at you\b/i,"looks toward {{user}}");
  }).join(" ");
  const final=trim("*"+intro+"*\n\n"+spoken);
  return {text:final,source:"Converted original outline beats into one playable narrated scene. Kept their order and quoted dialogue EXACTLY; review the small grammatical staging changes.",incomplete:false};
@@ -145,7 +146,7 @@ function convert(input){
  else {
   // Only explicit visual cues; avoid extrapolation from trope labels.
   const m=text.match(/(?:his|her|their)\s+((?:(?:\w+[, ]+){0,5})?(?:horns|pointed ears|glowing eyes)(?:[^.\n]{0,100}))/i);
-  if(m)add("appearance",m[1].replace(/^are\s+/i,""),"Extracted only explicitly described identifying visual details. Confirm the complete appearance in the editor.","draft");
+  if(m)add("appearance",m[1].replace(/\s+are\s+(?:elaborate\s+)?(?:prosthetics|fake|a costume|special effects).*$/i,"").trim(),"Extracted identifying physical features only, not the character’s initial assumption they are fake.","draft");
  }
  if(s.backstory)add("backstory",s.backstory,"Preserved the backstory exactly.");
  if(s.personality){
