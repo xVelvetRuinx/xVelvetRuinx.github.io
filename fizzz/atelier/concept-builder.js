@@ -213,7 +213,7 @@ function convert(input){
    notes.push("Some visual traits were extracted, but the full look is not established. Add height, build, hairstyle, eyes, clothing and any canonical tattoos/scars rather than letting the bot invent them.");
  if(s.worldbook)add("world1Body",s.worldbook,"Moved prewritten lore into Worldbook without changing facts.");
  else{
-  const worldFacts=splitParagraphs(premise).filter(p=>/entire staff|vampires handle|ghosts manage|werewolves|supernatural creatures pretending|haunted attraction|Blackthorn House exists/i.test(p));
+  const worldFacts=splitParagraphs(premise).filter(p=>/entire staff|vampires handle|ghosts manage|werewolves|supernatural creatures pretending|haunted attraction|exists to (?:hide|give|protect)|secret sanctuary/i.test(p));
   const twistRules=splitParagraphs(s.twist).filter(p=>/temporarily lose|exists to give|on Halloween night/i.test(p));
   const merged=[...new Set([...worldFacts,...twistRules])];
   if(merged.length){
