@@ -50,7 +50,7 @@ function bioCompile(){
 function bioIntegrity(candidate,original){
  const text=tidy(candidate),sourceText=tidy(original),notes=[];
  if(!text)notes.push("Compiled Public Bio is missing.");
- if(sourceText.length>800&&text.length<Math.min(400,sourceText.length*.48))
+ if(sourceText.length>800&&text.length<Math.max(350,sourceText.length*.48))
   notes.push("Bio is suspiciously short compared with its source; the character, conflict, and player choice may have been lost.");
  const player=/\b(you|your|yours)\b|\{\{user\}\}/i;
  if(player.test(sourceText)&&!player.test(text))notes.push("The player-facing entry point is missing.");
