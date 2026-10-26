@@ -8,7 +8,7 @@ let version=null,accepted=false,base="";
 const src=()=>window.FizzzAtelier?.getState()||{};
 const tidy=s=>String(s||"").replace(/\r\n?/g,"\n").trim();
 const norm=s=>tidy(s).toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
-function fingerprint(){let h=2166136261;const data=src();for(const k of [...ORDER,"title","name","bio","initialRaw","world1Body","world2Body","world3Body","world1Title","world2Title","world3Title","world1Mode","world2Mode","world3Mode","world1Keywords","world2Keywords","world3Keywords"]){for(const c of String(data[k]||"")){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}}return String(h>>>0)}
+function fingerprint(){let h=2166136261;const data=src();for(const k of [...ORDER,"title","name","age","gender","creationDate","pov","rating","bio","initialRaw","world1Body","world2Body","world3Body","world1Title","world2Title","world3Title","world1Mode","world2Mode","world3Mode","world1Keywords","world2Keywords","world3Keywords"]){for(const c of String(data[k]||"")){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}}return String(h>>>0)}
 const selected=()=>accepted&&version&&base===fingerprint()?version:null;
 const selectedText=k=>selected()?(k==="core"?selected().core:k==="opening"?selected().opening:null):null;
 const selectedProfile=()=>selected()?{title:selected().title,bio:selected().bio}:null;
@@ -60,14 +60,14 @@ function compile(mode="balanced"){const s=src(),c=coreCompile(mode);
 function save(){try{localStorage.setItem(STORE,JSON.stringify({version,accepted,base}))}catch{}}
 function load(){try{const o=JSON.parse(localStorage.getItem(STORE)||"null");if(o){version=o.version;accepted=o.accepted;base=o.base}}catch{}}
 function message(t){const x=$("#compiler-status");if(x)x.textContent=t}
-function render(){if(!version)return;
- for(const k of ["title","bio","core","opening"]){const x=$("#compiled-"+k);if(x)x.value=version[k]}
+function render(skipFields=false){if(!version)return;
+ for(const k of ["title","bio","core","opening"]){const x=$("#compiled-"+k);if(x&&!skipFields)x.value=version[k]}
  $("#compiler-measure").textContent="Original core "+version.originalCore.toLocaleString()+" chars → compiled "+version.core.length.toLocaleString()+" chars; "+version.removed+" repetitive/secondary source lines omitted.";
  $("#compiler-warnings").textContent=version.notes.length?version.notes.map(x=>"• "+x).join("\n"):"✓ No length or missing-lore warnings. Test on Fizzz.";
  $("#compiler-approve").disabled=!version.core||!version.opening||version.core.length>25000||version.opening.length>5000;
  $("#compiler-selected").textContent=selected()?"✓ Approved compiled version selected for all final exports.":accepted&&base!==fingerprint()?"Source changed; recompile before export.":"Compiled text is not yet approved; original text remains the export source.";
 }
-function edit(){if(!version)return;for(const k of ["title","bio","core","opening"])version[k]=$("#compiled-"+k).value;version.notes=checks(version);accepted=false;save();render()}
+function edit(){if(!version)return;for(const k of ["title","bio","core","opening"])version[k]=$("#compiled-"+k).value;version.notes=checks(version);accepted=false;save();render(true)}
 function approve(){if(!version)return;if(base!==fingerprint())return message("Source fields changed since compilation. Recompile before approving.");if(version.core.length>25000||version.opening.length>5000)return message("Exceeds Fizzz length limits.");accepted=true;save();render();message("Approved. Existing TXT, DOCX and JSON outputs will now use this compiled core, public bio and greeting.");}
 function undo(){accepted=false;save();render();message("Original fields restored as export source. Edited compiled version stays saved.");}
 const filename=()=>tidy(src().name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";
