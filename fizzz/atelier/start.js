@@ -84,11 +84,19 @@ function report(mapped,filename,originalText,applied,skipped){
  title.textContent="Imported: "+(window.FizzzAtelier.getState().name||filename||"Your character");
  summary.textContent=applied.length+" creator fields populated. "+(skipped.length?skipped.length+" entries required review because the editor already contained material. ":"")+"The source text and every originally supplied detail remain available for comparison. Nothing was automatically shortened.";
  const list=$("#simple-mapping");list.replaceChildren();
+ const warnings=Array.isArray(mapped.notes)?mapped.notes:[];
+ if(warnings.length){
+   const block=node("div","simple-import-warnings");
+   block.append(node("b","","Source review notes"));
+   for(const note of warnings.slice(0,18))block.append(node("p","",typeof note==="string"?note:String(note?.reason||note?.message||"")));
+   list.append(block);
+ }
  for(const entry of mapped.mapped||[]){
   const box=node("div","simple-map-row");
   box.append(node("b","",entry.field),node("p","",entry.reason||"Preserved content from the source in this field."));
   list.append(box);
  }
+ $("#simple-original").textContent=originalText;
  const leftovers=$("#simple-unmapped");
  leftovers.textContent=mapped.unmapped||"(No unmapped sections were detected by the parser. Review the imported fields against the original to confirm completeness.)";
  const save=$("#simple-download-original");save.disabled=!originalText;
@@ -123,7 +131,7 @@ async function fromFile(file){
  const upload=$("#simple-file");
  upload.disabled=true;status("Reading "+file.name+"…");
  try{
-   if(file.size>15*1024*1024)throw Error("File exceeds 15 MB. Export a smaller character document first.");
+   if(file.size>12*1024*1024)throw Error("File exceeds 12 MB. Export a smaller character document first.");
    if(!API)throw Error("The import reader is not ready. Refresh the page.");
    const parsed=await API.readFile(file);
    const contents=String(parsed?.text||"");
