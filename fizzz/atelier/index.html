@@ -13,7 +13,7 @@
 <script defer src="atelier.js?v=6"></script>
 <script defer src="optimizer.js?v=1"></script>
 <script defer src="migration.js?v=8"></script>
-<script defer src="coach.js?v=1"></script>
+<script defer src="coach.js?v=2"></script>
 <script defer src="handbook-quick.js?v=2"></script>
 <script defer src="handbook-advanced.js?v=1"></script>
 <script defer src="handbook.js?v=2"></script>
@@ -28,7 +28,7 @@
 <h1>Build someone <em>worth returning to.</em></h1>
 <p>Begin with a blank page or bring an existing character. Follow Fizzz's creator structure, protect your original voice, and build a cohesive world, first scene, and media experience.</p>
 <div class="hero-meta"><span>✧ NEW CHARACTERS</span><span>✧ PRESERVATION-FIRST MIGRATION</span><span>✧ FIELD-BY-FIELD COACHING</span><span>✧ LIVE CHECKS & EXPORTS</span></div>
-<div class="hero-buttons"><button type="button" class="main-button" id="start-new">✦ Start a New Character</button><button type="button" class="quiet-button" id="start-import">⌁ Import an Existing Character</button><button type="button" id="open-handbook" class="quiet-button">✧ Read Creator Handbook</button><a href="../#quick-start" class="quiet-button">Official Guide ↗</a></div>
+<div class="hero-buttons"><button type="button" class="main-button" id="start-new">✦ Start a New Character</button><button type="button" class="quiet-button" id="start-import">⌁ Import an Existing Character</button><details class="hero-guide-extra"><summary>✧ Tips & creator guide</summary><div class="hero-guide-links"><button type="button" id="open-handbook" class="quiet-button">✧ Read Creator Handbook</button><a href="../#quick-start" class="quiet-button">Official Guide ↗</a></div></details></div>
 </section>
 <main id="workbench">
 <section class="atelier-start-here" id="how-to-use" aria-label="How to use the Fizzz Character Atelier">
@@ -51,8 +51,10 @@
 <button class="step" data-step="world" type="button"><span>04</span><b>Worldbook</b><small>Optional lore</small></button>
 <button class="step" data-step="media" type="button"><span>05</span><b>Media & Voice</b><small>Video direction</small></button>
 <button class="step" data-step="review" type="button"><span>06</span><b>Review & Export</b><small>Fizzz readiness</small></button>
+<details class="rail-extras"><summary>✧ More tools & creator guide</summary>
 <button class="step migration-link" data-step="migrate" type="button"><span>✦</span><b>Advanced Import Review</b><small>Optional comparison</small></button>
 <button class="step" data-step="handbook" type="button"><span>✧</span><b>Fizzz Creator Handbook</b><small>Quick Start + Advanced Guide</small></button>
+</details>
 </div>
 <div class="save-box"><span class="save-pulse"></span><div><b id="save-status">Saved locally</b><small>No character files are uploaded to this site.</small></div></div>
 <div class="sources-box"><b>PLATFORM FACTS</b><small>Based on Fizzz's public creator guide. Mandatory fields and character limits are marked. Archetypes and writing budgets are editorial inspiration, not official requirements.</small><a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Official Fizzz guidelines ↗</a></div>
@@ -106,7 +108,7 @@
  <h3>Paste a concept. <em>Build a bot.</em></h3>
  <p>Paste a rough idea, a full character synopsis, a Tipsy character, or even a copied editing brief containing <strong>ORIGINAL USER-SUPPLIED CHARACTER TEXT</strong>. Click <strong>Build Fizzz Draft</strong> to populate real creator fields here—no JSON required. Existing names, dialogue, world rules and story facts are preserved.</p>
  <label class="field full" for="concept-source"><span>Your concept, story notes or existing character</span>
- <textarea id="concept-source" rows="9" placeholder="Example: Kier Duvall, 31, owns Blackthorn House, a haunted attraction staffed by real supernatural creatures. He's a playful demon. The new seasonal employee discovers the monsters are real. On Halloween their disguises fail. First scene: a creature disappears through his office wall. Kier says, &quot;Before you say anything, I can explain about eighty percent of that.&quot;"></textarea>
+ <textarea id="concept-source" rows="9" placeholder="Example: Arden Moss, 34, runs a night repair shop where unclaimed packages arrive with dates that haven’t happened yet. {{user}} brings in a broken watch. Arden is direct and dryly funny. First scene: Arden sets the watch down and asks where it was found."></textarea>
  <small>Start with what you have, not a template. You can paste an entire existing concept or a creator brief. The conversion happens locally in this browser and does not call a language model.</small></label>
  <label class="concept-reset"><input type="checkbox" id="concept-start-fresh"> <span><strong>Start a new character project.</strong> Back up and replace the current draft instead of filling only empty fields (asks for confirmation).</span></label>
 <div class="concept-actions"><button type="button" id="build-from-concept" class="main-button">✦ Build Fizzz Draft from Paste</button><button type="button" id="concept-clipboard" class="quiet-button">⌁ Paste from Clipboard</button><button type="button" id="concept-example" class="quiet-button">Load Demonstration</button></div>
