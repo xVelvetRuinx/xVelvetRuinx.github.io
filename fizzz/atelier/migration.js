@@ -202,7 +202,8 @@ function parseNumberedFizzz(text){
  }
  const tagSource=sections[7]||"",tagWords=(tagSource.match(/#[\p{L}\p{N}]+/gu)||[]).map(x=>x.slice(1));
  const known=["Omegaverse","Mafia","Arranged Marriage","Slow Burn","Romance","Protective","Crime","Drama","Marriage Drama"];
- const tags=[...new Set(tagWords.map(x=>known.find(t=>normalize(t)===normalize(x))).filter(Boolean))].slice(0,7);
+ const synonyms={mafiaromance:"Mafia",arrangedmarriage:"Arranged Marriage",marriageofconvenience:"Arranged Marriage",slowburn:"Slow Burn",protectivealpha:"Protective",possessiveromance:"Romance",darkromance:"Romance",alphamale:"Omegaverse"};
+ const tags=[...new Set(tagWords.map(x=>synonyms[x.toLowerCase()]||known.find(t=>normalize(t).replace(/\s/g,"")===normalize(x).replace(/\s/g,""))).filter(Boolean))].slice(0,7);
  if(fields.initialRaw?.length>5000)alerts.push("Opening prose is "+fields.initialRaw.length+" characters (Fizzz maximum: 5,000). Revise with approval.");
  const coreCount=Object.entries(map).reduce((s,[num])=>s+(sections[num]||"").length,0)+(sections[20]||"").length;
  if(coreCount>10000)alerts.push("Character core contains approximately "+coreCount+" source characters; Fizzz recommends ~10,000 but permits up to 25,000. Consider carefully selected reductions without deleting canon.");
