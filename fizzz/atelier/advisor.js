@@ -37,6 +37,12 @@ function evaluate(state,options={}){
  const protectCore=Boolean(core);
  const focusField=(field)=>protectCore&&["voice","boundaries","traits","relationship","appearance"].includes(field)?"coreRaw":field;
  const addToCore=(section,text)=>core+(core.endsWith("\n")?"\n":"\n\n")+"# "+section+"\n"+text;
+ if(protectCore&&["traits","appearance","relationship","voice","behavior","boundaries"].some(k=>val(s,k))){
+   coach("core-override","coreRaw","Check which personality information Fizzz will actually read",
+     "You imported a complete Core Personality and also have separate supporting fields. In preservation mode, Fizzz export uses the original Core Personality alone until you explicitly choose to append structured notes.",
+     "Open the Personality chapter, check the compiled preview, and turn on ‘Append structured notes’ ONLY if those additions are genuinely needed and don't duplicate established writing.",
+     "Ensures important refinements actually reach the roleplay model while preserving the original persona.","high","Roleplay reliability");
+ }
  // 1. High-value hook: only source-grounded text. Don't change compelling public hooks.
  if(!val(s,"title")){
    const seed=val(s,"name")||"";
