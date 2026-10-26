@@ -190,16 +190,33 @@ function dataFromNumbered(source){
  for(const [i,k] of Object.entries(map))d[k]=sec[i]||"";
  d.creationDate=sec[7]?.match(/CREATION DATE:\*{0,2}\s*(November\s+\d{1,2},\s+\d{4}|\d{4}-\d{2}-\d{2})/i)?.[1]||"";
  if(sec[21]){
-  const lines=sec[21].split("\n"),labels=["Scene · Location, Time & Atmosphere","What the Character Visibly Does","One or Two Spoken Lines","Playable Opening Beat"],keys=["openingScene","openingAction","openingLine","openingBeat"];
-  const headers=[...sec[21].matchAll(/^###\s+([^\n]+)$/gm)];
-  let proseStart=-1;const beat=lines.findIndex(l=>/^###\s+Playable Opening Beat/i.test(l));
-  if(beat>=0){for(let j=beat+1;j<lines.length;j++){const line=lines[j].trim();if(!line||line.startsWith("- ")||line.startsWith("* ")||line.startsWith("###"))continue;proseStart=j;break;}}
-  if(proseStart>=0){
-   d.initialRaw=lines.slice(proseStart).join("\n").trim();
-   const pre=lines.slice(0,proseStart).join("\n");
-   const bounds=[...pre.matchAll(/^###\s+([^\n]+)$/gm)];
-   for(let j=0;j<labels.length;j++){const idx=bounds.findIndex(h=>norm(h[1])===norm(labels[j]));if(idx>=0)d[keys[j]]=pre.slice(bounds[idx].index+bounds[idx][0].length,idx+1<bounds.length?bounds[idx+1].index:pre.length).trim();}
-  }else{d.initialRaw=sec[21];messages.push("Opening narrative was not distinguishable from section 21 notes; review the opening before publishing.");}
+  const lines=sec[21].split("\n");
+  const labels=["Scene · Location, Time & Atmosphere","What the Character Visibly Does","One or Two Spoken Lines","Playable Opening Beat"];
+  const keys=["openingScene","openingAction","openingLine","openingBeat"];
+  const simplified=x=>String(x).replace(/^#{1,6}\s*/,"").replace(/^\*\*(.*?)\*\*$/,"$1").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
+  const indexes=labels.map(label=>lines.findIndex(line=>simplified(line)===simplified(label)));
+  // Word extracts text but not the original ### formatting. Locate the
+  // opening planner by its actual four headings, not the Markdown prefix.
+  if(indexes[3]>=0){
+   let proseStart=-1;
+   for(let j=indexes[3]+1;j<lines.length;j++){
+    const line=lines[j].trim();
+    if(!line||/^[-*•]\s+/.test(line)||/^#{1,6}\s+/.test(line))continue;
+    proseStart=j;break;
+   }
+   for(let j=0;j<4;j++){
+    const a=indexes[j],b=j<3?indexes[j+1]:(proseStart<0?lines.length:proseStart);
+    if(a>=0&&b>a)d[keys[j]]=lines.slice(a+1,b).join("\n").trim();
+   }
+   if(proseStart>=0)d.initialRaw=lines.slice(proseStart).join("\n").trim();
+   else {
+    d.initialRaw="";
+    messages.push("Section 21 contains opening notes but no distinguishable complete scene. Write or import the actual greeting; do not mistake the planner for finished prose.");
+   }
+  }else{
+   d.initialRaw=sec[21];
+   messages.push("No four-part opening planner detected; the complete Section 21 text was retained as the initial message for review.");
+  }
  }
  if(config>=0){
   const chunk=text.slice(config),wb=[...chunk.matchAll(/^(?:#{1,6}\s*)?Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gim)];
