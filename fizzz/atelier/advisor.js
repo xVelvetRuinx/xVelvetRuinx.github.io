@@ -85,6 +85,32 @@ function evaluate(state,options={}){
        "Gives visitors a clear reason to interact.","medium","First click");
    if(noProfanity.test(bio))coach("bio-public","bio","Check public-language review","Fizzz public titles and descriptions have different content-review requirements from private roleplay.","Review strong public language against Fizzz's current publishing guidelines.","Reduces the risk of a public listing being rejected.","high","Publication");
  }
+ // Public transparency and discovery: make suggestions based on themes actually mentioned.
+ const themes=[val(s,"concept"),val(s,"bio"),val(s,"conflict"),val(s,"dynamic"),val(s,"traits")].join(" ");
+ if(!val(s,"warning")&&/\b(?:horror|graphic death|torture|gore|betrayal|trauma|abuse|stalking)\b/i.test(themes)){
+   const warnings=[];
+   if(/\b(?:horror|gore|torture)\b/i.test(themes))warnings.push("horror themes");
+   if(/\b(?:betrayal|trauma|abuse|stalking)\b/i.test(themes))warnings.push("intense relationship or emotional themes");
+   if(/\b(?:graphic death)\b/i.test(themes))warnings.push("death-related content");
+   const generated="Content note: "+warnings.join("; ")+".";
+   if(warnings.length)edit("content-advisory","warning",original("warning"),generated,
+      "Add a clear public content advisory",
+      "These categories are explicitly present in the existing concept. This is a public Bio advisory, not new character lore. Check whether the wording matches the actual experience.",
+      "Clear expectations help the right audience choose the story.","medium","Publication");
+ }
+ if(!options?.tags?.length&&/\b(?:workplace|boss|vampire|werewolf|demon|supernatural|mystery|biker|horror|western|romance)\b/i.test(themes)){
+   const candidates=[
+    [/\b(?:workplace|coworker|employee)\b/i,"Workplace"],[/\bboss\b/i,"Boss"],
+    [/\b(?:demon|monster|magic|supernatural)\b/i,"Supernatural"],
+    [/\bvampire\b/i,"Vampire"],[/\bwerewolf\b/i,"Werewolf"],
+    [/\bmystery\b/i,"Mystery"],[/\bbiker\b/i,"Biker"],[/\bhorror\b/i,"Horror"],
+    [/\bwestern\b/i,"Western"],[/\bromance\b/i,"Romance"]
+   ].filter(([re])=>re.test(themes)).map(([,tag])=>tag);
+   if(candidates.length)coach("tags-source","bio","Choose only accurate Fizzz discovery tags",
+     "Your original text already implies some themes, but the editor does not show any confirmed discovery tags.",
+     "Based on your own wording, consider: "+candidates.slice(0,7).join(", ")+". Gender, POV and Rating remain mandatory in Fizzz.",
+     "Relevant tags improve discoverability without misleading players.","medium","First click");
+ }
  // 2. Distinct behavior, not adjective piles.
  if(!personality){
    coach("traits-missing",protectCore?"coreRaw":"traits","Add behavior the player can actually experience",
