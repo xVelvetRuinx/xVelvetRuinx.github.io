@@ -56,27 +56,9 @@ function status(message,error=false){
  bar.textContent=message;bar.dataset.state=error?"error":"good";
 }
 function feedback(){
- const panel=$("#simple-feedback-panel");
- const A=window.FizzzAtelier,optimizer=window.VelvetRuinFizzzOptimizer;
- panel.replaceChildren();
- if(!A||!optimizer)return;
- const state=A.getState(),notes=optimizer.feedback(state),checks=A.audit();
- const head=node("h4","","Your Fizzz Creation Checklist");
- const expl=node("p","","Suggestions are based on the supplied Fizzz guide and creator practices, not a guaranteed engagement score. Nothing is rewritten automatically.");
- panel.append(head,expl);
- const critical=checks.filter(i=>i.status==="error").slice(0,4).map(x=>({heading:x.title,reason:x.reason,kind:"required"}));
- const articles=[...critical,...notes.slice(0,9).map(x=>({heading:x.heading,reason:x.reason,kind:x.priority==="important"?"important":"advice"}))];
- const used=new Set();
- for(const suggestion of articles){
-  if(used.has(suggestion.heading))continue;used.add(suggestion.heading);
-  const item=node("article","simple-tip");
-  const label=node("b","",suggestion.heading);
-  const body=node("p","",suggestion.reason);
-  item.append(label,body);panel.append(item);
- }
- if(!used.size)panel.append(node("p","","No common text-pattern concerns detected. Test actual chats and media before publishing."));
- panel.hidden=false;
- panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+ const ui=window.VelvetRuinFizzzAdvisorUI;
+ if(!ui)return status("The improvement editor is not available. Refresh this page.",true);
+ ui.afterImport();
 }
 function report(mapped,filename,originalText,applied,skipped){
  imported={originalText,filename,mapped};
@@ -102,7 +84,10 @@ function report(mapped,filename,originalText,applied,skipped){
  const save=$("#simple-download-original");save.disabled=!originalText;
  const panel=$("#simple-feedback-panel");panel.hidden=true;panel.replaceChildren();
  root.hidden=false;
- status("✓ Imported into your character builder. Select Continue Editing, or read the Fizzz recommendations.",false);
+ status("✓ Imported into the Fizzz builder. The editor suggests specific improvements below; all edits require your approval.",false);
+ // Auto-populate the real improvement cards on import, including concrete
+ // source-grounded before/after examples and contextual reasoning.
+ if(window.VelvetRuinFizzzAdvisorUI)window.VelvetRuinFizzzAdvisorUI.afterImport();
  root.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function doImport(text,filename="",format="text"){
