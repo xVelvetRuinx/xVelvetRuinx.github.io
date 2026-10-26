@@ -7,7 +7,7 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=8">
+<link rel="stylesheet" href="atelier.css?v=9">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
 <script defer src="atelier.js?v=6"></script>
@@ -18,6 +18,7 @@
 <script defer src="handbook-advanced.js?v=1"></script>
 <script defer src="handbook.js?v=2"></script>
 <script defer src="concept-builder.js?v=3"></script>
+<script defer src="start.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -27,12 +28,12 @@
 <h1>Build someone <em>worth returning to.</em></h1>
 <p>Begin with a blank page or bring an existing character. Follow Fizzz's creator structure, protect your original voice, and build a cohesive world, first scene, and media experience.</p>
 <div class="hero-meta"><span>✧ NEW CHARACTERS</span><span>✧ PRESERVATION-FIRST MIGRATION</span><span>✧ FIELD-BY-FIELD COACHING</span><span>✧ LIVE CHECKS & EXPORTS</span></div>
-<div class="hero-buttons"><button type="button" class="main-button" id="start-new">✦ Create a New Character</button><button type="button" class="quiet-button" id="start-import">⌁ Migrate a Character</button><button type="button" id="open-handbook" class="quiet-button">✧ Read Creator Handbook</button><a href="../#quick-start" class="quiet-button">Official Guide ↗</a></div>
+<div class="hero-buttons"><button type="button" class="main-button" id="start-new">✦ Start a New Character</button><button type="button" class="quiet-button" id="start-import">⌁ Import an Existing Character</button><button type="button" id="open-handbook" class="quiet-button">✧ Read Creator Handbook</button><a href="../#quick-start" class="quiet-button">Official Guide ↗</a></div>
 </section>
 <main id="workbench">
 <section class="atelier-start-here" id="how-to-use" aria-label="How to use the Fizzz Character Atelier">
- <div class="start-head"><div><p class="eyebrow">START HERE · YOUR CREATOR WORKFLOW</p><h2>From idea to <em>playable character.</em></h2></div><button type="button" id="toggle-howto" class="quiet-button" aria-expanded="true">Hide instructions ↑</button></div>
- <div id="howto-body"><div class="start-cards">
+ <div class="start-head"><div><p class="eyebrow">START HERE · YOUR CREATOR WORKFLOW</p><h2>From idea to <em>playable character.</em></h2></div><button type="button" id="toggle-howto" class="quiet-button" aria-expanded="false">Show 4-step overview ↓</button></div>
+ <div id="howto-body" hidden><div class="start-cards">
   <article><span>01</span><b>Choose your path</b><p><strong>New bot:</strong> choose an optional archetype or write an original hook. <strong>Existing bot:</strong> open Migration Studio and import or paste your original material.</p></article>
   <article><span>02</span><b>Write one chapter at a time</b><p>Each field includes what to write, a strong example, advice on using fewer words, and when more detail is justified. Expand <strong>“Exactly what to write”</strong> beneath any field.</p></article>
   <article><span>03</span><b>Refine without losing the story</b><p>Use <strong>Find Gentle Trims</strong> to review exact repeated paragraphs, formatting waste and a few wordy phrases. Every proposal explains why and shows original versus revised text.</p></article>
@@ -43,14 +44,14 @@
 <div class="workspace">
 <aside class="rail"><div class="rail-label">THE CHAPTERS</div>
 <div class="step-nav" id="step-nav">
-<button class="step active" data-step="spark" type="button"><span>00</span><b>The Spark</b><small>Original concepts & archetypes</small></button>
-<button class="step" data-step="profile" type="button"><span>01</span><b>The Invitation</b><small>Title, bio & discovery</small></button>
-<button class="step" data-step="core" type="button"><span>02</span><b>The Person</b><small>Personality & voice</small></button>
-<button class="step" data-step="opening" type="button"><span>03</span><b>The First Encounter</b><small>Initial message</small></button>
-<button class="step" data-step="world" type="button"><span>04</span><b>The World</b><small>Three lorebook entries</small></button>
-<button class="step" data-step="media" type="button"><span>05</span><b>The Presence</b><small>Images, voice & film</small></button>
-<button class="step" data-step="review" type="button"><span>06</span><b>The Manuscript</b><small>Feedback & copy-ready export</small></button>
-<button class="step migration-link" data-step="migrate" type="button"><span>✦</span><b>Migration Studio</b><small>Bring an existing bot</small></button>
+<button class="step active" data-step="spark" type="button"><span>00</span><b>Start Here</b><small>New or import</small></button>
+<button class="step" data-step="profile" type="button"><span>01</span><b>Profile</b><small>Title, bio & tags</small></button>
+<button class="step" data-step="core" type="button"><span>02</span><b>Personality</b><small>Identity & behavior</small></button>
+<button class="step" data-step="opening" type="button"><span>03</span><b>Opening Scene</b><small>Greeting</small></button>
+<button class="step" data-step="world" type="button"><span>04</span><b>Worldbook</b><small>Optional lore</small></button>
+<button class="step" data-step="media" type="button"><span>05</span><b>Media & Voice</b><small>Video direction</small></button>
+<button class="step" data-step="review" type="button"><span>06</span><b>Review & Export</b><small>Fizzz readiness</small></button>
+<button class="step migration-link" data-step="migrate" type="button"><span>✦</span><b>Advanced Import Review</b><small>Optional comparison</small></button>
 <button class="step" data-step="handbook" type="button"><span>✧</span><b>Fizzz Creator Handbook</b><small>Quick Start + Advanced Guide</small></button>
 </div>
 <div class="save-box"><span class="save-pulse"></span><div><b id="save-status">Saved locally</b><small>No character files are uploaded to this site.</small></div></div>
@@ -67,7 +68,38 @@
  <div class="action-row"><button class="main-button next" type="button" data-next="spark">Begin Creating a Character →</button><button class="quiet-button next" data-next="review" type="button">Open Publishing Checklist →</button></div>
 </div>
 <div class="panel active" id="panel-spark">
-<div class="panel-title"><p class="eyebrow">CHAPTER ZERO / THE CREATIVE SPARK</p><h2>Start with a <em>reason to stay.</em></h2><p>These are optional story archetypes inspired by familiar romance and roleplay premises. Fizzz does <strong>not</strong> require a particular trope or character type.</p></div>
+<div class="panel-title"><p class="eyebrow">YOUR CHARACTER STARTS HERE</p><h2>One creator. <em>Two ways to begin.</em></h2><p>Start with a blank character or bring your existing work. Either choice opens the same editable Fizzz character builder, with practical guidance as you go.</p></div>
+<div class="simple-entry" id="simple-entry">
+ <div class="simple-path">
+  <div class="simple-path-title"><span class="path-index">01</span><div><h3>Start a New Character</h3><p>Write an original character from scratch. No archetype or import required.</p></div></div>
+  <button class="main-button simple-primary" id="simple-new" type="button">✦ Create a Blank Character →</button>
+ </div>
+ <div class="simple-path">
+  <div class="simple-path-title"><span class="path-index">02</span><div><h3>Import My Character</h3><p>Upload your existing material. Its name, identity, story, lore and dialogue flow into the same editor.</p></div></div>
+  <label class="simple-upload" id="simple-drop" for="simple-file"><span>⌁ Drop or choose a file</span><small>TXT · DOCX · DOC · PDF · JSON · Markdown · RTF · HTML · YAML · character PNG</small><input id="simple-file" type="file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.png" /></label>
+  <details class="simple-paste"><summary>Or paste character text instead</summary>
+    <label for="simple-text">Existing character, rough concept or character card</label>
+    <textarea id="simple-text" rows="6" placeholder="Paste your character here, then choose Import Into My Builder."></textarea>
+    <button type="button" class="main-button" id="simple-import-text">✦ Import Into My Builder →</button>
+  </details>
+ </div>
+</div>
+<div class="simple-status" id="simple-status" role="status" aria-live="polite">Your work stays in this browser. Imported text is preserved; suggestions never overwrite your story without your choice.</div>
+<div class="simple-import-report" id="simple-import-report" hidden>
+ <p class="eyebrow">YOUR CHARACTER IS IN THE BUILDER</p>
+ <h3 id="simple-import-title">Import complete</h3>
+ <p id="simple-import-summary"></p>
+ <div class="simple-import-actions">
+  <button type="button" class="main-button" id="simple-edit">Continue Editing My Character →</button>
+  <button type="button" class="quiet-button" id="simple-feedback">See Fizzz Recommendations</button>
+  <button type="button" class="quiet-button" id="simple-download-original">↓ Save Imported Text</button>
+ </div>
+ <div id="simple-feedback-panel" hidden></div>
+ <details class="simple-source-details"><summary>Show the source mapping and any material that needs review</summary><div id="simple-mapping"></div><pre id="simple-unmapped"></pre></details>
+</div>
+<div class="simple-small-note">After you begin: <strong>Profile → Personality → Opening → Worldbook → Media → Review & Export.</strong> We'll highlight Fizzz's requirements along the way, without changing established canon just to shorten it.</div>
+<details class="optional-workflows" id="optional-workflows"><summary>✧ More options: archetypes, concept converter and optional AI drafting</summary>
+
 <button type="button" class="handbook-shortcut" data-handbook-topic="quick-start">✧ New to Fizzz? Read “Create a character in 1 minute” →</button>
 <section class="concept-from-paste" id="concept-from-paste">
  <p class="eyebrow">NEW · TURN A PASTED IDEA INTO A FIZZZ CHARACTER</p>
@@ -108,6 +140,7 @@
   <p class="ai-import-status" id="original-ai-status" role="status" aria-live="polite">No JSON pasted yet. Copy the assistant's completed response or open its file above.</p>
 </div>
 <div class="action-row"><button type="button" class="main-button" id="starter">✧ Build a Starter Concept</button><button type="button" class="quiet-button next" data-next="profile">Next · The Invitation →</button></div>
+</details>
 </div>
 <div class="panel" id="panel-profile" hidden>
 <div class="panel-title"><p class="eyebrow">CHAPTER ONE / PUBLIC PROFILE</p><h2>The invitation <em>to click.</em></h2><p>Sell the experience publicly. The Bio is for the player; Core Personality is what the character model uses.</p></div>
