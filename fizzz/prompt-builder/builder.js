@@ -140,7 +140,7 @@ function refresh(){
  $("#aside-world").textContent=[1,2,3].map(i=>(data["world"+i+"Body"]||"").length.toLocaleString()).join(" / ")+" chars";
  for(let i=1;i<=3;i++){const x=$("#world-note-"+i);x.textContent=data["world"+i+"Body"]?.trim()?data["world"+i+"Body"].length+" characters · full lore entered":"Outline/settings only · full lore missing";}
 }
-function rerender(){ $$("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();}
+function rerender(){ $("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();document.dispatchEvent(new CustomEvent("fizzz:field-data-changed"));}
 function showTab(tab){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===tab);b.setAttribute("aria-selected",b.dataset.tab===tab)});$$(".panel").forEach(p=>p.hidden=p.id!=="panel-"+tab);if(tab==="output"){analyse();renderOutput();}if(window.innerWidth<900)document.querySelector(".tabs").scrollIntoView({block:"start",behavior:"smooth"});}
 function stripMd(s){return str(s).replace(/\*\*/g,"").replace(/^#+\s?/gm,"").trim();}
 function dataFromNumbered(source){
