@@ -257,3 +257,52 @@
 .top-actions .toolbar-extras[open]{z-index:4}
 .top-actions .toolbar-extras button{display:block;width:100%;margin-top:5px}
 @media(max-width:650px){.hero-guide-extra{display:block;max-width:none}.top-actions .toolbar-extras{width:auto}}
+
+
+/* Fizzz · source-specific performance editor */
+.improvement-workspace{margin:25px 0;padding:21px 19px;border:1px solid rgba(222,180,137,.42);background:radial-gradient(ellipse at 5% 0,rgba(121,50,93,.25),transparent 70%),#140e1c}
+.improvement-heading h3{font:500 clamp(32px,4vw,44px)/1.06 'Cormorant Garamond',serif;color:#f2dfe9;margin:6px 0 10px}
+.improvement-heading h3 em{color:#ddb1c6}
+.improvement-heading>p:not(.eyebrow){font:11px/1.85 'DM Sans',sans-serif;color:#d9c8d2;margin:0 0 17px}
+.improvement-actions{display:flex;flex-wrap:wrap;gap:9px}
+.improvement-actions button{flex:1 1 165px}
+.improvement-actions .main-button{flex:2 1 225px}
+.improvement-actions button:disabled{opacity:.42;cursor:not-allowed}
+.improvement-status{font:11px/1.65 'DM Sans',sans-serif;border-left:3px solid #c8a16c;background:#3c2a333c;padding:12px;margin:17px 0;color:#f0e0e8}
+.improvement-status[data-state="good"]{border-left-color:#a2c398}
+.improvement-status[data-state="error"]{border-left-color:#ce7c8a}
+.improvement-list,.import-improvement-cards{display:grid;gap:13px;margin:15px 0}
+.improvement-report-heading{display:flex;justify-content:space-between;gap:15px;align-items:baseline;border-bottom:1px solid #a17a9855;padding:4px 0 13px;flex-wrap:wrap}
+.improvement-report-heading b{font:500 23px 'Cormorant Garamond',serif;color:#f1dbe7}
+.improvement-report-heading p{font-size:10.5px;line-height:1.6;margin:0;color:#c7b5c0}
+.suggestion-card{border:1px solid #78576c80;background:#191220;padding:17px 15px}
+.suggestion-card.high{border-left:3px solid #e5b47b}
+.suggestion-card.medium{border-left:3px solid #b48dac}
+.suggestion-card.low{border-left:3px solid #888a9b}
+.suggestion-card.suggestion-applied{border-left-color:#a5bd8b}
+.suggestion-top{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.suggestion-type{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#d8adbc}
+.suggestion-impact{font-size:9.5px;color:#d8c59e}
+.suggestion-card h4{font:500 28px/1.06 'Cormorant Garamond',serif;margin:12px 0 10px;color:#f2e0e8}
+.suggestion-reason p{font-size:11.5px;line-height:1.75;color:#ded0d8;margin:0 0 12px}
+.suggestion-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;align-items:stretch}
+.suggestion-compare>section{min-width:0;padding:12px 11px;border:1px solid #76566583}
+.suggestion-compare>.suggestion-before{background:#1f1721;border-left:2px solid #977d84}
+.suggestion-compare>.suggestion-after{background:#1c1e1c;border-left:2px solid #a5b89d}
+.suggestion-compare>section>b,.suggestion-sample>b{display:block;letter-spacing:.08em;font-size:9px;text-transform:uppercase;margin-bottom:10px;color:#d6bbcf}
+.suggestion-after>b{color:#c8dbc0!important}
+.improvement-preview,.improvement-fulltext{font:11px/1.65 'DM Sans',sans-serif;color:#ebdce6;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;max-height:235px;overflow:auto}
+.suggestion-full summary{cursor:pointer;font-size:10px;color:#e0bba0;padding:9px 0}
+.improvement-fulltext{background:#110d16;padding:10px;border:1px solid #684d5d}
+.suggestion-sample{background:rgba(15,21,20,.55);border-left:2px solid #a4b8a2;padding:12px 13px;margin:12px 0}
+.suggestion-sample p{white-space:pre-wrap;font-size:11px;line-height:1.75;color:#e3d6dc;margin:0}
+.suggestion-benefit{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;border-top:1px solid #73586666;padding-top:12px;font-size:11px;line-height:1.75;color:#dbcbd6}
+.suggestion-benefit>b{font-size:9px;letter-spacing:.06em;color:#ddb98a}
+.suggestion-tokens{font:10px 'DM Sans',sans-serif;color:#cdb8cb}
+.suggestion-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.suggestion-buttons button{flex:1 1 150px}
+.suggestion-buttons .main-button{flex:2 1 210px}
+.suggestion-stale{padding:9px 10px;color:#f2cdcf;border-left:2px solid #cf8598;font-size:10.5px}
+#simple-feedback-panel>h4{font:500 29px 'Cormorant Garamond',serif}
+.import-improvement-cards .suggestion-card{padding:15px 12px}
+@media(max-width:750px){.suggestion-compare{grid-template-columns:1fr}.improvement-actions button,.suggestion-buttons button{flex:1 1 100%!important}.improvement-workspace{padding:15px 12px}.suggestion-card h4{font-size:25px}}
