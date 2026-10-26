@@ -344,6 +344,17 @@ function parseGeneric(source,ext){
  }
  return {fields:d,tags,messages,kind:meaningful.length<3?"Partially recognized character document":"Mapped general character document"};
 }
+function displayExtractedSource(name,raw,warnings=[]){
+ let details=document.getElementById("extracted-source-preview");
+ if(!details){
+  details=document.createElement("details");
+  details.id="extracted-source-preview";details.className="import-source-preview";
+  details.innerHTML='<summary>View what the uploader actually read from your file</summary><p id="extracted-source-info"></p><textarea id="extracted-source-text" readonly rows="12" style="width:100%;min-height:160px"></textarea>';
+  document.getElementById("import-status")?.insertAdjacentElement("afterend",details);
+ }
+ details.querySelector("#extracted-source-info").textContent=name+" · "+raw.length.toLocaleString()+" characters extracted. "+(warnings||[]).join(" ");
+ details.querySelector("#extracted-source-text").value=raw;
+}
 function mergeParsed(parsed,name,source){
  data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
  original=source;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
@@ -357,13 +368,17 @@ async function loadFile(file,forWorld=null){
  if(!file)return;
  if(file.size>12*1024*1024)throw Error("File is larger than 12 MB.");
  const ext=(file.name.split(".").pop()||"txt").toLowerCase();
- let content="";
- if(["docx","doc","rtf"].includes(ext)){
-  const api=window.AtelierMigrator;
-  if(!api?.extract)throw Error("Document reader unavailable. Save as TXT or paste the text.");
-  const result=await api.extract(file);content=str(result.text||"");
- }else content=await file.text();
- if(!content.trim())throw Error("The file contained no readable text.");
+ let content="",readerWarnings=[];
+ const api=window.AtelierMigrator;
+ if(api?.extract){
+  const extracted=await api.extract(file);
+  content=str(extracted?.text||"");
+  readerWarnings=extracted?.warnings||[];
+ }else if(["txt","md","markdown","json"].includes(ext)){
+  content=await file.text();
+ }else throw Error("The document reader failed to initialize. Reload the page; DOCX, DOC, PDF, RTF, and PNG imports need the reader.");
+ if(!content.trim())throw Error("No usable text extracted from this file. It has not replaced your current character.");
+ if(!forWorld)displayExtractedSource(file.name,content,readerWarnings);
  if(forWorld){
   if(content.length>10000)throw Error("Worldbook "+forWorld+" exceeds 10,000 characters. No data was replaced.");
   const key="world"+forWorld+"Body";
@@ -372,7 +387,9 @@ async function loadFile(file,forWorld=null){
   return;
  }
  const structured=dataFromNumbered(content);
- mergeParsed(structured||parseGeneric(content,ext),file.name,content);
+ const parsed=structured||parseGeneric(content,ext);
+ parsed.messages=[...(readerWarnings||[]),...(parsed.messages||[])];
+ mergeParsed(parsed,file.name,content);
 }
 function isReadiness(){
  const issues=[],core=coreCompiled(),op=openingCompiled();
@@ -474,7 +491,7 @@ function init(){
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
  $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
- $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{mergeParsed(dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
+ $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
  $("#restore-backup").addEventListener("click",()=>{const input=document.createElement("input");input.type="file";input.accept=".json";input.onchange=()=>restoreJSON(input.files?.[0]).catch(e=>mark(e.message,"error"));input.click();});
  $$("[data-builder-world]").forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;const n=Number(el.dataset.builderWorld);try{await loadFile(f,n)}catch(err){notify("Worldbook "+n+": "+err.message)}}));
  $("#refresh-suggestions").addEventListener("click",()=>{analyse();notify("Suggestions refreshed; changes require your approval.")});
