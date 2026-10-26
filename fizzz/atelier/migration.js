@@ -77,7 +77,7 @@ function readWorld(entries,patch,added,unmapped){
 }
 function extractJSON(obj){
  if(!obj||typeof obj!=="object"||Array.isArray(obj))throw Error("Expected one character JSON object.");
- const root=obj.project&&typeof obj.project==="object"?obj.project:obj.data&&typeof obj.data==="object"?obj.data:obj.character&&typeof obj.character==="object"?obj.character:obj;
+ const root=obj.project&&typeof obj.project==="object"?obj.project:obj.fields&&typeof obj.fields==="object"?obj.fields:obj.data&&typeof obj.data==="object"?obj.data:obj.character&&typeof obj.character==="object"?obj.character:obj;
  const result={},notes={},unmapped=[];
  if(obj.tool==="VelvetRuin Fizzz Atelier"&&obj.project){
    for(const [k,v] of Object.entries(obj.project))if(allowed.has(k)&&typeof v==="string")result[k]=v;
@@ -643,6 +643,20 @@ function initFizzzMigration(context){
  $("#import-ai-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{if(f.size>1048576)throw Error("JSON file over 1 MB");aiReview(await f.text())}catch(err){A().notify(err.message)}});
  $("#review-ai").addEventListener("click",()=>aiReview($("#ai-response").value));
 }
+// Simple creator entry point: reuse the mature document readers and field
+// mapper without making users visit or operate the advanced comparison studio.
+window.VelvetRuinFizzzImport=Object.freeze({
+ readFile:async file=>{
+  if(!EX())throw Error("Document readers are unavailable. Try pasting text or a TXT/JSON export.");
+  return await EX().extract(file);
+ },
+ map:(source,formatHint="text")=>{
+  const p=prospective(source,formatHint);
+  const fields=Object.fromEntries(p.items.filter(item=>item.key!=="tags").map(item=>[item.key,item.value]));
+  const tags=p.items.find(item=>item.key==="tags")?.value?.split(/[,;]+/).map(t=>t.trim()).filter(Boolean)||[];
+  return {fields,tags,kind:p.kind,notes:p.notes,mapped:p.items.map(item=>({field:item.key,reason:item.reason,inferred:item.inferred})),unmapped:String(p.leftovers||""),unstructured:p.kind==="Unstructured prose"};
+ }
+});
 window.initFizzzMigration=initFizzzMigration;
 window.FizzzAtelierReviewGeneratedDraft=function(input){
  try{
