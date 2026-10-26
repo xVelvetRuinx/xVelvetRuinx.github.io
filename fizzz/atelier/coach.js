@@ -76,7 +76,7 @@ steps:["Upload DOCX/TXT/JSON/PDF or paste a character; select Map & Review Chara
 function create(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
 function lessonCard(key){
  const info=lesson[key],area=create("details","chapter-guide");
- area.open=true;area.dataset.lesson=key;
+ area.open=false;area.dataset.lesson=key;
  const summary=create("summary","chapter-guide-summary"),mark=create("span","guide-symbol","✦");
  const heading=create("span","guide-heading",info.title),hint=create("span","guide-collapse","Show / hide");summary.append(mark,heading,hint);
  const content=create("div","chapter-guide-body"),p=create("p","guide-lead",info.lead);content.append(p);
