@@ -354,8 +354,8 @@ function renderReview(){
 function setupNavigation(){
  $$(".step").forEach(b=>b.addEventListener("click",()=>chapter(b.dataset.step)));
  $$(".next").forEach(b=>b.addEventListener("click",()=>chapter(b.dataset.next)));
- $("#start-new").addEventListener("click",()=>chapter("spark"));
- $("#start-import").addEventListener("click",()=>chapter("migrate"));
+ $("#start-new").addEventListener("click",()=>{chapter("spark");$("#simple-new")?.focus();});
+ $("#start-import").addEventListener("click",()=>{chapter("spark");$("#simple-drop")?.scrollIntoView({behavior:"smooth",block:"center"});});
  $("#open-handbook").addEventListener("click",()=>chapter("handbook"));
  $("#starter").addEventListener("click",starter);
  $("#sample").addEventListener("click",sample);
@@ -461,9 +461,14 @@ function importDraft(patch,{replace=false,tags=[]}={}){
  return {applied,skipped};
 }
 function beginFreshDraft(){
- if(!confirm("Start a completely new Fizzz character? Your current draft will be replaced. Download a JSON backup first if you want to keep it."))return false;
- download((val("name")||"previous-character").toLowerCase().replace(/[^a-z0-9-]+/g,"-")+"-before-new-bot.json",backup(),"application/json");
- state={...INITIAL};selectedTags=[];
+ const hasWork=EDITABLE.size>0&&[...EDITABLE].some(k=>!["archetype","world1Mode","world2Mode","world3Mode","pov","rating"].includes(k)&&String(state[k]||"").trim().length>0);
+ if(hasWork){
+   if(!confirm("Start a new character? Your existing draft will be backed up as JSON before the editor is cleared."))return false;
+   download((val("name")||"previous-character").toLowerCase().replace(/[^a-z0-9-]+/g,"-")+"-before-new-bot.json",backup(),"application/json");
+ }
+ state={...INITIAL};selectedTags=[];appendCoreNotes=false;
+ try{localStorage.setItem(STORAGE+".appendCoreNotes","0")}catch{}
+ $("#append-core-notes").checked=false;
  mountFields();mountTags();mountArchetypes();save();update();
  return true;
 }
