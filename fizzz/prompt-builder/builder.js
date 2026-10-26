@@ -140,7 +140,7 @@ function refresh(){
  $("#aside-world").textContent=[1,2,3].map(i=>(data["world"+i+"Body"]||"").length.toLocaleString()).join(" / ")+" chars";
  for(let i=1;i<=3;i++){const x=$("#world-note-"+i);x.textContent=data["world"+i+"Body"]?.trim()?data["world"+i+"Body"].length+" characters · full lore entered":"Outline/settings only · full lore missing";}
 }
-function rerender(){ $("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();document.dispatchEvent(new CustomEvent("fizzz:field-data-changed"));}
+function rerender(){ $$("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();document.dispatchEvent(new CustomEvent("fizzz:field-data-changed"));}
 function showTab(tab){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===tab);b.setAttribute("aria-selected",b.dataset.tab===tab)});$$(".panel").forEach(p=>p.hidden=p.id!=="panel-"+tab);if(tab==="output"){analyse();renderOutput();}if(window.innerWidth<900)document.querySelector(".tabs").scrollIntoView({block:"start",behavior:"smooth"});}
 function stripMd(s){return str(s).replace(/\*\*/g,"").replace(/^#+\s?/gm,"").trim();}
 function dataFromNumbered(source){
@@ -219,8 +219,10 @@ function parseGeneric(source,ext){
 function mergeParsed(parsed,name,source){
  data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
  original=source;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
- const filled=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim()).length;
- mark("✓ "+parsed.kind+" imported into "+filled+" editable fields. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
+ const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
+ const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
+ if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
+ mark("✓ "+parsed.kind+" imported: "+populated.length+" populated fields mapped and displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
  showTab("profile");buildSuggestions();
 }
 async function loadFile(file,forWorld=null){
