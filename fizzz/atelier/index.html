@@ -21,6 +21,7 @@
 <script defer src="start.js?v=3"></script>
 <script defer src="advisor.js?v=2"></script>
 <script defer src="advisor-ui.js?v=2"></script>
+<script defer src="export-suite.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -42,7 +43,7 @@
   <article><span>04</span><b>Test and publish in Fizzz</b><p>Read the live checks, download a backup and copy your fields. Check visuals, first-turn pacing, voice and player agency in actual Fizzz test chats.</p></article>
  </div><p class="start-disclaimer">Official Fizzz character limits are flagged in the checks. Token estimates use ~4 characters per token; actual tokenization varies and Fizzz publishes character limits. Archetypes, editorial length ranges and engagement advice are not platform mandates or guaranteed popularity. <a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Read official guidelines ↗</a></p></div>
 </section>
-<div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Writing saves in this browser. Export JSON to back up your work.</p></div><div class="top-actions"><button type="button" class="main-button" id="top-improve">✧ Improve My Bot</button><button type="button" id="export-quick">↓ Back up JSON</button><details class="toolbar-extras"><summary>Other actions</summary><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button></details></div></div>
+<div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Import your full character file, review exact suggestions without overwriting canon, then export TXT, structured JSON, DOCX or a 9:16 PNG preview. Your draft saves in this browser.</p></div><div class="top-actions"><button type="button" class="main-button" id="top-improve">✧ Improve My Bot</button><button type="button" id="export-quick">↓ Back up JSON</button><details class="toolbar-extras"><summary>Other actions</summary><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button></details></div></div>
 <div class="workspace">
 <aside class="rail"><div class="rail-label">THE CHAPTERS</div>
 <div class="step-nav" id="step-nav">
@@ -80,7 +81,7 @@
  </div>
  <div class="simple-path">
   <div class="simple-path-title"><span class="path-index">02</span><div><h3>Import My Character</h3><p>Upload your existing material. Its name, identity, story, lore and dialogue flow into the same editor.</p></div></div>
-  <label class="simple-upload" id="simple-drop" for="simple-file"><span>⌁ Drop or choose a file</span><small>TXT · DOCX · DOC · PDF · JSON · Markdown · RTF · HTML · YAML · character PNG</small><input id="simple-file" type="file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.png" /></label>
+  <label class="simple-upload" id="simple-drop" for="simple-file"><span>⌁ Drop or choose a file</span><small>TXT · DOCX · DOC · PDF · JSON · Markdown · numbered 21-field Fizzz manuscripts · YAML · character PNG</small><input id="simple-file" type="file" accept=".txt,.md,.markdown,.json,.docx,.doc,.pdf,.rtf,.html,.htm,.yaml,.yml,.png" /></label>
   <details class="simple-paste"><summary>Or paste character text instead</summary>
     <label for="simple-text">Existing character, rough concept or character card</label>
     <textarea id="simple-text" rows="6" placeholder="Paste your character here, then choose Import Into My Builder."></textarea>
@@ -192,6 +193,7 @@
 </section>
 <div id="audit-summary" class="audit-summary"></div><div id="audit-list" class="audit-list"></div>
 <div class="export-actions"><button id="download-txt" type="button" class="main-button">↓ Download All Fields (.txt)</button><button id="download-json" type="button" class="quiet-button">↓ Back Up Editable Project (.json)</button><button id="copy-all" type="button" class="quiet-button">✧ Copy All Text</button></div>
+<section class="export-suite-panel" aria-label="Complete Fizzz exports"><h3>✧ Compile Your Final Character</h3><p>Exports use the current edited fields and approved suggestions. JSON and DOCX include each field separately for copying into Fizzz; they are not a native Fizzz bulk-import format. A PNG is a 9:16 promotional image made with the character artwork you provide, not AI-generated character art.</p><div class="export-actions"><button id="download-final-json" type="button" class="quiet-button">↓ Final Fields (.json)</button><button id="download-docx" type="button" class="quiet-button">↓ Word Document (.docx)</button><label class="quiet-button export-art-selector" for="export-png-image">⌁ Add Existing Character Art<input id="export-png-image" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="download-png" type="button" class="quiet-button">↓ 9:16 Character PNG</button></div><p id="export-suite-status" class="muted" role="status" aria-live="polite">First import, review suggestions, and edit your character. Then export the format you need. Empty Worldbook bodies remain flagged as incomplete; the importer will never invent their lore.</p></section>
 <div id="export-blocks" class="export-blocks"></div>
 <div class="action-row"><button class="quiet-button next" data-next="media">← Media & Voice</button><a class="main-button" href="https://fizzz.ai/" target="_blank" rel="noopener noreferrer">Create in Fizzz ↗</a></div>
 </div>
