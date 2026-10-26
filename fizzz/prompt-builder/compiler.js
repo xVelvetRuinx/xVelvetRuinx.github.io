@@ -128,12 +128,14 @@ function aiBrief(){return [
  "CORE: Produce a cohesive model-readable Markdown character specification. Retain distinct quirks, emotional conflict, independent motives, agency rules, and speaking style last, while reducing truly redundant instructions.",
  "FIRST MESSAGE: Preserve the original fully playable novel-style scene, character dialogue, logical continuity, and a clear choice for the player. Rewrite only if it improves the prose and pacing.",
  "CHANGE LOG: For each actual edit, explain the specific writing improvement. If no change is necessary, preserve original exactly and explain why in changeLog.",
- "TITLE:\n"+src().title,"BIO:\n"+src().bio,"CORE:\n"+fullCore(),"OPENING:\n"+intro()
+ "TITLE:\n"+src().title,"BIO:\n"+src().bio,"CORE:\n"+fullCore(),"OPENING:\n"+intro(),
+ "WORLDBOOKS (EXISTING ONLY — DO NOT INVENT LORE):\n"+[1,2,3].map(i=>"Worldbook "+i+": "+(src()["world"+i+"Title"]||"")+"\nActivation: "+(src()["world"+i+"Mode"]||"keyword")+"\nKeywords: "+(src()["world"+i+"Keywords"]||"")+"\nFull lore: "+(src()["world"+i+"Body"]||"[NOT PROVIDED — DO NOT INVENT]")).join("\n\n")
  ].join("\n\n")}
 function aiImport(){try{const txt=$("#compiler-ai-json").value.trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\x60{3}\s*$/,""),o=JSON.parse(txt),f=o.fields||o;
  for(const k of ["title","bio","core","opening"])if(typeof f[k]!=="string"||!f[k].trim())throw Error("Required "+k+" is missing.");
  if(f.core.length>25000||f.opening.length>5000)throw Error("Proposed core or greeting exceeds Fizzz limits.");const bad=bioIntegrity(f.bio,src().bio);if(bad.length)throw Error("Unsafe incomplete bio proposal: "+bad.join(" "));
- if(!version)compile();version={...version,title:f.title,bio:f.bio,core:f.core,opening:f.opening,notes:[]};version.notes=checks(version);accepted=false;base=fingerprint();save();render();message("AI proposal loaded for comparison; you must approve it before exporting.");
+ if(!version)compile();version={...version,title:f.title,bio:f.bio,core:f.core,opening:f.opening,notes:[]};version.notes=checks(version);accepted=false;base=fingerprint();save();render();
+ const report=$("#compiler-ai-report");if(report){report.textContent=Array.isArray(o.changeLog)&&o.changeLog.length?o.changeLog.map(item=>"• "+String(item.field||"field")+": "+String(item.why||"proposed revision")).join("\n"):"AI delivered a complete proposal without an itemized change log. Review the four finished fields against the original before approval.";}message("✓ Complete ChatGPT rewrite loaded for comparison, NOT yet applied to final exports. Review all four revised fields and approve only when satisfied.");
  }catch(e){message("AI proposal rejected: "+e.message)}}
 function mount(){
  const panel=$("#panel-output");if(!panel)return;const box=document.createElement("section");box.className="compiler-box";box.innerHTML=[
