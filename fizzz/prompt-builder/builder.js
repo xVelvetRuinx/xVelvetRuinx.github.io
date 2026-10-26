@@ -265,7 +265,7 @@ function bioIntegrity(candidate,reference){
  const plain=x=>x.replace(/[*_#\uFFFC]/g,"").replace(/\s+/g," ").trim();
  const p=plain(text);
  if(!p||p.length<170)issues.push("Description is too short for a complete playable premise.");
- if(orig.length>800&&text.length<Math.min(400,orig.length*.48))issues.push("Too much established context was removed; isolated quotes are not a complete description.");
+ if(orig.length>800&&text.length<Math.max(350,orig.length*.48))issues.push("Too much established context was removed; isolated quotes are not a complete description.");
  const player=/\b(you|your|yours)\b|\{\{user\}\}/i;
  if(player.test(orig)&&!player.test(text))issues.push("The player's entry point has disappeared.");
  if(orig.length>500&&!/[.!?][”"*_]?(?:\s|$)/.test(text))issues.push("No complete sentences remain.");
