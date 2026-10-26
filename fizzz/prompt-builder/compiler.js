@@ -120,10 +120,11 @@ async function art(format="9:16"){
  return new Promise((r,j)=>can.toBlob(b=>b?b.arrayBuffer().then(r,j):j(Error("Could not encode card")),"image/png"));}
 async function cardPNG(){const c=card(),pic=await art(),result=embed(pic,b64(JSON.stringify(c)));file(filename()+"-portable-card-v2.png",new Blob([result],{type:"image/png"}));message("Portable PNG saved with embedded Character Card V2 metadata. Fizzz may read it only as an image.");}
 async function cover(){publishing();const b=await art("3:4");file(filename()+"-fizzz-cover-3x4.png",new Blob([b],{type:"image/png"}));message("3:4 cover art created for separate upload to Fizzz.");}
-function aiBrief(){return [
+function aiBrief(mode="complete"){const scope=["bio","core","opening","complete"].includes(mode)?mode:"complete";const task={complete:"Rewrite title, public bio, complete Markdown Core Personality and complete Initial Message as one internally consistent, finished Fizzz character.",bio:"Rewrite only the PUBLIC BIO as a complete standalone and engaging romance description. Preserve the full connected premise, name, character voice, emotional stakes, player role and choice; improve narrative flow, not just reduce length.",core:"Rewrite only the COMPLETE CORE PERSONALITY as structured Markdown for reliable roleplay. Preserve age, appearance, history, motives, agency rules and distinctive dialogue; speaking style must remain last.",opening:"Rewrite only the COMPLETE INITIAL MESSAGE in the original novelistic voice, keeping scene logic, player agency, spoken dialogue, and a playable ending."};return [
+ "SPECIFIC CREATIVE TASK: "+task[scope],
  "Source-faithfully optimize this complete Fizzz character. Preserve names, ages, relationship facts, motive, history, setting, original scene/dialogue and player agency. Add no new canon. Improve immediate romantic hook and distinct voice; retain meaningful flaws.",
  "Fizzz Core Personality ≤25,000 characters; recommend ≤10,000. Initial Message ≤5,000. Speaking style last. Worldbooks are separate. Do not invent absent Worldbooks.",
- "Return EXACT JSON with all four COMPLETE finished fields {title, bio, core, opening, changeLog:[{field,why}]}; never return editing instructions instead of the replacement. Markdown belongs inside each JSON string. No code fences.",
+ scope==="complete" ? "Return EXACT JSON with all four COMPLETE finished fields: {title, bio, core, opening, changeLog:[{field,why}]}; never return editing instructions instead of the replacement. Markdown belongs inside each JSON string. No code fences." : "Return EXACT JSON: {\"target\":\""+scope+"\",\"replacement\":\"THE ENTIRE IMPROVED "+scope.toUpperCase()+" FIELD\",\"changeLog\":[{\"field\":\""+scope+"\",\"why\":\"WHAT WAS IMPROVED\"}]}. The replacement must include the full field text, not an excerpt. Markdown belongs inside the JSON string. Do not include other fields.",
  "PUBLIC BIO: Preserve the full connected romance premise and distinctive character appeal. Improve genuine weaknesses in complete narrative paragraphs, not by extracting isolated taglines, abbreviating developed prose, or joining dialogue snippets. A strong existing bio may require only subtle edits.",
  "CORE: Produce a cohesive model-readable Markdown character specification. Retain distinct quirks, emotional conflict, independent motives, agency rules, and speaking style last, while reducing truly redundant instructions.",
  "FIRST MESSAGE: Preserve the original fully playable novel-style scene, character dialogue, logical continuity, and a clear choice for the player. Rewrite only if it improves the prose and pacing.",
@@ -131,12 +132,32 @@ function aiBrief(){return [
  "TITLE:\n"+src().title,"BIO:\n"+src().bio,"CORE:\n"+fullCore(),"OPENING:\n"+intro(),
  "WORLDBOOKS (EXISTING ONLY — DO NOT INVENT LORE):\n"+[1,2,3].map(i=>"Worldbook "+i+": "+(src()["world"+i+"Title"]||"")+"\nActivation: "+(src()["world"+i+"Mode"]||"keyword")+"\nKeywords: "+(src()["world"+i+"Keywords"]||"")+"\nFull lore: "+(src()["world"+i+"Body"]||"[NOT PROVIDED — DO NOT INVENT]")).join("\n\n")
  ].join("\n\n")}
-function aiImport(){try{const txt=$("#compiler-ai-json").value.trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\x60{3}\s*$/,""),o=JSON.parse(txt),f=o.fields||o;
- for(const k of ["title","bio","core","opening"])if(typeof f[k]!=="string"||!f[k].trim())throw Error("Required "+k+" is missing.");
- if(f.core.length>25000||f.opening.length>5000)throw Error("Proposed core or greeting exceeds Fizzz limits.");const bad=bioIntegrity(f.bio,src().bio);if(bad.length)throw Error("Unsafe incomplete bio proposal: "+bad.join(" "));
- if(!version)compile();version={...version,title:f.title,bio:f.bio,core:f.core,opening:f.opening,notes:[]};version.notes=checks(version);accepted=false;base=fingerprint();save();render();
- const report=$("#compiler-ai-report");if(report){report.textContent=Array.isArray(o.changeLog)&&o.changeLog.length?o.changeLog.map(item=>"• "+String(item.field||"field")+": "+String(item.why||"proposed revision")).join("\n"):"AI delivered a complete proposal without an itemized change log. Review the four finished fields against the original before approval.";}message("✓ Complete ChatGPT rewrite loaded for comparison, NOT yet applied to final exports. Review all four revised fields and approve only when satisfied.");
- }catch(e){message("AI proposal rejected: "+e.message)}}
+function aiImport(){
+ try{
+  const raw=$("#compiler-ai-json").value.trim();
+  if(!raw)throw Error("Paste a complete JSON answer from ChatGPT first.");
+  const txt=raw.replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\x60{3}\s*$/,"");
+  const response=JSON.parse(txt),o=response.fields||response;
+  if(!version)compile("balanced");
+  const updates={};
+  if(o.target){
+   if(!["bio","core","opening","title"].includes(o.target)||typeof o.replacement!=="string"||!o.replacement.trim())throw Error("AI reply must include a recognized target and complete replacement string.");
+   updates[o.target]=o.replacement;
+  }else{
+   for(const k of ["title","bio","core","opening"])if(typeof o[k]!=="string"||!o[k].trim())throw Error("Missing complete string field: "+k);
+   for(const k of ["title","bio","core","opening"])updates[k]=o[k];
+  }
+  const proposed={...version,...updates};
+  if(proposed.core.length>25000||proposed.opening.length>5000)throw Error("Proposed core or greeting exceeds Fizzz limits.");
+  const bad=bioIntegrity(proposed.bio,src().bio);
+  if(bad.length)throw Error("Public bio needs revision: "+bad.join(" "));
+  version={...proposed,notes:[],changeLog:Array.isArray(response.changeLog)?response.changeLog:[],mode:"ChatGPT creative rewrite",bioQualityV2:true};
+  version.notes=checks(version);accepted=false;base=fingerprint();save();render();
+  const report=$("#compiler-ai-report");
+  if(report)report.textContent=version.changeLog.length?version.changeLog.map(x=>"• "+String(x.field||"field")+": "+String(x.why||"specific improvement")).join("\n"):"The AI provided no change log. Compare the proposed text to the original before approving.";
+  message("✓ ChatGPT generated complete "+(o.target||"character")+" replacement for review. Your original is unchanged. Approve the compiled bot only when satisfied.");
+ }catch(e){message("ChatGPT proposal not applied: "+e.message)}
+}
 function mount(){
  const panel=$("#panel-output");if(!panel)return;const box=document.createElement("section");box.className="compiler-box";box.innerHTML=[
  '<div class="eyebrow">FINAL BOT COMPILER</div><h3>Build the finished <em>Fizzz character.</em></h3>',
