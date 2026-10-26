@@ -219,8 +219,10 @@ function parseGeneric(source,ext){
 function mergeParsed(parsed,name,source){
  data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
  original=source;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
- const filled=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim()).length;
- mark("✓ "+parsed.kind+" imported into "+filled+" editable fields. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
+ const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
+ const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
+ if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
+ mark("✓ "+parsed.kind+" imported: "+populated.length+" populated fields mapped and displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
  showTab("profile");buildSuggestions();
 }
 async function loadFile(file,forWorld=null){
