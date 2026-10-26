@@ -86,6 +86,12 @@ function card(rec,context="review"){
    $("#undo-improvement").disabled=false;
    apply.textContent="✓ Added to Character";apply.disabled=true;
    item.classList.add("suggestion-applied");
+   const undoHere=element("button","quiet-button","↶ Undo This Edit");
+   undoHere.type="button";undoHere.addEventListener("click",()=>{
+      if(history.length&&history[history.length-1].field===rec.field&&history[history.length-1].edited===rec.after)undo();
+      else item.append(element("p","suggestion-stale","Another change was accepted afterward. Open Review & Export to undo the latest edit first."));
+   });
+   actions.append(undoHere);
    inputText("✓ Applied “"+rec.title+"” to the real "+rec.field+" field. The original version is saved for Undo. Other suggestions remain optional.","good");
   });
   const jump=element("button","quiet-button","Edit Field Myself");
@@ -99,6 +105,13 @@ function card(rec,context="review"){
   jump.type="button";jump.addEventListener("click",()=>focusField(rec.field));
   actions.append(jump);
  }
+ const skip=element("button","quiet-button suggest-skip","Keep Original / Skip");
+ skip.type="button";
+ skip.addEventListener("click",()=>{
+    item.hidden=true;
+    inputText("Kept the original text. “"+rec.title+"” was skipped; no changes were made.","good");
+ });
+ actions.append(skip);
  item.append(benefit,actions);
  return item;
 }
