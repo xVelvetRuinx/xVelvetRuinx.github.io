@@ -258,21 +258,29 @@ function isReadiness(){
  if(str(data.voiceDesignPrompt).trim().split(/\s+/).filter(Boolean).length>20)issues.push("Voice Design Prompt exceeds 20 words.");
  return issues;
 }
-function extractHook(){
- const lines=(data.bio||"").split("\n").map(x=>x.trim()).filter(Boolean);
- const hero=lines.find(x=>x.startsWith("*")&&x.length>55)||lines.find(x=>x.length>60)||"";
- const title=lines.find(x=>x.toLowerCase().includes("supposed to marry"))||"";
- const conflict=lines.find(x=>/including marrying you|including marrying|marriage/i.test(x)&&x.length<100)||"";
- const quote=lines.find(x=>x.startsWith("**\"")||x.startsWith('“')||x.startsWith('"'))||"";
- let kept=[title,hero,conflict,quote].filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i).join("\n\n").trim();
- return kept.length>=75&&kept.length<(data.bio||"").length?kept:null;
+/* Local string matching cannot write complete creative prose safely.
+   Preserve the original character bio and reject fragmentary replacements. */
+function bioIntegrity(candidate,reference){
+ const text=String(candidate||"").trim(),orig=String(reference||"").trim(),issues=[];
+ const plain=x=>x.replace(/[*_#\uFFFC]/g,"").replace(/\s+/g," ").trim();
+ const p=plain(text);
+ if(!p||p.length<170)issues.push("Description is too short for a complete playable premise.");
+ if(orig.length>800&&text.length<Math.max(350,orig.length*.48))issues.push("Too much established context was removed; isolated quotes are not a complete description.");
+ const player=/\b(you|your|yours)\b|\{\{user\}\}/i;
+ if(player.test(orig)&&!player.test(text))issues.push("The player's entry point has disappeared.");
+ if(orig.length>500&&!/[.!?][”"*_]?(?:\s|$)/.test(text))issues.push("No complete sentences remain.");
+ const md=text.replace(/\\\*/g,"");
+ const doubles=(md.match(/\*\*/g)||[]).length,singles=(md.replace(/\*\*/g,"").match(/\*/g)||[]).length;
+ if(doubles%2!==0||singles%2!==0)issues.push("Markdown emphasis is unbalanced.");
+ if(/\uFFFC|\uFFFD/.test(text))issues.push("Contains a replacement or invisible object character.");
+ return {valid:issues.length===0,issues};
 }
 function buildSuggestions(){
  const rec=[],add=(field,title,why,after,priority="medium")=>{const before=data[field]||"";if(!after||String(after).trim()===before.trim())return;rec.push({field,title,why,before,after,priority})};
  const bio=data.bio||"",greet=openingCompiled(),core=coreCompiled();
- if(bio.length>1100){const shorter=extractHook();if(shorter)add("bio","A shorter, immediately readable public hook","Long bios bury the recognizable romance fantasy. This draft uses existing phrases from your imported bio and keeps the original for comparison.",shorter,"high");}
- if(bio&&!/\byou\b|\{\{user\}\}/i.test(bio))add("bio","Make the player's role immediately visible","A player-facing description performs better when it makes clear where {{user}} enters. This suggested addition is a prompt to edit, not a factual change.",bio+"\n\nWhat will you do when the two of you meet?");
- if(data.title.length>94)add("title","Shorten the public nameplate","A discovery title can be cut after its distinctive trope; confirm this does not obscure identity.",data.title.slice(0,94).replace(/\s+\S*$/,""));
+ if(bio.length>1100){rec.push({field:"bio",title:"Optional editorial review — keep the complete character hook",why:"A developed public bio needs identity, linked story stakes, character tension, and an actionable player choice. Length alone is not a reason to slice it into disconnected quotes. This browser-only tool cannot safely create a creative rewrite with string matching, so no replacement is generated. Keep your original or compose a complete alternative for review.",before:bio,after:"Retain the established name and identity, connected scene/premise, stakes, character contradiction, and a clear choice for the player. Revise complete paragraphs in the character\'s existing voice rather than extracting disconnected quotes. If the original is already effective, keep it. This is editing guidance, not replacement copy.",priority:"medium",manual:true});}
+ if(bio&&!/\byou\b|\{\{user\}\}/i.test(bio))rec.push({field:"bio",title:"Clarify the player's entry point in the existing premise",why:"A public description should show what role the player has and what decision is possible. Avoid appending generic questions or writing {{user}}'s actions; revise the relevant paragraph using the established story and voice.",before:bio,after:bio,priority:"medium",manual:true});
+ if(data.title.length>94)rec.push({field:"title",title:"Review public title length without damaging the hook",why:"The title is long. If you shorten it, retain the character name and the recognizable trope rather than automatically cutting off the last words.",before:data.title,after:data.title,priority:"medium",manual:true});
  if(data.boundaries&&!/never (?:write|narrate|determine).*?\{\{user\}\}/i.test(data.boundaries))add("boundaries","Clarify player agency","Explicit player agency rules help avoid the bot narrating {{user}}'s decisions.",data.boundaries.trim()+"\n- Never write {{user}}'s dialogue, internal thoughts, or completed choices.","high");
  if(!data.motivation.trim()&&data.backstory.trim())rec.push({field:"motivation",title:"Give the character a lasting independent goal",why:"Existing history should cause decisions outside romance. Draft a goal using facts from the source rather than inventing canon.",before:"",after:"[Write an independent objective grounded in the imported backstory.]",priority:"high",manual:true});
  if(greet.length>5000)rec.push({field:"initialRaw",title:"Opening is over the 5,000-character limit",why:"Revise selectively while keeping scene, voice, dialogue and the unresolved player choice. Automatic truncation is deliberately disabled.",before:greet,after:greet,priority:"high",manual:true});
@@ -288,12 +296,12 @@ function renderSuggestions(){
   const card=document.createElement("article");card.className="suggestion";
   const h=document.createElement("h4");h.textContent=r.title;const p=document.createElement("p");p.textContent=r.why;
   const row=document.createElement("div");row.className="compare";
-  for(const [label,value] of [["CURRENT FIELD",r.before],["SUGGESTED",r.after||"(Upload or write the missing content)"]]){
+  for(const [label,value] of [["CURRENT FIELD",r.before],[r.manual?"EDITING DIRECTION — NOT REPLACEMENT TEXT":"COMPLETE PROPOSED REPLACEMENT",r.after||"(Upload or write the missing content)"]]){
    const block=document.createElement("div"),b=document.createElement("b"),pre=document.createElement("pre");b.textContent=label;pre.textContent=(value||"(empty)").slice(0,6000);block.append(b,pre);row.append(block);
   }
   const act=document.createElement("div");act.className="actions";
   const jump=document.createElement("button");jump.type="button";jump.textContent="Edit "+r.field;jump.addEventListener("click",()=>{let section=r.field.startsWith("world")?"world":defs.core.some(x=>x[0]===r.field)?"core":defs.profile.some(x=>x[0]===r.field)?"profile":defs.opening.some(x=>x[0]===r.field)?"opening":"media";showTab(section);const el=$("#field-"+r.field);el?.scrollIntoView({block:"center",behavior:"smooth"});el?.focus();});act.append(jump);
-  if(!r.manual){const apply=document.createElement("button");apply.type="button";apply.textContent="✓ Apply this specific edit";apply.className="primary";apply.addEventListener("click",()=>{if(data[r.field]!==r.before){notify("Field has changed; refresh suggestions before applying.");return;}data[r.field]=r.after;rerender();save();buildSuggestions();renderSuggestions();notify("Only this edit was applied. Original file remains available.");});act.append(apply);}
+  if(!r.manual){const apply=document.createElement("button");apply.type="button";apply.textContent="✓ Apply this specific edit";apply.className="primary";apply.addEventListener("click",()=>{if(data[r.field]!==r.before){notify("Field has changed; refresh suggestions before applying.");return;}if(r.field==="bio"){const gate=bioIntegrity(r.after,r.before);if(!gate.valid){notify("Cannot apply incomplete bio: "+gate.issues.join(" "));return;}}data[r.field]=r.after;rerender();save();buildSuggestions();renderSuggestions();notify("Only this edit was applied. Original file remains available.");});act.append(apply);}
   const ignore=document.createElement("button");ignore.className="subtle";ignore.textContent="Keep original";ignore.addEventListener("click",()=>{recommendations.splice(index,1);renderSuggestions()});act.append(ignore);
   card.append(h,p,row,act);dst.append(card);
  }
