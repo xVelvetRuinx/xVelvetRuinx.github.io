@@ -102,6 +102,7 @@ function tagsRender(){
  b.addEventListener("click",()=>{if(chosen.includes(t))chosen=chosen.filter(x=>x!==t);else if(chosen.length<7)chosen.push(t);else {notify("Seven optional tags maximum. Remove one before adding another.");return;}tagsRender();save();refresh();});p.append(b);}
 }
 function coreCompiled(){
+ const revised=window.VelvetRuinFizzzCompiler?.selectedText("core");if(revised!==null&&revised!==undefined)return revised;
  const order=[["Identity & Role",["occupation"]],["Species & Biology",["species"]],["Appearance",["appearance"]],["Causal Background",["backstory"]],["Core Personality & Observable Behavior",["traits"]],["Internal Contradiction",["contradiction"]],["Character Goals",["motivation"]],["Starting Relationship with {{user}}",["relationship"]],["Growth and Behavior under Pressure",["behavior"]],["Behavioral Boundaries",["boundaries"]],["Speaking Style",["voice"]]];
  const out=["# "+(data.name||"Character")+" — Character Settings"];
  if(data.age)out.push("Age: "+data.age);if(data.gender)out.push("Gender: "+data.gender);
@@ -109,11 +110,13 @@ function coreCompiled(){
  return out.join("\n").trim();
 }
 function openingCompiled(){
+ const revised=window.VelvetRuinFizzzCompiler?.selectedText("opening");if(revised!==null&&revised!==undefined)return revised;
  if((data.initialRaw||"").trim())return data.initialRaw.trim();
  return [["openingScene",""],["openingAction",""],["openingLine",""],["openingBeat",""]].map(([k])=>str(data[k]||"").trim()).filter(Boolean).join("\n\n");
 }
 function sections(){
- const out=[["PUBLIC TITLE",data.title],["CHARACTER CHAT NAME",data.name],["AGE",data.age],["GENDER",data.gender],["POV",data.pov],["RATING",data.rating],["CREATION DATE",data.creationDate],["DISCOVERY TAGS",chosen.join(", ")],["PUBLIC BIO",data.bio],["CONTENT ADVISORY",data.warning],["CORE PERSONALITY",coreCompiled()],["INITIAL MESSAGE",openingCompiled()]];
+ const finalized=window.VelvetRuinFizzzCompiler?.selectedProfile();
+ const out=[["PUBLIC TITLE",finalized?.title||data.title],["CHARACTER CHAT NAME",data.name],["AGE",data.age],["GENDER",data.gender],["POV",data.pov],["RATING",data.rating],["CREATION DATE",data.creationDate],["DISCOVERY TAGS",chosen.join(", ")],["PUBLIC BIO",finalized?.bio||data.bio],["CONTENT ADVISORY",data.warning],["CORE PERSONALITY",coreCompiled()],["INITIAL MESSAGE",openingCompiled()]];
  for(let i=1;i<=3;i++)out.push(["WORLDBOOK "+i+" — "+(data["world"+i+"Title"]||"Untitled"),"Activation: "+(data["world"+i+"Mode"]==="always"?"Always Active":"Keyword Trigger")+"\nKeywords: "+(data["world"+i+"Keywords"]||"None")+"\n\n"+(data["world"+i+"Body"]||"[Missing full lore — import or paste the complete Worldbook]")]);
  for(const [key,label] of [["coverDirection","COVER DIRECTIONS"],["imageDirection","CHARACTER IMAGE DIRECTIONS"],["videoDirection","OPENING FILM DIRECTIONS"],["voiceDirection","VOICE DIRECTIONS"],["voiceDesignPrompt","VOICE DESIGN PROMPT"]])if(data[key])out.push([label,data[key]]);
  return out;
@@ -330,7 +333,7 @@ function init(){
  $("#download-notes").addEventListener("click",()=>download(filename()+"-improvement-report.txt",["SOURCE MAPPING NOTES",...sourceNotes,"","READINESS CHECKS",...isReadiness(),"","EDITORIAL SUGGESTIONS",...buildSuggestions().map(r=>r.title+"\nField: "+r.field+"\nReason: "+r.why)].join("\n")));
  $("#export-png-image").addEventListener("change",e=>{if(portraitURL)URL.revokeObjectURL(portraitURL);portraitURL=e.target.files?.[0]?URL.createObjectURL(e.target.files[0]):"";const x=$("#portrait-preview");if(portraitURL)x.src=portraitURL;else x.removeAttribute("src");});
  // Compatibility with ../atelier/export-suite.js for actual JSON/DOCX/PNG exports.
- window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,backup:()=>JSON.stringify(project(),null,2)});
+ window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,refreshReview:()=>{refresh();renderOutput();},backup:()=>JSON.stringify(project(),null,2)});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
