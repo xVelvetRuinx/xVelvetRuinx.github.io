@@ -333,7 +333,7 @@ function init(){
  $("#download-notes").addEventListener("click",()=>download(filename()+"-improvement-report.txt",["SOURCE MAPPING NOTES",...sourceNotes,"","READINESS CHECKS",...isReadiness(),"","EDITORIAL SUGGESTIONS",...buildSuggestions().map(r=>r.title+"\nField: "+r.field+"\nReason: "+r.why)].join("\n")));
  $("#export-png-image").addEventListener("change",e=>{if(portraitURL)URL.revokeObjectURL(portraitURL);portraitURL=e.target.files?.[0]?URL.createObjectURL(e.target.files[0]):"";const x=$("#portrait-preview");if(portraitURL)x.src=portraitURL;else x.removeAttribute("src");});
  // Compatibility with ../atelier/export-suite.js for actual JSON/DOCX/PNG exports.
- window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,backup:()=>JSON.stringify(project(),null,2)});
+ window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,refreshReview:()=>{refresh();renderOutput();},backup:()=>JSON.stringify(project(),null,2)});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
