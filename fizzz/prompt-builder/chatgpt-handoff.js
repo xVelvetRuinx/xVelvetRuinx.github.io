@@ -33,22 +33,25 @@
   save(slug+"-fizzz-final-bot.md",blocks.join("\n\n---\n\n"),"text/markdown");
   info("Complete Fizzz Markdown character saved from your APPROVED AI/compiler version. Copy the individual fields into Fizzz.");
  }
- function copiedPrompt(){
+ function copiedPrompt(mode){
   const api=window.VelvetRuinFizzzCompiler;if(!api)throw Error("Prompt compiler is unavailable.");
-  return api.aiBrief();
+  return api.aiBrief(mode||$("#chatgpt-scope")?.value||"complete");
  }
  function fallback(prompt){
   const container=$("#chatgpt-manual"),txt=$("#chatgpt-manual-text");if(txt)txt.value=prompt;
   if(container)container.hidden=false;
  }
- function openChatGPT(){
+ function openChatGPT(mode){
+  if(typeof mode==="string"&&$("#chatgpt-scope"))$("#chatgpt-scope").value=mode;
   let prompt;try{prompt=copiedPrompt();}catch(e){info(e.message);return;}
-  // Browser popup blockers need this synchronous action inside the click.
+  // Request clipboard while this tab still has focus, then open a new tab synchronously.
+  let write=null;
+  if(navigator.clipboard?.writeText){try{write=navigator.clipboard.writeText(prompt);}catch{write=null}}
   window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
-  if(!navigator.clipboard?.writeText){
+  if(!write){
    fallback(prompt);info("ChatGPT opened. Copy the source-aware instructions from the box below, paste into ChatGPT, then return with the complete JSON reply.");return;
   }
-  navigator.clipboard.writeText(prompt).then(()=>{
+  Promise.resolve(write).then(()=>{
    info("✓ Prompt copied and ChatGPT opened. Paste it there, send the request, then paste the JSON result into Step 2 below.");
   }).catch(()=>{
    fallback(prompt);info("Clipboard permissions were blocked. Your prompt is shown below for manual copying.");
@@ -71,7 +74,8 @@
   first.innerHTML=[
    '<p class="muted"><strong>Real AI writing, not keyword extraction.</strong> Generate a fully connected public bio, a complete optimized Markdown core, and an edited first message while preserving established canon. No additional API key or third-party AI subscription is required.</p>',
    '<p class="muted">',NOTICE,'</p>',
-   '<div class="actions"><button id="chatgpt-open" type="button" class="primary">1 · Copy Everything & Open ChatGPT</button><button id="chatgpt-copy" type="button">Copy Full Source Prompt</button><a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">Open ChatGPT Manually</a></div>',
+   '<label for="chatgpt-scope" class="muted">Choose the complete field ChatGPT should improve:</label><select id="chatgpt-scope"><option value="complete">Entire bot — Title + Public Bio + Core + Opening</option><option value="bio">Public Bio — complete improved story</option><option value="core">Core Personality — complete revised Markdown</option><option value="opening">Initial Message — full novel-style scene</option></select>',
+   '<div class="actions"><button id="chatgpt-open" type="button" class="primary">1 · Copy Source & Open ChatGPT</button><button id="chatgpt-copy" type="button">Copy Full Source Prompt</button><a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">Open ChatGPT Manually</a></div>',
    '<div id="chatgpt-manual" hidden><p class="muted">Clipboard access was unavailable. Select and copy this complete prompt:</p><textarea id="chatgpt-manual-text" rows="10" readonly></textarea></div>',
    '<p class="muted"><strong>Step 2:</strong> ChatGPT returns JSON containing the COMPLETE revised title, bio, core and opening. Paste that entire result into the text box below, not just the prose excerpts.</p>'
   ].join("");
@@ -88,9 +92,10 @@
   const actionBar=document.querySelector("#compiler-workspace")||document.querySelector(".compiler-box");
   const md=document.createElement("button");md.type="button";md.id="chatgpt-export-md";md.textContent="↓ Export Approved Bot as Markdown (.md)";
   if(actionBar){const tools=actionBar.querySelector("#compiler-publishing");if(tools)tools.insertAdjacentElement("afterend",md);else actionBar.append(md);}
-  $("#chatgpt-open").addEventListener("click",openChatGPT);
+  $("#chatgpt-open").addEventListener("click",()=>openChatGPT());
   $("#chatgpt-copy").addEventListener("click",()=>{copyOnly()});
   md.addEventListener("click",()=>{try{markdown();}catch(e){info(e.message)}});
  }
+ window.VelvetRuinFizzzChatGPT=Object.freeze({launch:openChatGPT,copyPrompt:copiedPrompt});
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
