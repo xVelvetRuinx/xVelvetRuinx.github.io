@@ -107,6 +107,10 @@ function coreCompiled(){
  const out=["# "+(data.name||"Character")+" — Character Settings"];
  if(data.age)out.push("Age: "+data.age);if(data.gender)out.push("Gender: "+data.gender);
  for(const [label,fields] of order){const v=fields.map(k=>str(data[k]).trim()).filter(Boolean).join("\n");if(v)out.push("\n## "+label+"\n"+v);}
+ if(data.coreRaw?.trim()){
+  const typed=["occupation","species","appearance","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice"].filter(k=>data[k]?.trim()).length;
+  if(typed<5)out.push("\n## PRESERVED SOURCE — REVIEW & SORT INTO FIZZZ FIELDS\n"+data.coreRaw.trim());
+ }
  return out.join("\n").trim();
 }
 function openingCompiled(){
@@ -236,33 +240,109 @@ function dataFromNumbered(source){
  return {fields:d,tags,messages,kind:"Full 21-section Fizzz character"};
 }
 function parseGeneric(source,ext){
- if(ext==="json"||str(source).trim().startsWith("{")){
-  let obj;try{obj=JSON.parse(source)}catch(e){throw Error("Invalid character JSON: "+e.message)}
-  if(obj.format==="VelvetRuin Fizzz field package"){
-   const p=obj.profile||{},d={...initial,...(obj.project||{})};
-   Object.assign(d,{title:p.public_title||"",name:p.chat_name||"",age:p.age||"",gender:p.gender||"",pov:p.pov||"Any POV",rating:p.rating||"Limited",bio:p.bio||"",warning:p.content_advisory||"",initialRaw:obj.initial_message||""});
-   (obj.worldbooks||[]).forEach((w,i)=>{const n=w.number||i+1;if(n<1||n>3)return;d["world"+n+"Title"]=w.title||"";d["world"+n+"Mode"]=w.activation||"keyword";d["world"+n+"Keywords"]=Array.isArray(w.keywords)?w.keywords.join(", "):w.keywords||"";d["world"+n+"Body"]=w.content||"";});
-   if(!d.coreRaw&&obj.core_personality)d.coreRaw=obj.core_personality;
-   return {fields:d,tags:p.discovery_tags||[],messages:["Imported compiled package. Review optional Core Personality and Wordbook bodies."],kind:"Fizzz field package"};
+ const raw=str(source),d={...initial},messages=[];
+ const normalizeChoice=x=>String(x||"").trim();
+ const cleanCore=x=>String(x||"").trim();
+ let tags=[];
+ if(ext==="json"||raw.trim().startsWith("{")){
+  let obj;try{obj=JSON.parse(raw);}catch(e){throw Error("Character JSON could not be read: "+e.message)}
+  if(obj?.builder==="VelvetRuin Fizzz Prompt Builder"&&obj.data)
+   return {fields:{...initial,...obj.data},tags:obj.tags||[],messages:["Restored complete Fizzz Prompt Builder project."],kind:"Existing Fizzz creator project"};
+  if(obj?.tool==="VelvetRuin Fizzz Atelier"&&obj.project)
+   return {fields:{...initial,...obj.project},tags:obj.project.tags||[],messages:["Imported complete Fizzz Atelier project."],kind:"Fizzz Atelier project"};
+  if(obj?.atelier_project?.project)
+   return {fields:{...initial,...obj.atelier_project.project},tags:obj.atelier_project.project.tags||[],messages:["Imported saved Atelier project."],kind:"Fizzz Atelier backup"};
+  // Portable V2 character cards contain the entire core in description.
+  if(obj?.spec==="chara_card_v2"&&obj.data){
+   const card=obj.data,meta=card.extensions?.fizzz||{};
+   Object.assign(d,{
+    title:meta.title||card.name||"",name:card.name||meta.chat_name||"",
+    age:String(meta.age||""),gender:meta.gender||"",pov:meta.pov||"Any POV",
+    rating:meta.rating||"Limited",bio:meta.bio||card.creator_notes||"",
+    initialRaw:card.first_mes||"",coreRaw:card.description||card.personality||"",
+    creationDate:meta.creation_date||meta.created||""
+   });
+   tags=Array.isArray(card.tags)?card.tags:[];
+   (card.character_book?.entries||[]).filter(item=>item&&item.content).slice(0,3).forEach((item,i)=>{
+    const n=i+1;d["world"+n+"Title"]=item.name||"Worldbook "+n;
+    d["world"+n+"Body"]=item.content;
+    d["world"+n+"Mode"]=item.constant?"always":"keyword";
+    d["world"+n+"Keywords"]=(item.keys||[]).join(", ");
+   });
+   return {fields:d,tags,messages:["Portable character card imported. Original Core Personality is preserved verbatim and visible under Core Personality > Preserved Source."],kind:"Character Card V2"};
   }
-  if(obj.tool==="VelvetRuin Fizzz Atelier"&&obj.project)return {fields:{...initial,...obj.project},tags:obj.project.tags||[],messages:[],kind:"Atelier project"};
-  if(obj.builder==="VelvetRuin Fizzz Prompt Builder"&&obj.data)return {fields:{...initial,...obj.data},tags:obj.tags||[],messages:[],kind:"Prompt Builder project"};
-  if(obj.atelier_project?.project)return {fields:{...initial,...obj.atelier_project.project},tags:obj.atelier_project.project.tags||[],messages:[],kind:"Fizzz package project"};
-  const src=obj.fields||obj.character||obj;
-  const d={...initial};
-  for(const k of Object.keys(initial))if(typeof src[k]==="string")d[k]=src[k];
-  for(const [from,to] of [["description","bio"],["personality","coreRaw"],["first_mes","initialRaw"],["greeting","initialRaw"],["chat_name","name"],["scenario","relationship"]])if(typeof src[from]==="string"&&!d[to])d[to]=src[from];
-  return {fields:d,tags:src.tags||[],messages:["Generic JSON imported. Review field mapping for this source format."],kind:"General character JSON"};
+  // Re-import both previous JSON export variants, retaining the entire core.
+  if(["VelvetRuin Fizzz field package","Fizzz Publishing Fields","VelvetRuin Fizzz Publishing Fields"].includes(obj?.format)||obj?.schema==="VelvetRuin Fizzz compilation"){
+   const p=obj.profile||{};
+   Object.assign(d,{
+    title:p.public_title||p.title||"",name:p.chat_name||p.name||"",
+    age:String(p.age||""),gender:p.gender||"",pov:p.pov||"Any POV",
+    rating:p.rating||"Limited",bio:p.bio||"",warning:p.content_advisory||p.warning||"",
+    creationDate:p.creation_date||p.created||obj.creation_date||"",
+    initialRaw:obj.initial_message||"",coreRaw:obj.core_personality||""
+   });
+   (obj.worldbooks||[]).slice(0,3).forEach((book,i)=>{
+    const n=book.number||i+1;if(n<1||n>3)return;
+    d["world"+n+"Title"]=book.title||"";
+    d["world"+n+"Mode"]=book.activation||book.mode||"keyword";
+    d["world"+n+"Keywords"]=Array.isArray(book.keywords)?book.keywords.join(", "):book.keywords||"";
+    d["world"+n+"Body"]=book.content||"";
+   });
+   tags=p.discovery_tags||p.tags||[];
+   return {fields:d,tags,messages:["Complete Fizzz publishing package imported. Core Personality is preserved verbatim under Preserved Source and in compiled output."],kind:"Fizzz field package"};
+  }
+  const sourceObj=obj.fields||obj.character||obj.data||obj;
+  for(const key of Object.keys(initial)){
+   if(typeof sourceObj[key]==="string")d[key]=sourceObj[key];
+  }
+  const map={description:"bio",public_description:"bio",char_name:"name",chat_name:"name",first_mes:"initialRaw",firstMessage:"initialRaw",initial_message:"initialRaw",greeting:"initialRaw",personality:"coreRaw",scenario:"relationship",system_prompt:"boundaries"};
+  for(const [key,to] of Object.entries(map))if(!d[to]&&typeof sourceObj[key]==="string")d[to]=sourceObj[key];
+  if(!d.coreRaw&&typeof sourceObj.character_definition==="string")d.coreRaw=sourceObj.character_definition;
+  if(!d.name&&typeof obj.name==="string")d.name=obj.name;
+  tags=Array.isArray(sourceObj.tags)?sourceObj.tags:[];
+  messages.push("Imported general character JSON. Original personality text is retained under Core > Preserved Source; review placement and mapping.");
+  return {fields:d,tags,messages,kind:"General character JSON"};
  }
- const text=str(source);const d={...initial},patterns=[
- ["title",/^(?:public title|published title|bot title)\s*:\s*(.+)$/im],
- ["name",/^(?:character chat name|full name|name)\s*:\s*(.+)$/im],
- ["age",/^(?:age)\s*:\s*(\d{2,3})/im],
- ["bio",/^(?:description|public bio)\s*:\s*([^\n]+)/im],
- ["initialRaw",/^(?:initial message|greeting|first message)\s*:\s*([\s\S]+)$/im]];
- for(const [k,re] of patterns){const match=text.match(re);if(match)d[k]=match[1].trim();}
- if(!d.coreRaw&&text.trim())d.coreRaw=text.trim();
- return {fields:d,tags:[],messages:["This source did not use numbered template headings. Kept the full text as a preserved Core source so no original material is lost. Sort it into the editable sections."],kind:"Unstructured character text"};
+ // Generic rich-text and unnumbered templates (including Word text) can still
+ // contain recognizable named fields. Use the already loaded document parser.
+ const parsed=window.AtelierMigrator?.fromText?.(raw)||{fields:{},unmapped:raw};
+ const p=parsed.fields||{};
+ const mapping={
+  title:"title",name:"name",age:"age",gender:"gender",rating:"rating",
+  hook:"bio",userRole:"relationship",scenario:"relationship",
+  appearance:"appearance",personality:"traits",contradiction:"contradiction",
+  voice:"voice",occupation:"occupation",backstory:"backstory",
+  anchors:"boundaries",surfaceGoal:"motivation",hiddenGoal:"motivation",
+  customGreeting:"initialRaw",openingScene:"openingScene",openingAction:"openingAction",
+  openingDialogue:"openingLine",openingBeat:"openingBeat",lore:"world1Body"
+ };
+ for(const [old,newKey] of Object.entries(mapping)){
+  const text=typeof p[old]==="string"?p[old].trim():"";
+  if(!text)continue;
+  if(d[newKey]){if(["traits","backstory","motivation","relationship","boundaries"].includes(newKey))d[newKey]+="\n\n"+text;}
+  else d[newKey]=text;
+ }
+ if(p.name&&!d.name)d.name=p.name;
+ if(p.age&&!d.age)d.age=p.age;
+ if(d.gender){if(/^male$/i.test(d.gender))d.gender="Male";else if(/^female$/i.test(d.gender))d.gender="Female";}
+ if(d.rating&&!["Limited","Limitless"].includes(d.rating))d.rating="Limited";
+ if(!d.name){
+  const first=raw.split("\n").map(x=>x.trim()).find(x=>x.length>1&&x.length<100);
+  const heading=first?.replace(/^#{1,6}\s*/,"").replace(/\*\*/g,"").split(/\s+[|—–]\s+/)[0].trim()||"";
+  if(/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){1,2}$/u.test(heading))d.name=heading;
+ }
+ // Import cannot just silently leave a 28k-character character file in a
+ // hidden coreRaw slot. Preserve and surface ALL content if few fields mapped.
+ const meaningful=["name","bio","traits","appearance","backstory","relationship","initialRaw","occupation","boundaries","voice"].filter(k=>d[k]);
+ const residual=(parsed.unmapped||"").trim();
+ if(residual&&residual!==d.traits&&residual!==d.coreRaw)d.coreRaw=residual;
+ if(meaningful.length<3){
+  d.coreRaw=raw.trim();
+  messages.push("WARNING: This file did not contain enough recognized Fizzz field headings. All extracted text has been preserved under Core > Preserved Source, NOT discarded. It still needs field placement.");
+ }else{
+  messages.push("Recognized "+meaningful.length+" meaningful fields from a non-numbered document. Unclassified original text is preserved under Core > Preserved Source where available.");
+ }
+ return {fields:d,tags,messages,kind:meaningful.length<3?"Partially recognized character document":"Mapped general character document"};
 }
 function mergeParsed(parsed,name,source){
  data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
