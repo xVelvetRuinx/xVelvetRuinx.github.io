@@ -111,7 +111,106 @@ function extractJSON(obj){
  if(!result.bio&&typeof root.description==="string"&&typeof root.personality!=="string")extraWarnings.push("The import has a Description field that might be a persona, not a public Bio. It was treated as Core Personality; please review.");
  return {fields:result,notes,unmapped,kind:"Structured character JSON",tags:Array.isArray(root.tags)?root.tags:[]};
 }
+
+/* Numbered 21-field Fizzz manuscripts: map source headings without flattening
+   the opening into personality or mistaking Worldbook outlines for full lore. */
+function parseNumberedFizzz(text){
+ const source=clean(text), heading=/^##\s+(\d{1,2})\.\s+([^\n]+)\s*$/gm;
+ const headers=[...source.matchAll(heading)];
+ if(headers.length<12||!headers.some(h=>Number(h[1])===21))return null;
+ const fields={},notes={},unmapped=[],alerts=[],sections={};
+ const configAt=source.search(/^#\s+.+WORLDBOOK CONFIGURATION\s*$/m);
+ for(let i=0;i<headers.length;i++){
+  const h=headers[i],start=h.index+h[0].length;
+  let end=i+1<headers.length?headers[i+1].index:source.length;
+  if(Number(h[1])===21&&configAt>start)end=configAt;
+  sections[Number(h[1])]=source.slice(start,end).trim();
+ }
+ const take=(key,val,label)=>{
+  const v=clean(val);if(!v)return;
+  fields[key]=v;
+  notes[key]="Preserved exact source section: "+label+". Review before editing; no narrative facts were generated.";
+ };
+ take("title",sections[1],"Public Title");
+ take("name",sections[2],"Chat Name");
+ const age=(sections[3]||"").match(/\*\*Age:\*\*\s*(\d{2,3})/i);
+ if(age)take("age",age[1],"Age");
+ else alerts.push("Age was not confidently extracted; review the age field.");
+ if(/\bMale\b/i.test(sections[4]||""))take("gender","Male","Gender Tag");
+ else if(/\bFemale\b/i.test(sections[4]||""))take("gender","Female","Gender Tag");
+ if(/AnyPOV|Any POV/i.test(sections[5]||""))take("pov","Any POV","POV Tag");
+ else if(/Female POV/i.test(sections[5]||""))take("pov","Female POV","POV Tag");
+ else if(/Male POV/i.test(sections[5]||""))take("pov","Male POV","POV Tag");
+ if(/Mature|18\+|Limitless/i.test(sections[6]||"")){
+  take("rating","Limitless","Mature / 18+ rating");
+  alerts.push("Mapped source Mature / 18+ to the Atelier's Limitless rating option. Verify the rating and permissible content in Fizzz.");
+ }else if(/Limited/i.test(sections[6]||""))take("rating","Limited","Rating Tag");
+ take("bio",sections[7],"Public Bio including source date and tags");
+ take("warning",sections[8],"Content Advisory");
+ const map={9:"occupation",10:"species",11:"appearance",12:"backstory",13:"traits",14:"contradiction",15:"motivation",16:"relationship",17:"behavior",18:"boundaries",19:"voice"};
+ for(const [index,key] of Object.entries(map))if(sections[index])take(key,sections[index],headers.find(h=>Number(h[1])===Number(index))?.[2]||key);
+ if(sections[20]){
+  // Core Personality source is duplicated by design in a 21-field manuscript.
+  // Keep its verbatim source in the observable-behavior field, without toggling
+  // coreRaw: coreRaw would otherwise mask sections 9–19 in final Fizzz export.
+  const part="[PRESERVED VERBATIM CORE TRAITS]\n"+sections[20];
+  take("traits",(fields.traits?fields.traits+"\n\n":"")+part,"Observable Personality + verbatim Core traits");
+  alerts.push("Verbatim Core Personality from section 20 is appended after section 13 in the Traits field, so it survives compilation without masking the complete sections 9–19.");
+ }
+ const opening=sections[21]||"",lines=opening.split("\n");
+ const stageHeads=["Scene · Location, Time & Atmosphere","What the Character Visibly Does","One or Two Spoken Lines","Playable Opening Beat"];
+ const stageKeys=["openingScene","openingAction","openingLine","openingBeat"];
+ let narrativeStart=-1,beatAt=lines.findIndex(l=>/^###\s+Playable Opening Beat\b/i.test(l));
+ if(beatAt>=0){
+  for(let i=beatAt+1;i<lines.length;i++){
+   const v=lines[i].trim();
+   if(v&&!/^(?:-|#)\s/.test(v)&&!/^[-*]\s/.test(v)&&(!lines[i-1]||!lines[i-1].trim())){
+    narrativeStart=i;break;
+   }
+  }
+ }
+ if(narrativeStart<0){
+  const direct=opening.match(/(?:^|\n)\s*(?:The|Rain|Night|Morning|Evening|A|An)\s+[^\n]{25,}[.!?](?:\n|$)/m);
+  if(direct)narrativeStart=opening.slice(0,direct.index+(direct[0][0]==="\n"?1:0)).split("\n").length-1;
+ }
+ if(narrativeStart>=0){
+  take("initialRaw",lines.slice(narrativeStart).join("\n").trim(),"Complete Initial Message");
+  const pre=lines.slice(0,narrativeStart).join("\n");
+  for(let i=0;i<stageHeads.length;i++){
+   const hs=[...pre.matchAll(/^###\s+([^\n]+)\s*$/gm)],index=hs.findIndex(h=>normalize(h[1])===normalize(stageHeads[i]));
+   if(index>=0){
+    const begin=hs[index].index+hs[index][0].length,stop=index+1<hs.length?hs[index+1].index:pre.length;
+    take(stageKeys[i],pre.slice(begin,stop),"Opening planning notes");
+   }
+  }
+ }else{
+  alerts.push("Opening prose could not be confidently separated from its planning checklist. Section 21 was retained as a whole for manual separation.");
+  take("initialRaw",opening,"Complete Initial Message (review separation)");
+ }
+ if(configAt>=0){
+  const config=source.slice(configAt),matches=[...config.matchAll(/^##\s+Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gm)];
+  for(let i=0;i<matches.length;i++){
+   const m=matches[i],n=Number(m[1]),content=config.slice(m.index+m[0].length,i+1<matches.length?matches[i+1].index:config.length);
+   take("world"+n+"Title",clean(m[2]),"Worldbook "+n+" title");
+   take("world"+n+"Mode",/Always Active/i.test((content.match(/\*\*Activation:\*\*[^\n]*/i)||[])[0]||"")?"always":"keyword","Worldbook "+n+" activation");
+   const keys=(content.match(/\*\*Keywords:\*\*\s*([^\n]*)\n?([^\n]*)/i)||[]);
+   const kw=clean(keys[1])&&/none required/i.test(keys[1])?"":clean(keys[1]||keys[2]);
+   if(kw&&!/none required/i.test(kw))take("world"+n+"Keywords",kw,"Worldbook "+n+" triggers");
+   unmapped.push("WORLDBOOK "+n+" OUTLINE (not full lore):\n"+clean(content));
+  }
+  alerts.push("Worldbook 1–3 settings and outlines were imported. The attached file does NOT contain full Worldbook lore text. Upload or paste the three actual Worldbook entries into the empty Body fields before publishing.");
+ }
+ const tagSource=sections[7]||"",tagWords=(tagSource.match(/#[\p{L}\p{N}]+/gu)||[]).map(x=>x.slice(1));
+ const known=["Omegaverse","Mafia","Arranged Marriage","Slow Burn","Romance","Protective","Crime","Drama","Marriage Drama"];
+ const tags=[...new Set(tagWords.map(x=>known.find(t=>normalize(t)===normalize(x))).filter(Boolean))].slice(0,7);
+ if(fields.initialRaw?.length>5000)alerts.push("Opening prose is "+fields.initialRaw.length+" characters (Fizzz maximum: 5,000). Revise with approval.");
+ const coreCount=Object.entries(map).reduce((s,[num])=>s+(sections[num]||"").length,0)+(sections[20]||"").length;
+ if(coreCount>10000)alerts.push("Character core contains approximately "+coreCount+" source characters; Fizzz recommends ~10,000 but permits up to 25,000. Consider carefully selected reductions without deleting canon.");
+ return {fields,notes,unmapped,notesGlobal:alerts,kind:"21-field structured Fizzz manuscript",tags};
+}
+
 function parseText(text){
+ const structured=parseNumberedFizzz(text);if(structured)return structured;
  const lines=clean(text).split("\n"),chunks=[],unknown=[];
  let active=null,prefix=[];
  const flush=()=>{if(active){active.text=active.lines.join("\n").trim();chunks.push(active);active=null}};
