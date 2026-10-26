@@ -444,10 +444,10 @@ function setupNavigation(){
    window.FizzzAtelierReviewGeneratedDraft(raw);
  });
 }
-function importDraft(patch,{replace=false,tags=[]}={}){
+function importDraft(patch,{replace=false,tags=[],allowEmpty=false}={}){
  const applied=[],skipped=[];
  for(const [k,v] of Object.entries(patch||{})){
-  if(!EDITABLE.has(k)||typeof v!=="string"||!v.trim())continue;
+  if(!EDITABLE.has(k)||typeof v!=="string"||(!v.trim()&&!allowEmpty))continue;
   // Ignore built-in default choices when importing real user data.
   const contains=Boolean(val(k))&&val(k)!==String(INITIAL[k]||"");
   if(contains&&!replace){skipped.push(k);continue}
