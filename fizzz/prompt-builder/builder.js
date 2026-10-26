@@ -302,6 +302,18 @@ function renderSuggestions(){
   const act=document.createElement("div");act.className="actions";
   const jump=document.createElement("button");jump.type="button";jump.textContent="Edit "+r.field;jump.addEventListener("click",()=>{let section=r.field.startsWith("world")?"world":defs.core.some(x=>x[0]===r.field)?"core":defs.profile.some(x=>x[0]===r.field)?"profile":defs.opening.some(x=>x[0]===r.field)?"opening":"media";showTab(section);const el=$("#field-"+r.field);el?.scrollIntoView({block:"center",behavior:"smooth"});el?.focus();});act.append(jump);
   if(!r.manual){const apply=document.createElement("button");apply.type="button";apply.textContent="✓ Apply this specific edit";apply.className="primary";apply.addEventListener("click",()=>{if(data[r.field]!==r.before){notify("Field has changed; refresh suggestions before applying.");return;}if(r.field==="bio"){const gate=bioIntegrity(r.after,r.before);if(!gate.valid){notify("Cannot apply incomplete bio: "+gate.issues.join(" "));return;}}data[r.field]=r.after;rerender();save();buildSuggestions();renderSuggestions();notify("Only this edit was applied. Original file remains available.");});act.append(apply);}
+  if(!r.field.startsWith("world") && r.field!=="imageDirection"){
+   const ai=document.createElement("button");
+   const scope=r.field==="bio"?"bio":r.field==="initialRaw"?"opening":"core";
+   ai.type="button";ai.textContent="✦ Generate Complete "+(scope==="bio"?"Public Bio":scope==="core"?"Core Rewrite":"Opening")+" with ChatGPT";
+   ai.title="Use ChatGPT (including its Free tier, subject to usage limits) to generate a full replacement instead of vague editing instructions.";
+   ai.addEventListener("click",()=>{
+    showTab("output");
+    if(window.VelvetRuinFizzzChatGPT?.launch)window.VelvetRuinFizzzChatGPT.launch(scope);
+    else notify("ChatGPT handoff unavailable. Refresh the page and use Compile & Export.");
+   });
+   act.append(ai);
+  }
   const ignore=document.createElement("button");ignore.className="subtle";ignore.textContent="Keep original";ignore.addEventListener("click",()=>{recommendations.splice(index,1);renderSuggestions()});act.append(ignore);
   card.append(h,p,row,act);dst.append(card);
  }
