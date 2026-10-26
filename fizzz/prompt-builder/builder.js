@@ -140,7 +140,7 @@ function refresh(){
  $("#aside-world").textContent=[1,2,3].map(i=>(data["world"+i+"Body"]||"").length.toLocaleString()).join(" / ")+" chars";
  for(let i=1;i<=3;i++){const x=$("#world-note-"+i);x.textContent=data["world"+i+"Body"]?.trim()?data["world"+i+"Body"].length+" characters · full lore entered":"Outline/settings only · full lore missing";}
 }
-function rerender(){ $$("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();}
+function rerender(){ $("[data-key]").forEach(el=>el.value=data[el.dataset.key]||"");tagsRender();refresh();document.dispatchEvent(new CustomEvent("fizzz:field-data-changed"));}
 function showTab(tab){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===tab);b.setAttribute("aria-selected",b.dataset.tab===tab)});$$(".panel").forEach(p=>p.hidden=p.id!=="panel-"+tab);if(tab==="output"){analyse();renderOutput();}if(window.innerWidth<900)document.querySelector(".tabs").scrollIntoView({block:"start",behavior:"smooth"});}
 function stripMd(s){return str(s).replace(/\*\*/g,"").replace(/^#+\s?/gm,"").trim();}
 function dataFromNumbered(source){
@@ -278,7 +278,7 @@ function bioIntegrity(candidate,reference){
 function buildSuggestions(){
  const rec=[],add=(field,title,why,after,priority="medium")=>{const before=data[field]||"";if(!after||String(after).trim()===before.trim())return;rec.push({field,title,why,before,after,priority})};
  const bio=data.bio||"",greet=openingCompiled(),core=coreCompiled();
- if(bio.length>1100){rec.push({field:"bio",title:"Optional editorial review — keep the complete character hook",why:"A developed public bio needs identity, linked story stakes, character tension, and an actionable player choice. Length alone is not a reason to slice it into disconnected quotes. This browser-only tool cannot safely create a creative rewrite with string matching, so no replacement is generated. Keep your original or compose a complete alternative for review.",before:bio,after:"Retain the established name and identity, connected scene/premise, stakes, character contradiction, and a clear choice for the player. Revise complete paragraphs in the character\'s existing voice rather than extracting disconnected quotes. If the original is already effective, keep it. This is editing guidance, not replacement copy.",priority:"medium",manual:true});}
+ /* Complete bio reviews now live directly under the Public Bio field. Length alone is never a suggested defect. */
  if(bio&&!/\byou\b|\{\{user\}\}/i.test(bio))rec.push({field:"bio",title:"Clarify the player's entry point in the existing premise",why:"A public description should show what role the player has and what decision is possible. Avoid appending generic questions or writing {{user}}'s actions; revise the relevant paragraph using the established story and voice.",before:bio,after:bio,priority:"medium",manual:true});
  if(data.title.length>94)rec.push({field:"title",title:"Review public title length without damaging the hook",why:"The title is long. If you shorten it, retain the character name and the recognizable trope rather than automatically cutting off the last words.",before:data.title,after:data.title,priority:"medium",manual:true});
  if(data.boundaries&&!/never (?:write|narrate|determine).*?\{\{user\}\}/i.test(data.boundaries))add("boundaries","Clarify player agency","Explicit player agency rules help avoid the bot narrating {{user}}'s decisions.",data.boundaries.trim()+"\n- Never write {{user}}'s dialogue, internal thoughts, or completed choices.","high");
