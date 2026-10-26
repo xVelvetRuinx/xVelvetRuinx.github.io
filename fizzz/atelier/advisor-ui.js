@@ -105,7 +105,7 @@ function card(rec,context="review"){
 function render(destination="#improvement-list",small=false){
  const target=$(destination);
  if(!target||!A()||!Advisor())return [];
- current=Advisor().evaluate(A().getState());
+ current=Advisor().evaluate(A().getState(),{tags:A().getTags()});
  target.replaceChildren();
  const totalEdits=current.filter(x=>x.kind==="edit").length;
  const priority=current.filter(x=>x.priority==="high").length;
@@ -150,7 +150,7 @@ function afterImport(){
  if(button)button.textContent="✓ "+recs.length+" Improvement Suggestions Below";
 }
 function renderInto(area){
- current=Advisor()?.evaluate(A().getState())||[];
+ current=Advisor()?.evaluate(A().getState(),{tags:A().getTags()})||[];
  const shown=current.slice(0,6);
  for(const x of shown)area.append(card(x,"import"));
  if(current.length>shown.length){
