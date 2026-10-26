@@ -102,6 +102,7 @@ function tagsRender(){
  b.addEventListener("click",()=>{if(chosen.includes(t))chosen=chosen.filter(x=>x!==t);else if(chosen.length<7)chosen.push(t);else {notify("Seven optional tags maximum. Remove one before adding another.");return;}tagsRender();save();refresh();});p.append(b);}
 }
 function coreCompiled(){
+ const revised=window.VelvetRuinFizzzCompiler?.selectedText("core");if(revised!==null&&revised!==undefined)return revised;
  const order=[["Identity & Role",["occupation"]],["Species & Biology",["species"]],["Appearance",["appearance"]],["Causal Background",["backstory"]],["Core Personality & Observable Behavior",["traits"]],["Internal Contradiction",["contradiction"]],["Character Goals",["motivation"]],["Starting Relationship with {{user}}",["relationship"]],["Growth and Behavior under Pressure",["behavior"]],["Behavioral Boundaries",["boundaries"]],["Speaking Style",["voice"]]];
  const out=["# "+(data.name||"Character")+" — Character Settings"];
  if(data.age)out.push("Age: "+data.age);if(data.gender)out.push("Gender: "+data.gender);
@@ -109,11 +110,13 @@ function coreCompiled(){
  return out.join("\n").trim();
 }
 function openingCompiled(){
+ const revised=window.VelvetRuinFizzzCompiler?.selectedText("opening");if(revised!==null&&revised!==undefined)return revised;
  if((data.initialRaw||"").trim())return data.initialRaw.trim();
  return [["openingScene",""],["openingAction",""],["openingLine",""],["openingBeat",""]].map(([k])=>str(data[k]||"").trim()).filter(Boolean).join("\n\n");
 }
 function sections(){
- const out=[["PUBLIC TITLE",data.title],["CHARACTER CHAT NAME",data.name],["AGE",data.age],["GENDER",data.gender],["POV",data.pov],["RATING",data.rating],["CREATION DATE",data.creationDate],["DISCOVERY TAGS",chosen.join(", ")],["PUBLIC BIO",data.bio],["CONTENT ADVISORY",data.warning],["CORE PERSONALITY",coreCompiled()],["INITIAL MESSAGE",openingCompiled()]];
+ const finalized=window.VelvetRuinFizzzCompiler?.selectedProfile();
+ const out=[["PUBLIC TITLE",finalized?.title||data.title],["CHARACTER CHAT NAME",data.name],["AGE",data.age],["GENDER",data.gender],["POV",data.pov],["RATING",data.rating],["CREATION DATE",data.creationDate],["DISCOVERY TAGS",chosen.join(", ")],["PUBLIC BIO",finalized?.bio||data.bio],["CONTENT ADVISORY",data.warning],["CORE PERSONALITY",coreCompiled()],["INITIAL MESSAGE",openingCompiled()]];
  for(let i=1;i<=3;i++)out.push(["WORLDBOOK "+i+" — "+(data["world"+i+"Title"]||"Untitled"),"Activation: "+(data["world"+i+"Mode"]==="always"?"Always Active":"Keyword Trigger")+"\nKeywords: "+(data["world"+i+"Keywords"]||"None")+"\n\n"+(data["world"+i+"Body"]||"[Missing full lore — import or paste the complete Worldbook]")]);
  for(const [key,label] of [["coverDirection","COVER DIRECTIONS"],["imageDirection","CHARACTER IMAGE DIRECTIONS"],["videoDirection","OPENING FILM DIRECTIONS"],["voiceDirection","VOICE DIRECTIONS"],["voiceDesignPrompt","VOICE DESIGN PROMPT"]])if(data[key])out.push([label,data[key]]);
  return out;
