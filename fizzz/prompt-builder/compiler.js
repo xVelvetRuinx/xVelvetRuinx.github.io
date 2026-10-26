@@ -123,7 +123,11 @@ async function cover(){publishing();const b=await art("3:4");file(filename()+"-f
 function aiBrief(){return [
  "Source-faithfully optimize this complete Fizzz character. Preserve names, ages, relationship facts, motive, history, setting, original scene/dialogue and player agency. Add no new canon. Improve immediate romantic hook and distinct voice; retain meaningful flaws.",
  "Fizzz Core Personality ≤25,000 characters; recommend ≤10,000. Initial Message ≤5,000. Speaking style last. Worldbooks are separate. Do not invent absent Worldbooks.",
- "Return EXACT JSON {title, bio, core, opening, changeLog:[{field,why}]}, full strings, no markdown fences, so creator can review and approve.",
+ "Return EXACT JSON with all four COMPLETE finished fields {title, bio, core, opening, changeLog:[{field,why}]}; never return editing instructions instead of the replacement. Markdown belongs inside each JSON string. No code fences.",
+ "PUBLIC BIO: Preserve the full connected romance premise and distinctive character appeal. Improve genuine weaknesses in complete narrative paragraphs, not by extracting isolated taglines, abbreviating developed prose, or joining dialogue snippets. A strong existing bio may require only subtle edits.",
+ "CORE: Produce a cohesive model-readable Markdown character specification. Retain distinct quirks, emotional conflict, independent motives, agency rules, and speaking style last, while reducing truly redundant instructions.",
+ "FIRST MESSAGE: Preserve the original fully playable novel-style scene, character dialogue, logical continuity, and a clear choice for the player. Rewrite only if it improves the prose and pacing.",
+ "CHANGE LOG: For each actual edit, explain the specific writing improvement. If no change is necessary, preserve original exactly and explain why in changeLog.",
  "TITLE:\n"+src().title,"BIO:\n"+src().bio,"CORE:\n"+fullCore(),"OPENING:\n"+intro()
  ].join("\n\n")}
 function aiImport(){try{const txt=$("#compiler-ai-json").value.trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\x60{3}\s*$/,""),o=JSON.parse(txt),f=o.fields||o;
@@ -163,5 +167,5 @@ function mount(){
 }
 const css=document.createElement("style");css.textContent='.compiler-box{padding:22px;margin:28px 0;border:1px solid #bb9677;border-radius:13px;background:linear-gradient(120deg,#342139,#18121b)}.compiler-box h3{font:600 39px Georgia,serif;margin:8px 0}.compiler-box h3 em{color:#dfb8c9}.compiler-box h4{font:600 26px Georgia,serif}.compiler-box .field{margin:14px 0}.compiler-box .field input,.compiler-box .field textarea{width:100%;background:#100d15;border:1px solid #79576b;border-radius:7px;color:#f7e9f0;padding:10px;font:13px/1.6 sans-serif}.compiler-box #compiled-core{min-height:420px}.compiler-box #compiled-opening{min-height:290px}.compiler-box .actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:13px 0}.compiler-box select{background:#15101a;color:#fff;padding:8px}.compiler-diagnostics{white-space:pre-wrap;background:#110d16;padding:13px;border-left:3px solid #d8b785;line-height:1.7}.compiler-box details{padding:14px;border:1px solid #71566c;border-radius:8px;margin:14px 0}.compiler-box summary{cursor:pointer;color:#dfbf90}.compiler-box #compiler-ai-json{width:100%;display:block;min-height:130px;background:#100c14;color:white;margin:12px 0;padding:10px}';document.head.append(css);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});else mount();
-window.VelvetRuinFizzzCompiler=Object.freeze({selected,selectedText,selectedProfile,selectedWorld,compile,card,publishing,fullCore});
+window.VelvetRuinFizzzCompiler=Object.freeze({selected,selectedText,selectedProfile,selectedWorld,compile,card,publishing,fullCore,aiBrief});
 })();
