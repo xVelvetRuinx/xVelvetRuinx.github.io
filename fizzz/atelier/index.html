@@ -7,7 +7,7 @@
 <title>Fizzz Character Atelier · VelvetRuin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atelier.css?v=10">
+<link rel="stylesheet" href="atelier.css?v=11">
 <script defer src="../../tipsy/prompt-builder/legacy-doc.js?v=1"></script>
 <script defer src="../../tipsy/prompt-builder/migration-parser.js?v=2"></script>
 <script defer src="atelier.js?v=7"></script>
@@ -19,6 +19,8 @@
 <script defer src="handbook.js?v=2"></script>
 <script defer src="concept-builder.js?v=3"></script>
 <script defer src="start.js?v=2"></script>
+<script defer src="advisor.js?v=1"></script>
+<script defer src="advisor-ui.js?v=1"></script>
 </head>
 <body>
 <a href="#workbench" class="skip">Skip to character creator</a>
@@ -40,7 +42,7 @@
   <article><span>04</span><b>Test and publish in Fizzz</b><p>Read the live checks, download a backup and copy your fields. Check visuals, first-turn pacing, voice and player agency in actual Fizzz test chats.</p></article>
  </div><p class="start-disclaimer">Official Fizzz character limits are flagged in the checks. Token estimates use ~4 characters per token; actual tokenization varies and Fizzz publishes character limits. Archetypes, editorial length ranges and engagement advice are not platform mandates or guaranteed popularity. <a href="https://fizzz.ai/creator-guidelines/" target="_blank" rel="noopener noreferrer">Read official guidelines ↗</a></p></div>
 </section>
-<div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Writing saves in this browser. Export JSON to back up your work.</p></div><div class="top-actions"><button type="button" id="export-quick">↓ Back up JSON</button><details class="toolbar-extras"><summary>Other actions</summary><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button></details></div></div>
+<div class="workspace-intro"><div><p class="eyebrow">THE WRITING DESK</p><h2>Your character, <em>your direction.</em></h2><p>Writing saves in this browser. Export JSON to back up your work.</p></div><div class="top-actions"><button type="button" class="main-button" id="top-improve">✧ Improve My Bot</button><button type="button" id="export-quick">↓ Back up JSON</button><details class="toolbar-extras"><summary>Other actions</summary><button type="button" id="sample">Load example</button><button type="button" id="reset">Reset draft</button></details></div></div>
 <div class="workspace">
 <aside class="rail"><div class="rail-label">THE CHAPTERS</div>
 <div class="step-nav" id="step-nav">
@@ -93,7 +95,7 @@
  <p id="simple-import-summary"></p>
  <div class="simple-import-actions">
   <button type="button" class="main-button" id="simple-edit">Continue Editing My Character →</button>
-  <button type="button" class="quiet-button" id="simple-feedback">See Fizzz Recommendations</button>
+  <button type="button" class="quiet-button" id="simple-feedback">✧ Show Suggested Edits</button>
   <button type="button" class="quiet-button" id="simple-download-original">↓ Save Imported Text</button>
  </div>
  <div id="simple-feedback-panel" hidden></div>
@@ -182,6 +184,12 @@
 <div class="review-coaching-note"><b>✧ The last pass is about performance, not deleting personality.</b><p>Simple familiar hooks often attract the first click; specific reactions, growth and story consequences sustain the chat. If the core is wordy, review exact redundancies—not meaningful lore or dialogue.</p><button type="button" id="review-to-optimizer" class="quiet-button">⌁ Review & reduce my current draft →</button></div>
 <div class="official-inline" data-official="review"></div>
 <div class="publication-checklist"><h3>Before You Publish · Fizzz Readiness</h3><p>Check items you have verified in the actual Fizzz creator. These are not guesses based on written descriptions.</p><div id="publication-checks"></div><p class="checklist-status" id="publication-progress"></p></div>
+<section class="improvement-workspace" id="improvement-workspace">
+ <div class="improvement-heading"><p class="eyebrow">A PERSONAL EDITOR FOR YOUR CHARACTER</p><h3>Make it more compelling. <em>Keep it yours.</em></h3><p>See what the builder would change in your actual text, why that could improve Fizzz roleplay, and whether the edit is safe to make. Approve individual suggestions—or keep the original. No automatic rewriting.</p>
+ <div class="improvement-actions"><button id="run-improvements" type="button" class="main-button">✦ Suggest Specific Improvements</button><button id="undo-improvement" type="button" class="quiet-button" disabled>↶ Undo Last Accepted Edit</button><button id="download-improvement-report" type="button" class="quiet-button">↓ Save Recommendations</button></div></div>
+ <p id="improvement-status" class="improvement-status" role="status" aria-live="polite">Choose Suggest Specific Improvements to analyze the bot you've written or imported.</p>
+ <div id="improvement-list" class="improvement-list"></div>
+</section>
 <div id="audit-summary" class="audit-summary"></div><div id="audit-list" class="audit-list"></div>
 <div class="export-actions"><button id="download-txt" type="button" class="main-button">↓ Download All Fields (.txt)</button><button id="download-json" type="button" class="quiet-button">↓ Back Up Editable Project (.json)</button><button id="copy-all" type="button" class="quiet-button">✧ Copy All Text</button></div>
 <div id="export-blocks" class="export-blocks"></div>
