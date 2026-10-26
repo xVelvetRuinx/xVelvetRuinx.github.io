@@ -75,7 +75,7 @@ function worldRender(){
  const dst=$("#world-cards");
  for(let i=1;i<=3;i++){
   const div=document.createElement("article");div.className="world-card";
-  div.innerHTML='<h3>Worldbook '+i+'</h3><div class="world-meta"><span class="muted" id="world-note-'+i+'"></span><label class="file-trigger" for="world-file-'+i+'">⌁ Upload complete lore<input type="file" accept=".txt,.md,.markdown,.docx,.doc,.rtf" id="world-file-'+i+'" data-world-file="'+i+'" hidden></label></div>';
+  div.innerHTML='<h3>Worldbook '+i+'</h3><div class="world-meta"><span class="muted" id="world-note-'+i+'"></span><label class="file-trigger" for="world-file-'+i+'">⌁ Upload complete lore<input type="file" accept=".txt,.md,.markdown,.docx,.doc,.rtf" id="world-file-'+i+'" data-builder-world="'+i+'" hidden></label></div>';
   const grid=document.createElement("div");grid.className="field-group";
   const meta=[
   ["world"+i+"Title","Entry title","text"],
