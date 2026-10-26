@@ -144,10 +144,41 @@ function rerender(){ $$("[data-key]").forEach(el=>el.value=data[el.dataset.key]|
 function showTab(tab){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===tab);b.setAttribute("aria-selected",b.dataset.tab===tab)});$$(".panel").forEach(p=>p.hidden=p.id!=="panel-"+tab);if(tab==="output"){analyse();renderOutput();}if(window.innerWidth<900)document.querySelector(".tabs").scrollIntoView({block:"start",behavior:"smooth"});}
 function stripMd(s){return str(s).replace(/\*\*/g,"").replace(/^#+\s?/gm,"").trim();}
 function dataFromNumbered(source){
- const text=str(source);const re=/^##\s+(\d{1,2})\.\s+(.+)\s*$/gm,h=[...text.matchAll(re)];
- if(h.length<12||!h.some(x=>+x[1]===21))return null;
- const config=text.search(/^#\s+.+WORLDBOOK CONFIGURATION\s*$/m),sec={};
- for(let i=0;i<h.length;i++){let end=i+1<h.length?h[i+1].index:text.length;if(+h[i][1]===21&&config>=0)end=Math.min(end,config);sec[+h[i][1]]=text.slice(h[i].index+h[i][0].length,end).trim();}
+ const text=str(source).replace(/\u00a0/g," ");
+ // Word/DOCX extraction often removes Markdown heading marks (##). Numbered
+ // labels may also be Word automatic numbering and disappear entirely.
+ // Accept only KNOWN section labels, never numbered steps from source lore.
+ const headingNames={
+  1:["Public Title"],2:["Character Chat Name"],3:["Character Age / Age Range","Character Age","Age / Age Range"],
+  4:["Gender Tag"],5:["POV Tag"],6:["Rating Tag"],
+  7:["Character Bio · Public","Character Bio - Public","Character Bio Public","Public Character Bio","Public Bio"],
+  8:["Optional Content Advisory","Content Advisory"],
+  9:["Identity & Role","Identity and Role"],10:["Species / Supernatural Identity","Species and Supernatural Identity","Species & Biology"],
+  11:["Appearance the Text Model Must Know","Appearance Text Model Must Know","Appearance"],
+  12:["Causal Background","Background"],
+  13:["Core Personality · Observable Behavior","Core Personality Observable Behavior","Observable Personality"],
+  14:["Internal Contradiction"],15:["Character Goals & Lasting Drive","Character Goals and Lasting Drive"],
+  16:["Relationship with {{user}} · Starting State","Relationship with {{user}} Starting State","Relationship with User Starting State"],
+  17:["Growth & Behavior Under Pressure","Growth and Behavior Under Pressure"],
+  18:["Behavioral Boundaries / Agency Rules","Behavioral Boundaries Agency Rules"],
+  19:["Speaking Style · Last in the Core","Speaking Style Last in the Core","Speaking Style"],
+  20:["Optional Verbatim Core Personality · Preserved Source","Optional Verbatim Core Personality Preserved Source"],
+  21:["Complete Initial Message · Recommended","Complete Initial Message Recommended","Complete Initial Message"]
+ };
+ const normalizeHeading=x=>String(x).toLowerCase().replace(/\*+/g,"").replace(/\{\{user\}\}/gi,"user").replace(/[^\p{L}\p{N}]+/gu," ").trim().replace(/\s+/g," ");
+ const lines=text.split("\n"),h=[];
+ let cursor=0;
+ for(const line of lines){
+  const at=cursor;cursor+=line.length+1;
+  let heading=line.trim().replace(/^#{1,6}\s*/,"").replace(/^\*\*(.*?)\*\*$/,"$1").trim();
+  const num=heading.match(/^(\d{1,2})\s*[.)·:—–-]\s*(.+)$/u);
+  const n=num?Number(num[1]):null,label=(num?num[2]:heading).replace(/\*+$/,"").trim(),id=normalizeHeading(label);
+  const matches=Object.entries(headingNames).filter(([index,aliases])=>(n===null||Number(index)===n)&&aliases.some(a=>normalizeHeading(a)===id));
+  if(matches.length===1)h.push({index:at,0:line,1:Number(matches[0][0]),2:label});
+ }
+ if(h.length<10||!h.some(x=>x[1]===7)||!h.some(x=>x[1]===21))return null;
+ const config=text.search(/^(?:#{1,6}\s*)?(?:NIKO VARELA\s*[—–-]\s*)?WORLDBOOK CONFIGURATION\s*$/im),sec={};
+ for(let i=0;i<h.length;i++){let end=i+1<h.length?h[i+1].index:text.length;if(+h[i][1]===21&&config>=0)end=Math.min(end,config);const val=text.slice(h[i].index+h[i][0].length,end).trim();if(!sec[h[i][1]])sec[h[i][1]]=val;}
  const d={...initial},messages=[];
  d.title=sec[1]||"";d.name=sec[2]||"";
  d.age=(sec[3]||"").match(/\*\*Age:\*\*\s*(\d{2,3})/i)?.[1]||(sec[3]||"").match(/\b(\d{2,3})\b/)?.[1]||"";
@@ -171,7 +202,7 @@ function dataFromNumbered(source){
   }else{d.initialRaw=sec[21];messages.push("Opening narrative was not distinguishable from section 21 notes; review the opening before publishing.");}
  }
  if(config>=0){
-  const chunk=text.slice(config),wb=[...chunk.matchAll(/^##\s+Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gm)];
+  const chunk=text.slice(config),wb=[...chunk.matchAll(/^(?:#{1,6}\s*)?Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gim)];
   for(let i=0;i<wb.length;i++){
    const n=+wb[i][1],body=chunk.slice(wb[i].index+wb[i][0].length,i+1<wb.length?wb[i+1].index:chunk.length);
    d["world"+n+"Title"]=wb[i][2].trim();
