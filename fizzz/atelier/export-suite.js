@@ -89,7 +89,26 @@
   await new Promise(resolve=>canvas.toBlob(b=>{if(b)save(filename()+"-character-preview.png",b);resolve();},"image/png"));
   status(imageFile?"9:16 promotional PNG exported using your uploaded artwork.":"9:16 typographic PNG exported. Upload existing character art first if you want the character visible.");
  }
+ async function importWorldbook(input){
+  const index=Number(input.dataset.worldFile),f=input.files?.[0];input.value="";
+  if(!f||index<1||index>3)return;
+  const key="world"+index+"Body",line=$("#worldbook-import-status");
+  const say=t=>{if(line)line.textContent=t;};
+  try{
+   if(f.size>5*1024*1024)throw Error("Worldbook file exceeds 5 MB.");
+   const reader=window.VelvetRuinFizzzImport;
+   if(!reader)throw Error("Import reader not available.");
+   const data=await reader.readFile(f),content=String(data?.text||"").trim();
+   if(!content)throw Error("Document had no extractable lore text.");
+   if(content.length>10000)throw Error("Worldbook has "+content.length+" characters; Fizzz maximum is 10,000. The original file was not changed. Condense it first.");
+   const before=A().getState()[key]||"";
+   if(before.trim()&&!confirm("Replace the current complete Worldbook "+index+" body with "+f.name+"? Export a backup first if you want both versions."))return;
+   A().importDraft({[key]:content},{replace:true});
+   say("✓ Worldbook "+index+" imported: "+f.name+" ("+content.length+" characters). Keywords, title and activation are unchanged.");
+  }catch(e){say("Worldbook "+index+" import was not applied: "+e.message);}
+ }
  function init(){
+  for(const input of document.querySelectorAll("[data-world-file]"))input.addEventListener("change",()=>importWorldbook(input));
   $("#download-final-json")?.addEventListener("click",exportJSON);
   $("#download-docx")?.addEventListener("click",exportDOCX);
   $("#download-png")?.addEventListener("click",()=>exportPNG().catch(e=>status("PNG export failed: "+e.message)));
