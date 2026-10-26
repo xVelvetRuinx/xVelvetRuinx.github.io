@@ -26,7 +26,6 @@ function evaluate(state,options={}){
    propose({id,field,title,why,benefit,category,priority,kind:"coach",sample});
  };
  const original=k=>String(s[k]||"");
- const whole=(val("","")||""); // empty string; all source text is read from the state only
  const core=val(s,"coreRaw");
  const opening=val(s,"initialRaw")||[val(s,"openingScene"),val(s,"openingAction"),val(s,"openingLine"),val(s,"openingBeat")].filter(Boolean).join("\n\n");
  const personality=val(s,"traits")||core;
