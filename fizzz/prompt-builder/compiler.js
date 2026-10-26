@@ -41,34 +41,62 @@ function coreCompile(mode){
  let text=output();while(text.length>limit){let pool=[];groups.forEach((g,i)=>{if(g.length>2)g.forEach((v,j)=>pool.push({i,j,score:v.score}))});pool.sort((a,b)=>a.score-b.score);if(!pool.length)break;groups[pool[0].i].splice(pool[0].j,1);text=output();}
  return {text,removed:total-groups.reduce((n,x)=>n+x.length,0),original:full.length};
 }
+/* The old extractor selected scattered paragraphs because of regex keyword hits,
+   producing incoherent dialogue snippets. Preserve complete public prose by default.
+   Any shorter creative rewrite must be reviewed as a complete replacement. */
 function bioCompile(){
- const p=tidy(src().bio);if(p.length<1250)return p;
- const lines=p.split(/\n\s*\n/).filter(Boolean),keep=[];let size=0;
- for(const item of lines){const t=item.trim();if(/^(?:#\w+|PUBLIC TAGS|CREATION DATE|UNIVERSE:)/i.test(t)||t.length>650||keep.some(x=>close(x,t)))continue;
-  if(keep.length<2||/\b(you|your|arrang|marry|choice|refuse|bond|contract)\b/i.test(t)||t.includes("“")){if(size+t.length<1400){keep.push(t);size+=t.length+2;}}
- }const reduced=keep.join("\n\n");return reduced.length>250?reduced:p;
+ return tidy(src().bio);
 }
-function checks(d){const m=[];if(d.core.length>25000)m.push("Core exceeds 25,000 characters.");else if(d.core.length>10000)m.push("Core exceeds recommended 10,000 characters.");
+function bioIntegrity(candidate,original){
+ const text=tidy(candidate),sourceText=tidy(original),notes=[];
+ if(!text)notes.push("Compiled Public Bio is missing.");
+ if(sourceText.length>800&&text.length<Math.min(400,sourceText.length*.48))
+  notes.push("Bio is suspiciously short compared with its source; the character, conflict, and player choice may have been lost.");
+ const player=/\b(you|your|yours)\b|\{\{user\}\}/i;
+ if(player.test(sourceText)&&!player.test(text))notes.push("The player-facing entry point is missing.");
+ const markdown=text.replace(/\\\*/g,""),d=(markdown.match(/\*\*/g)||[]).length,s=(markdown.replace(/\*\*/g,"").match(/\*/g)||[]).length;
+ if(d%2||s%2)notes.push("Unbalanced Markdown emphasis in public bio.");
+ if(/\uFFFC|\uFFFD/.test(text))notes.push("Broken or invisible object marker in public bio.");
+ return notes;
+}
+function checks(d){const m=[...bioIntegrity(d.bio,src().bio)];if(d.core.length>25000)m.push("Core exceeds 25,000 characters.");else if(d.core.length>10000)m.push("Core exceeds recommended 10,000 characters.");
  if(d.opening.length>5000)m.push("Opening exceeds 5,000 characters.");
  d.worldbooks.forEach((w,i)=>{if(w.title&&!w.content)m.push("Worldbook "+(i+1)+" full lore is missing.");if(w.content.length>10000)m.push("Worldbook "+(i+1)+" is over 10,000 characters.")});
  if(!tidy(src().voiceDirection)&&!tidy(src().voiceDesignPrompt))m.push("Voice still needs to be configured in Fizzz.");
  return m;}
 function compile(mode="balanced"){const s=src(),c=coreCompile(mode);
  const books=[1,2,3].map(i=>({title:tidy(s["world"+i+"Title"]),mode:s["world"+i+"Mode"]||"keyword",keywords:tidy(s["world"+i+"Keywords"]),content:tidy(s["world"+i+"Body"])}));
- version={title:tidy(s.title),bio:bioCompile(),core:c.text,opening:intro(),worldbooks:books,originalCore:c.original,removed:c.removed,mode,notes:[]};version.notes=checks(version);
+ version={title:tidy(s.title),bio:bioCompile(),core:c.text,opening:intro(),worldbooks:books,originalCore:c.original,removed:c.removed,mode,notes:[],bioQualityV2:true};version.notes=checks(version);
  base=fingerprint();accepted=false;save();render();return version;}
 function save(){try{localStorage.setItem(STORE,JSON.stringify({version,accepted,base}))}catch{}}
-function load(){try{const o=JSON.parse(localStorage.getItem(STORE)||"null");if(o){version=o.version;accepted=o.accepted;base=o.base}}catch{}}
+function load(){
+ try{
+  const o=JSON.parse(localStorage.getItem(STORE)||"null");
+  if(!o)return;
+  version=o.version;accepted=o.accepted;base=o.base;
+  if(version&&!version.bioQualityV2){
+   const reference=tidy(src().bio),bad=bioIntegrity(version.bio,reference);
+   if(bad.length){
+    // Keep a backup of the user's old draft before restoring the original bio.
+    try{localStorage.setItem(STORE+".legacy-bio-backup",JSON.stringify(o));}catch{}
+    version.bio=reference;
+    accepted=false;
+    version.notes=[...checks(version),"An earlier compiler generated an incomplete bio. The full original bio has been restored; approve again after review."];
+   }
+   version.bioQualityV2=true;save();
+  }
+ }catch{}
+}
 function message(t){const x=$("#compiler-status");if(x)x.textContent=t}
 function render(skipFields=false){if(!version)return;
  for(const k of ["title","bio","core","opening"]){const x=$("#compiled-"+k);if(x&&!skipFields)x.value=version[k]}
  $("#compiler-measure").textContent="Original core "+version.originalCore.toLocaleString()+" chars → compiled "+version.core.length.toLocaleString()+" chars; "+version.removed+" repetitive/secondary source lines omitted.";
  $("#compiler-warnings").textContent=version.notes.length?version.notes.map(x=>"• "+x).join("\n"):"✓ No length or missing-lore warnings. Test on Fizzz.";
- $("#compiler-approve").disabled=!version.core||!version.opening||version.core.length>25000||version.opening.length>5000;
- $("#compiler-selected").textContent=selected()?"✓ Approved compiled version selected for all final exports.":accepted&&base!==fingerprint()?"Source changed; recompile before export.":"Compiled text is not yet approved; original text remains the export source.";
+ $("#compiler-approve").disabled=!version.core||!version.opening||version.core.length>25000||version.opening.length>5000||bioIntegrity(version.bio,src().bio).length>0;
+ $("#compiler-selected").textContent=selected()?"✓ Approved compiled version selected for all final exports.":accepted&&base!==fingerprint()?"Source changed; recompile before export.":"Compiled text is not yet approved; original text remains the export source. The full public bio is retained by default.";
 }
 function edit(){if(!version)return;for(const k of ["title","bio","core","opening"])version[k]=$("#compiled-"+k).value;version.notes=checks(version);accepted=false;save();render(true)}
-function approve(){if(!version)return;if(base!==fingerprint())return message("Source fields changed since compilation. Recompile before approving.");if(version.core.length>25000||version.opening.length>5000)return message("Exceeds Fizzz length limits.");accepted=true;save();render();window.FizzzAtelier?.refreshReview?.();message("Approved. Existing TXT, DOCX and JSON outputs will now use this compiled core, public bio and greeting.");}
+function approve(){if(!version)return;if(base!==fingerprint())return message("Source fields changed since compilation. Recompile before approving.");if(version.core.length>25000||version.opening.length>5000)return message("Exceeds Fizzz length limits."); const problems=bioIntegrity(version.bio,src().bio);if(problems.length)return message("Bio needs review: "+problems.join(" "));accepted=true;save();render();window.FizzzAtelier?.refreshReview?.();message("Approved. Existing TXT, DOCX and JSON outputs will now use this compiled core, public bio and greeting.");}
 function undo(){accepted=false;save();render();window.FizzzAtelier?.refreshReview?.();message("Original fields restored as export source. Edited compiled version stays saved.");}
 const filename=()=>tidy(src().name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";
 function file(name,content,type="application/json"){const b=content instanceof Blob?content:new Blob([content],{type}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
@@ -100,7 +128,7 @@ function aiBrief(){return [
  ].join("\n\n")}
 function aiImport(){try{const txt=$("#compiler-ai-json").value.trim().replace(/^\x60{3}(?:json)?\s*/i,"").replace(/\x60{3}\s*$/,""),o=JSON.parse(txt),f=o.fields||o;
  for(const k of ["title","bio","core","opening"])if(typeof f[k]!=="string"||!f[k].trim())throw Error("Required "+k+" is missing.");
- if(f.core.length>25000||f.opening.length>5000)throw Error("Proposed core or greeting exceeds Fizzz limits.");
+ if(f.core.length>25000||f.opening.length>5000)throw Error("Proposed core or greeting exceeds Fizzz limits.");const bad=bioIntegrity(f.bio,src().bio);if(bad.length)throw Error("Unsafe incomplete bio proposal: "+bad.join(" "));
  if(!version)compile();version={...version,title:f.title,bio:f.bio,core:f.core,opening:f.opening,notes:[]};version.notes=checks(version);accepted=false;base=fingerprint();save();render();message("AI proposal loaded for comparison; you must approve it before exporting.");
  }catch(e){message("AI proposal rejected: "+e.message)}}
 function mount(){
