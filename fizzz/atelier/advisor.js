@@ -4,14 +4,14 @@
 (() => {
 "use strict";
 const val=(o,k)=>String(o[k]||"").trim();
-const words=s=>String(s||"").trim().split(/\s+/).filter(Boolean).length;
+
 const flat=s=>String(s||"").replace(/\s+/g," ").trim();
 const cut=(s,max=185)=>flat(s).slice(0,max)+(flat(s).length>max?"…":"");
 const noProfanity=/(?:^|\s)(?:fuck|shit|bitch|asshole)(?:\s|$)/i;
 const boilerplate=/(?:due to the fact that|in order to|at this point in time|in the event that|it should be noted that)/i;
 const rights='Give {{user}} full control over their own dialogue, feelings, decisions, actions and consent. Do not narrate their response; react to what they actually do.';
 const speech=/\b(sarcastic|sarcasm|dry humor|wry|playful|flirtatious|flirty|teasing|blunt|direct|soft.spoken|formal|measured|quiet|reserved|gentle|warm|witty|laconic)\b/ig;
-const bannedStatements=new Set(["name","age","gender","species","occupation","title"]);
+
 function evaluate(state,options={}){
  const s={...state},out=[],used=new Set(),max=options.max||28;
  const propose=(candidate)=>{
@@ -67,6 +67,17 @@ function evaluate(state,options={}){
      "The Bio is long enough to hide your actual starting promise. Keep the public hook and advisory; move behavior rules into Core Personality or lore into Worldbook.",
      "Keep: the strongest existing premise sentence, {{user}}'s situation, and what changes today. Preserve the remaining original text in the appropriate AI-facing fields.",
      "A recognizable scenario is easier to click than a full biography.","medium","First click");
+   if(name&&val(s,"occupation")&&bio.length<700&&!bio.toLowerCase().includes(name.toLowerCase())){
+      const occupation=val(s,"occupation");
+      if(occupation.length<=205&&!noProfanity.test(occupation)){
+        const intro=occupation.replace(/\s+$/,"").replace(/[.!?]+$/,"")+".";
+        const after=intro+"\n\n"+bio;
+        if(after.length<=1050)edit("bio-identity","bio",original("bio"),after,
+          "Lead your Bio with the existing character identity",
+          "Your public hook focuses on the player's situation but never names the person they meet. This suggestion reuses the exact occupational fact already in your source and leaves the original hook untouched.",
+          "Combines a recognizable character with the playable premise from the very first lines.","medium","First click");
+      }
+   }
    if(!/\{\{user\}\}|\byou\b|\byour\b|\bplayer\b/i.test(bio)&&role)
      coach("bio-player","bio","Tell the reader where they enter",
        "The Bio describes the character without directly explaining the player's starting role, even though that role is already defined.",
@@ -132,6 +143,23 @@ function evaluate(state,options={}){
      "Without an established starting relationship, the AI may assume instant affection or an invented shared history.",
      "Using only your existing plot: '{{user}} begins as [role from your source]. Their relationship starts as [canon dynamic] and changes through choices, not fixed message counts.'",
      "Creates a sustainable romance or friendship rather than a fixed-response loop.","high","Long chats");
+ if(!val(s,"motivation")&&!core){
+   const source=[val(s,"traits"),val(s,"backstory"),val(s,"concept")].join(" ");
+   const pride=source.match(/(?:he|she|they|the character)\s+(?:takes?|has)\s+(?:tremendous|great|real|immense)?\s*pride\s+in\s+([^.,;\n]{4,95})/i);
+   const explicit=source.match(/\b(?:he|she|they|the character)\s+(?:wants?|aims?|plans?)\s+to\s+[^.!?\n]{12,130}[.!?]?/i);
+   if(explicit){
+     edit("goal-from-source","motivation",original("motivation"),explicit[0].trim(),
+       "Keep the original independent goal in focus",
+       "The creator already stated this character goal. Giving it its own Fizzz field makes it easier to maintain across long conversations.",
+       "Helps romance and conflict coexist with an ongoing life outside {{user}}.","medium","Long chats");
+   }else if(pride){
+     const originalLine=pride[0].trim();
+     edit("goal-from-pride","motivation",original("motivation"),originalLine.charAt(0).toUpperCase()+originalLine.slice(1).replace(/[.!?]*$/,"")+".",
+       "Keep the existing source of pride active",
+       "This motivation is extracted from the author's own stated personality, not invented for a trope. Review whether it belongs among ongoing goals.",
+       "Gives the character something important to pursue beyond the initial attraction.","medium","Long chats");
+   }
+ }
  if(!val(s,"motivation")&&!/\b(?:goal|wants to|determined to|aims to|must protect|working toward)\b/i.test([core,val(s,"traits"),val(s,"backstory")].join(" "))){
    coach("character-life",protectCore?"coreRaw":"motivation","Keep the character's own goal alive",
      "A character without a continuing personal goal may drop work, loyalties or mysteries once romance starts.",
@@ -203,7 +231,10 @@ function evaluate(state,options={}){
  if(reducer){
   for(const field of ["coreRaw","traits","backstory","relationship","behavior","bio","motivation","voice","conflict"]){
    const source=original(field);
-   if(!source||source.length>24000||!boilerplate.test(source)&&!/\n{3,}|[ \t]+$/m.test(source))continue;
+   if(!source||source.length>24000)continue;
+   const pieces=source.split(/\n\s*\n/).filter(Boolean).map(flat).filter(x=>x.length>=80);
+   const duplicates=pieces.length!==new Set(pieces.map(x=>x.toLowerCase())).size;
+   if(!duplicates&&!boilerplate.test(source)&&!/\n{3,}|[ \t]+$/m.test(source))continue;
    const small=reducer.reduce(field,source);
    if(small.changed&&small.tokensSaved>=1&&canApply(field,small.proposed)){
      edit("trim-"+field,field,source,small.proposed,"Remove redundant phrasing from "+field,
