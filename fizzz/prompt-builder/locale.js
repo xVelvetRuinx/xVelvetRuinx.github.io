@@ -335,7 +335,7 @@ function translate(s){
  if(ES[trimmed])return value.slice(0,value.indexOf(trimmed))+ES[trimmed]+value.slice(value.indexOf(trimmed)+trimmed.length);
  if(/^Worldbook ([1-3])$/.test(trimmed))return value.replace(/Worldbook ([1-3])/,(_,n)=>"Libro de mundo "+n);
  if(/^WORLDBOOK ([1-3])$/.test(trimmed))return value.replace(/WORLDBOOK ([1-3])/,(_,n)=>"LIBRO DE MUNDO "+n);
- if(/^Complete Worldbook ([1-3]) lore · 10,000 max$/.test(trimmed))return value.replace(trimmed,"Contenido completo del libro "+RegExp.$1+" · máximo 10.000");
+ const loreNum=trimmed.match(/^Complete Worldbook ([1-3]) lore · 10,000 max$/);if(loreNum)return value.replace(trimmed,"Contenido completo del libro "+loreNum[1]+" · máximo 10.000");
  if(/^\d+ \/ 10 selected$/.test(trimmed))return value.replace(" selected"," seleccionadas");
  if(/^Selected: /.test(trimmed))return "Seleccionadas: "+trimmed.slice(10); // Tag labels are official and unchanged.
  if(/^Fizzz guide — /.test(trimmed)){
@@ -348,7 +348,7 @@ function translate(s){
 function excluded(node){
  const p=node?.parentElement;if(!p)return true;
  if(p.tagName==="OPTION")return false; // Translate visible options, preserve underlying option values.
- return !!p.closest('script,style,textarea,input,pre,code,option[value=""],[contenteditable],[data-key],.chips,.review-original,.review-issues,.review-prompt,.review-proposal,.wb-transfer-top h4,.wb-transfer-status,#import-status,#worldbooks-import-status,#export-suite-status,#compiler-status,#side-name,#side-sub,#side-hook,#core-preview,#opening-preview,#output-fields,#suggestion-list,.review-note,.review-copy textarea,#toast,#readiness,#session-protection-status,#extracted-source-preview');
+ return !!p.closest('script,style,textarea,input,pre,code,option[value=""],[contenteditable],[data-key],.chips,.review-original,.review-issues,.review-prompt,.review-proposal,.wb-transfer-top h4,#side-name,#side-sub,#side-hook,#core-preview,#opening-preview,#output-fields,#suggestion-list,.review-copy textarea,#toast,#extracted-source-preview');
 }
 function textNode(node){
  if(excluded(node))return;
