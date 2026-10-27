@@ -52,6 +52,18 @@ function normalizeTags(raw){
  return valid;
 }
 const limit=k=>k==="initialRaw"?5000:k.endsWith("Body")?10000:k==="coreRaw"?25000:null;
+function normalizeIncomingFields(raw){
+ const normalized={...initial};
+ if(!raw||typeof raw!=="object")return normalized;
+ for(const key of Object.keys(initial)){
+  const value=raw[key];
+  if(typeof value==="string")normalized[key]=value;
+  else if(key==="age"&&typeof value==="number"&&Number.isFinite(value))normalized[key]=String(value);
+  else if(key.endsWith("Keywords")&&Array.isArray(value))normalized[key]=value.filter(x=>typeof x==="string").join(", ");
+ }
+ return normalized;
+}
+
 const escape=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 function copy(t){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(t);const el=document.createElement("textarea");el.value=t;document.body.append(el);el.select();document.execCommand("copy");el.remove();return Promise.resolve();}
 function download(name,text,type="text/plain"){const a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:type+";charset=utf-8"}));a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
@@ -473,7 +485,7 @@ function mergeParsed(parsed,name,source){
   return;
  }
  /* Import history is not persisted. Export a backup explicitly before replacing an active draft. */
- data={...initial,...incoming};chosen=normalizeTags(parsed.tags);
+ data=normalizeIncomingFields(incoming);chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(parsed.compiler_draft||null);
  const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
@@ -513,9 +525,9 @@ async function loadFile(file,forWorld=null){
 }
 function isReadiness(){
  const issues=[],core=coreCompiled(),op=openingCompiled();
- if(!data.title.trim())issues.push("Public title missing.");
- if(!data.name.trim())issues.push("Chat name missing.");
- if(!data.bio.trim())issues.push("Public bio missing.");
+ if(!str(data.title).trim())issues.push("Public title missing.");
+ if(!str(data.name).trim())issues.push("Chat name missing.");
+ if(!str(data.bio).trim())issues.push("Public bio missing.");
 
  if(core.length>25000)issues.push("Core exceeds Fizzz's 25,000-character limit.");
  else if(core.length>10000)issues.push("Core exceeds the recommended 10,000 characters but is within the 25,000 maximum.");
@@ -547,12 +559,12 @@ function buildSuggestions(){
  const bio=data.bio||"",greet=openingCompiled(),core=coreCompiled();
  /* Complete bio reviews now live directly under the Public Bio field. Length alone is never a suggested defect. */
  if(bio&&!/\byou\b|\{\{user\}\}/i.test(bio))rec.push({field:"bio",title:"Clarify the player's entry point in the existing premise",why:"A public description should show what role the player has and what decision is possible. Avoid appending generic questions or writing {{user}}'s actions; revise the relevant paragraph using the established story and voice.",before:bio,after:bio,priority:"medium",manual:true});
- if(data.title.length>94)rec.push({field:"title",title:"Review public title length without damaging the hook",why:"The title is long. If you shorten it, retain the character name and the recognizable trope rather than automatically cutting off the last words.",before:data.title,after:data.title,priority:"medium",manual:true});
- if(data.boundaries&&!/never (?:write|narrate|determine).*?\{\{user\}\}/i.test(data.boundaries))add("boundaries","Clarify player agency","Explicit player agency rules help avoid the bot narrating {{user}}'s decisions.",data.boundaries.trim()+"\n- Never write {{user}}'s dialogue, internal thoughts, or completed choices.","high");
- if(!data.motivation.trim()&&data.backstory.trim())rec.push({field:"motivation",title:"Give the character a lasting independent goal",why:"Existing history should cause decisions outside romance. Draft a goal using facts from the source rather than inventing canon.",before:"",after:"[Write an independent objective grounded in the imported backstory.]",priority:"high",manual:true});
+ if(str(data.title).length>94)rec.push({field:"title",title:"Review public title length without damaging the hook",why:"The title is long. If you shorten it, retain the character name and the recognizable trope rather than automatically cutting off the last words.",before:data.title,after:data.title,priority:"medium",manual:true});
+ if(data.boundaries&&!/never (?:write|narrate|determine).*?\{\{user\}\}/i.test(data.boundaries))add("boundaries","Clarify player agency","Explicit player agency rules help avoid the bot narrating {{user}}'s decisions.",str(data.boundaries).trim()+"\n- Never write {{user}}'s dialogue, internal thoughts, or completed choices.","high");
+ if(!str(data.motivation).trim()&&str(data.backstory).trim())rec.push({field:"motivation",title:"Give the character a lasting independent goal",why:"Existing history should cause decisions outside romance. Draft a goal using facts from the source rather than inventing canon.",before:"",after:"[Write an independent objective grounded in the imported backstory.]",priority:"high",manual:true});
  if(greet.length>5000)rec.push({field:"initialRaw",title:"Opening is over the 5,000-character limit",why:"Revise selectively while keeping scene, voice, dialogue and the unresolved player choice. Automatic truncation is deliberately disabled.",before:greet,after:greet,priority:"high",manual:true});
  if(core.length>10000)rec.push({field:"traits",title:"Core is rich but above the recommended length",why:"Compare recurring facts against Worldbooks before selectively moving secondary lore. Fizzz allows 25,000 characters; no cuts are applied automatically.",before:data.traits||"",after:data.traits||"",priority:"medium",manual:true});
- if(!data.imageDirection.trim())rec.push({field:"imageDirection",title:"Add a consistent 9:16 portrait brief","why":"The image model does not read the personality automatically; describe age, hair, eyes, scar, clothing and style before generating art.",before:"",after:"[Use appearance facts from the character core to create an exact 9:16 single-subject image brief.]",priority:"medium",manual:true});
+ // Media & Voice were removed; no suggestions should target deleted fields.
  for(let n=1;n<=3;n++)if(data["world"+n+"Title"]&&!data["world"+n+"Body"]){rec.push({field:"world"+n+"Body",title:"Worldbook "+n+" needs its actual lore",why:"Your source contains title/trigger/outline metadata, not the full entry. Upload the original complete Worldbook rather than generating its facts from a summary.",before:"",after:"",priority:"high",manual:true});}
  recommendations=rec;return rec;
 }
@@ -567,7 +579,7 @@ function renderSuggestions(){
    const block=document.createElement("div"),b=document.createElement("b"),pre=document.createElement("pre");b.textContent=label;pre.textContent=(value||"(empty)").slice(0,6000);block.append(b,pre);row.append(block);
   }
   const act=document.createElement("div");act.className="actions";
-  const jump=document.createElement("button");jump.type="button";jump.textContent="Edit "+r.field;jump.addEventListener("click",()=>{let section=r.field.startsWith("world")?"world":defs.core.some(x=>x[0]===r.field)?"core":defs.profile.some(x=>x[0]===r.field)?"profile":defs.opening.some(x=>x[0]===r.field)?"opening":"media";showTab(section);const el=$("#field-"+r.field);el?.scrollIntoView({block:"center",behavior:"smooth"});el?.focus();});act.append(jump);
+  const jump=document.createElement("button");jump.type="button";jump.textContent="Edit "+r.field;jump.addEventListener("click",()=>{let section=r.field.startsWith("world")?"world":defs.core.some(x=>x[0]===r.field)?"core":defs.profile.some(x=>x[0]===r.field)?"profile":defs.opening.some(x=>x[0]===r.field)?"opening":"profile";showTab(section);const el=$("#field-"+r.field);el?.scrollIntoView({block:"center",behavior:"smooth"});el?.focus();});act.append(jump);
   if(!r.manual){const apply=document.createElement("button");apply.type="button";apply.textContent="✓ Apply this specific edit";apply.className="primary";apply.addEventListener("click",()=>{if(data[r.field]!==r.before){notify("Field has changed; refresh suggestions before applying.");return;}if(r.field==="bio"){const gate=bioIntegrity(r.after,r.before);if(!gate.valid){notify("Cannot apply incomplete bio: "+gate.issues.join(" "));return;}}data[r.field]=r.after;rerender();save();buildSuggestions();renderSuggestions();notify("Only this edit was applied. Original file remains available.");});act.append(apply);}
   if(!r.field.startsWith("world") && r.field!=="imageDirection"){
    const ai=document.createElement("button");
@@ -603,7 +615,7 @@ function project(){return {builder:"VelvetRuin Fizzz Prompt Builder",version:2,d
  export_note:"This JSON is a manually downloaded backup. Nothing is saved automatically after this tab closes."};}
 function filename(){return (data.name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";}
 function sendProject(){download(filename()+"-fizzz-project.json",JSON.stringify(project(),null,2),"application/json");window.FizzzSessionPrivacy?.backedUp?.();notify("Backup downloaded. Keep the JSON file to restore your character later.");}
-async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data={...initial,...obj.data};chosen=normalizeTags(obj.tags);original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(obj.compiler_draft||null);notify("Project restored into this tab only. Export a backup before closing.");}
+async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data=normalizeIncomingFields(obj.data);chosen=normalizeTags(obj.tags);original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(obj.compiler_draft||null);notify("Project restored into this tab only. Export a backup before closing.");}
 function init(){
  readSaved();for(const name of Object.keys(defs))fieldRender(name);worldRender();tagsRender();rerender();
  $("#tag-search")?.addEventListener("input",tagsRender);
