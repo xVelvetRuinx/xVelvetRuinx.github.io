@@ -181,7 +181,7 @@ function dataFromNumbered(source){
   if(matches.length===1)h.push({index:at,0:line,1:Number(matches[0][0]),2:label});
  }
  if(h.length<10||!h.some(x=>x[1]===7)||!h.some(x=>x[1]===21))return null;
- const config=text.search(/^(?:#{1,6}\s*)?(?:NIKO VARELA\s*[—–-]\s*)?WORLDBOOK CONFIGURATION\s*$/im),sec={};
+ const config=text.search(/^(?:#{1,6}\s*)?(?:[\p{L}\p{N} '\-]+\s*[—–-]\s*)?WORLDBOOK CONFIGURATION\s*$/imu),sec={};
  for(let i=0;i<h.length;i++){let end=i+1<h.length?h[i+1].index:text.length;if(+h[i][1]===21&&config>=0)end=Math.min(end,config);const val=text.slice(h[i].index+h[i][0].length,end).trim();if(!sec[h[i][1]])sec[h[i][1]]=val;}
  const d={...initial},messages=[];
  d.title=sec[1]||"";d.name=sec[2]||"";
