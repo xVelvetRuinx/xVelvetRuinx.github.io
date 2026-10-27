@@ -291,12 +291,16 @@ function parseExportedFields(source){
   if(h.number){
    const n=h.number,p="world"+n;countBooks++;d[p+"Title"]=h.label;
    const lines=value.split("\n");
-   const activation=lines.find(x=>/^\s*\*{0,2}Activation\s*:/i.test(x))||"";
-   const keys=lines.find(x=>/^\s*\*{0,2}Keywords\s*:/i.test(x))||"";
+   const activationIndex=lines.findIndex(x=>/^\s*Activation\s*:/i.test(x.replace(/\*/g,"")));
+   const keywordsIndex=lines.findIndex(x=>/^\s*Keywords\s*:/i.test(x.replace(/\*/g,"")));
+   const activation=activationIndex>=0?lines[activationIndex].replace(/\*/g,""):"";
+   const keys=keywordsIndex>=0?lines[keywordsIndex].replace(/\*/g,""):"";
    d[p+"Mode"]= /always active|:\s*always/i.test(activation)?"always":"keyword";
-   const parsedKeys=keys.replace(/\*/g,"").replace(/^\s*Keywords\s*:\s*/i,"").trim();
+   let parsedKeys=keys.replace(/^\s*Keywords\s*:\s*/i,"").trim();
+   const continuation=keywordsIndex>=0&&!parsedKeys&&lines[keywordsIndex+1]?.trim()?keywordsIndex+1:-1;
+   if(continuation>=0)parsedKeys=lines[continuation].trim();
    d[p+"Keywords"]= /^(none|none required|n\/a)$/i.test(parsedKeys)?"":parsedKeys;
-   const lore=lines.filter(line=>line!==activation&&line!==keys).join("\n").trim();
+   const lore=lines.filter((line,i)=>i!==activationIndex&&i!==keywordsIndex&&i!==continuation).join("\n").trim();
    if(lore&&!/^\[(?:Missing full lore|No full lore imported|Outline only|Full source lore missing)/i.test(lore))d[p+"Body"]=lore;
    continue;
   }
