@@ -61,15 +61,17 @@ function legacyPackage(){
  return payload;
 }
 function downloadRecovery(){
- if(!backupPending)return;
+ if(!Object.keys(recovered).length)return;
  const content=JSON.stringify(legacyPackage(),null,2);
  const blob=new Blob([content],{type:"application/json"}),url=URL.createObjectURL(blob);
  const a=document.createElement("a");a.href=url;a.download="fizzz-previous-browser-draft-recovery.json";
  document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),4000);
- backupPending=false;recovered={};
+ // Retain the one-time recovery in tab memory until close, so a browser-blocked
+ // download can be retried. Nothing is written back to storage.
+ backupPending=false;
  const banner=document.getElementById("legacy-recovery-banner");
- if(banner)banner.remove();
+ const p=banner?.querySelector("p");if(p)p.textContent="Recovery download requested. Check your Downloads folder. You can press the button again until this tab closes. Nothing was restored or permanently saved in the browser.";
  updated();
 }
 function showRecovery(){
