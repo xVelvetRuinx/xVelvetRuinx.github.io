@@ -339,7 +339,7 @@ function translate(s){
  if(/^\d+ \/ 10 selected$/.test(trimmed))return value.replace(" selected"," seleccionadas");
  if(/^Selected: /.test(trimmed))return "Seleccionadas: "+trimmed.slice(10); // Tag labels are official and unchanged.
  if(/^Fizzz guide — /.test(trimmed)){
-  const raw=trimmed.slice(14),colon=raw.indexOf(": ");
+  const raw=trimmed.slice("Fizzz guide — ".length),colon=raw.indexOf(": ");
   return "Guía Fizzz — "+(colon>=0?translate(raw.slice(0,colon))+": "+translate(raw.slice(colon+2)):translate(raw));
  }
  if(/^Worldbook ([1-3]): missing complete lore/i.test(trimmed))return value.replace(/^Worldbook ([1-3]): missing complete lore/i,(_,n)=>"Libro "+n+": falta el contenido completo");
