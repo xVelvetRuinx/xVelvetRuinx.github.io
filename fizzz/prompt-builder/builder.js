@@ -4,7 +4,8 @@
 "use strict";
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
 const store="velvetruin.fizzz.promptbuilder.v1";
-const tagsKnown=["Romance","Slow Burn","Arranged Marriage","Mafia","Crime","Omegaverse","Protective","Workplace","Boss","Forbidden Romance","Friends to Lovers","Enemies to Lovers","Forced Proximity","Sports","Comfort","Drama","Marriage Drama","Fantasy","Mystery","Supernatural","Green Flag","Rivals","Werewolf","Vampire","Gothic"];
+const tagsKnown=["Female","Male","Trans","Non-binary","Femboy","AnyPOV","MalePOV","FemPOV","SFW","NSFW","OC","Fictional","Game","Anime","Movies / TV","Books","MLM","WLW","Enemies to Lovers","Friends to Lovers","Love Interest","Harem","Reverse Harem","Polyamory","Multiple People","Dominant","Submissive","Switch","Villain","Hero","Yandere","Tsundere","Kuudere","Smut","Fluff","Angst","Comedy","Dead Dove","Horror","Drama","Slow Burn","Wholesome","Historical","Royalty","Sci-Fi","Magical","RPG","Scenario","Demi-Human","Monster Girl","Monster","Non-Human","Vampire","Elf","Werewolf","Demon","Angel","Dragon","Furry","Robot","Alien","Mafia","Military","Police","CEO / Boss","Teacher","Student","Doctor","Nurse","Maid","Butler","Knight","Assassin","Spy","Bodyguard","Idol","Rockstar","Model","Pirate"];
+const TAG_LIMIT=10;
 const defs={
 profile:[
 ["title","Public Title","Short, recognizable romantic hook for the Fizzz discovery card.","text"],
@@ -42,6 +43,14 @@ initial.pov="Any POV";initial.rating="Limited";
 let data={...initial},chosen=[],original="",originalName="",recommendations=[],sourceNotes=[];
 const norm=x=>String(x||"").toLowerCase().replace(/[#*[\]_.:—–/()-]+/g," ").replace(/\s+/g," ").trim();
 const str=x=>String(x??"").replace(/\r\n?/g,"\n");
+const tagKey=x=>String(x||"").replace(/^#/,"").toLowerCase().replace(/[^a-z0-9]+/g,"");
+const tagAliases=Object.freeze({anypov:"AnyPOV",malepov:"MalePOV",femalepov:"FemPOV",femalepointofview:"FemPOV",malepointofview:"MalePOV",boss:"CEO / Boss",mafiaromance:"Mafia",dominantalpha:"Dominant"});
+function normalizeTags(raw){
+ const parts=Array.isArray(raw)?raw:typeof raw==="string"?raw.split(/[,;\n]+/):[];
+ const known=new Map(tagsKnown.map(t=>[tagKey(t),t])),valid=[];
+ for(const entry of parts){const key=tagKey(entry),tag=tagAliases[key]||known.get(key);if(tag&&!valid.includes(tag))valid.push(tag);if(valid.length>=TAG_LIMIT)break;}
+ return valid;
+}
 const limit=k=>k==="initialRaw"?5000:k.endsWith("Body")?10000:k==="coreRaw"?25000:null;
 const escape=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 function copy(t){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(t);const el=document.createElement("textarea");el.value=t;document.body.append(el);el.select();document.execCommand("copy");el.remove();return Promise.resolve();}
@@ -49,7 +58,7 @@ function download(name,text,type="text/plain"){const a=document.createElement("a
 function notify(t){const x=$("#toast");x.textContent=t;x.style.display="block";clearTimeout(notify._timer);notify._timer=setTimeout(()=>x.style.display="none",3300);}
 function mark(t,state=""){const x=$("#import-status");x.className="import-status "+state;x.textContent=t;}
 function save(){try{localStorage.setItem(store,JSON.stringify({data,chosen,original,originalName}));}catch{}}
-function readSaved(){try{const x=JSON.parse(localStorage.getItem(store)||"null");if(x&&x.data){data={...initial,...x.data};chosen=x.chosen||[];original=x.original||"";originalName=x.originalName||"";}}catch{}}
+function readSaved(){try{const x=JSON.parse(localStorage.getItem(store)||"null");if(x&&x.data){data={...initial,...x.data};chosen=normalizeTags(x.chosen);original=x.original||"";originalName=x.originalName||"";}}catch{}}
 function fieldRender(group){
  const parent=$("#fields-"+group);
  for(const [key,label,help,kind,options] of defs[group]){
@@ -91,9 +100,23 @@ function worldRender(){
  }
 }
 function tagsRender(){
- const p=$("#tag-choices");p.replaceChildren();
- for(const t of tagsKnown){const b=document.createElement("button");b.type="button";b.className="chip"+(chosen.includes(t)?" on":"");b.textContent=t;b.setAttribute("aria-pressed",chosen.includes(t)?"true":"false");
- b.addEventListener("click",()=>{if(chosen.includes(t))chosen=chosen.filter(x=>x!==t);else if(chosen.length<7)chosen.push(t);else {notify("Seven optional tags maximum. Remove one before adding another.");return;}tagsRender();save();refresh();});p.append(b);}
+ const p=$("#tag-choices"),query=String($("#tag-search")?.value||"").trim().toLowerCase();
+ p.replaceChildren();
+ for(const t of tagsKnown){
+  if(query&&!t.toLowerCase().includes(query))continue;
+  const b=document.createElement("button");b.type="button";b.className="chip"+(chosen.includes(t)?" on":"");
+  b.textContent=t;b.setAttribute("aria-pressed",chosen.includes(t)?"true":"false");
+  b.addEventListener("click",()=>{
+   if(chosen.includes(t))chosen=chosen.filter(x=>x!==t);
+   else if(chosen.length<TAG_LIMIT)chosen.push(t);
+   else{notify("You can select up to 10 Fizzz tags. Remove one to add another.");return;}
+   tagsRender();save();refresh();
+  });
+  p.append(b);
+ }
+ const count=$("#tag-count");if(count)count.textContent=chosen.length+" / "+TAG_LIMIT+" selected";
+ const selected=$("#tag-selected");if(selected)selected.textContent=chosen.length?"Selected: "+chosen.join(" · "):"No tags selected yet.";
+ const empty=$("#tag-empty");if(empty)empty.hidden=!!p.childElementCount;
 }
 function coreCompiled(){
  const revised=window.VelvetRuinFizzzCompiler?.selectedText("core");if(revised!==null&&revised!==undefined)return revised;
@@ -228,9 +251,8 @@ function dataFromNumbered(source){
   }
   messages.push("This file contains Worldbook 1–3 configuration and summaries, not the complete three lore bodies. Import the complete entries separately.");
  }
- const incoming=(d.bio.match(/#[A-Za-z][A-Za-z0-9]+/g)||[]).map(x=>x.slice(1).toLowerCase());
- const synonyms={mafiaromance:"Mafia",arrangedmarriage:"Arranged Marriage",darkromance:"Romance",dominantalpha:"Omegaverse",protectivealpha:"Protective",marriageofconvenience:"Arranged Marriage",slowburn:"Slow Burn",omegaverse:"Omegaverse",romance:"Romance"};
- const tags=[...new Set(incoming.map(t=>synonyms[t]||tagsKnown.find(k=>norm(k).replace(/ /g,"")===t)).filter(Boolean))].slice(0,7);
+ const incoming=(d.bio.match(/#[A-Za-z][A-Za-z0-9]+/g)||[]).map(x=>x.slice(1));
+ const tags=normalizeTags(incoming);
  return {fields:d,tags,messages,kind:"Full 21-section Fizzz character"};
 }
 /* Parse the field-by-field TXT/Markdown output of THIS creator before
@@ -451,7 +473,7 @@ function mergeParsed(parsed,name,source){
   return;
  }
  try{localStorage.setItem(store+".previous-draft",JSON.stringify({data,chosen,original,originalName}));}catch{}
- data={...initial,...incoming};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
+ data={...initial,...incoming};chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
  const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
@@ -563,7 +585,7 @@ function renderSuggestions(){
  }
 }
 function analyse(){
- const issues=isReadiness(),r=$("#readiness");r.textContent=issues.length?"Publishing checklist: "+issues.join(" • "):"✓ Required text present and measured limits passed. Verify tags, voice and media on Fizzz before publishing.";
+ const issues=isReadiness(),r=$("#readiness");r.textContent=issues.length?"Publishing checklist: "+issues.join(" • "):"✓ Required character text is ready. Select up to 10 discovery tags and transfer Worldbooks separately before publishing.";
  buildSuggestions();renderSuggestions();
 }
 function renderOutput(){
@@ -578,9 +600,11 @@ function renderOutput(){
 function project(){return {builder:"VelvetRuin Fizzz Prompt Builder",version:1,data,source_filename:originalName,original_source:original,tags:chosen,export_note:"Editable source project; use Restore Saved JSON to re-import."};}
 function filename(){return (data.name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";}
 function sendProject(){download(filename()+"-fizzz-project.json",JSON.stringify(project(),null,2),"application/json");}
-async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data={...initial,...obj.data};chosen=obj.tags||[];original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();notify("Project restored.");}
+async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data={...initial,...obj.data};chosen=normalizeTags(obj.tags);original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();notify("Project restored.");}
 function init(){
  readSaved();for(const name of Object.keys(defs))fieldRender(name);worldRender();tagsRender();rerender();
+ $("#tag-search")?.addEventListener("input",tagsRender);
+ $("#tag-clear")?.addEventListener("click",()=>{chosen=[];tagsRender();save();refresh();});
  $$(".tab").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.tab)));
  $$(".next").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.to)));
  $("#jump-import").addEventListener("click",()=>{$("#import-box").open=true;$("#drop-area").scrollIntoView({behavior:"smooth",block:"center"})});
@@ -597,7 +621,7 @@ function init(){
  $("#download-notes").addEventListener("click",()=>download(filename()+"-improvement-report.txt",["SOURCE MAPPING NOTES",...sourceNotes,"","READINESS CHECKS",...isReadiness(),"","EDITORIAL SUGGESTIONS",...buildSuggestions().map(r=>r.title+"\nField: "+r.field+"\nReason: "+r.why)].join("\n")));
  $("#export-png-image")?.addEventListener("change",e=>notify(e.target.files?.[0]?"Portrait selected for PNG export: "+e.target.files[0].name:"PNG card will use the typographic background."));
  // Compatibility with ../atelier/export-suite.js for actual JSON/DOCX/PNG exports.
- window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,refreshReview:()=>{refresh();renderOutput();},backup:()=>JSON.stringify(project(),null,2)});
+ window.FizzzAtelier=Object.freeze({availableTags:()=>tagsKnown.slice(),tagLimit:TAG_LIMIT,getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,refreshReview:()=>{refresh();renderOutput();},backup:()=>JSON.stringify(project(),null,2)});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
