@@ -540,10 +540,12 @@ function mergeParsed(parsed,name,source){
  // Importing a character-only package must not erase its three already-edited
  // Worldbooks. Never carry lore to a DIFFERENT character.
  if(sameCharacter&&["Native Fizzz publishing-field manuscript","Character Card V2","Fizzz field package","Full 21-section Fizzz character"].includes(parsed.kind)){
+  let preserved=0;
   for(let n=1;n<=3;n++)for(const part of ["Title","Mode","Keywords","Body"]){
    const k="world"+n+part;
-   if((incoming[k]===undefined||incoming[k]===null||incoming[k]==="")&&String(data[k]||"").trim())incoming[k]=data[k];
+   if((incoming[k]===undefined||incoming[k]===null||incoming[k]==="")&&String(data[k]||"").trim()){incoming[k]=data[k];preserved++;}
   }
+  if(preserved)parsed.messages=[...(parsed.messages||[]),"Retained "+preserved+" existing Worldbook fields for the same character; this source did not contain replacements."];
  }
  data=normalizeIncomingFields(incoming);chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
@@ -589,9 +591,13 @@ async function loadFile(file,forWorld=null){
  const published=parseExportedFields(content);
  const structured=published?null:dataFromNumbered(content);
  const containsCore=Boolean(published||structured||/^(?:#{0,4}\s*)?(?:name|character name|character chat name|public title|public bio|core personality|initial message|greeting|scenario)\s*:/im.test(content));
- const isBundle=/^\s*\{\s*"format"\s*:\s*"VelvetRuin Fizzz Worldbook Bundle"/.test(content)||(()=>{try{return JSON.parse(content).format==="VelvetRuin Fizzz Worldbook Bundle"}catch{return false}})();
- if(world.entries.length&&(isBundle||(!containsCore&&world.entries.some(x=>x.content)))){
-  importBookEntries(world.entries,{label:file.name});return;
+ const jsonMeta=(()=>{try{return JSON.parse(content)}catch{return null}})();
+ const isBundle=jsonMeta?.format==="VelvetRuin Fizzz Worldbook Bundle";
+ const isCharacterJSON=Boolean(jsonMeta?.builder||jsonMeta?.spec||jsonMeta?.profile||jsonMeta?.character?.name||jsonMeta?.data?.name||jsonMeta?.name||jsonMeta?.initial_message||jsonMeta?.core_personality);
+ if(world.entries.length&&(isBundle||(!containsCore&&!isCharacterJSON&&world.entries.some(x=>x.content)))){
+  const done=importBookEntries(world.entries,{label:file.name});
+  if(done){mark("✓ Imported "+world.entries.length+" separate Worldbooks from "+file.name+"; the existing character was preserved.","success");showTab("world");}
+  return;
  }
  const parsed=published||structured||parseGeneric(content,ext);
  if(world.entries.length){
