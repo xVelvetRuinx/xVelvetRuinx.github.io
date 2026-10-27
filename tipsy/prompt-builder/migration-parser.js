@@ -220,7 +220,7 @@ function analyze(input,{mode="tuned",format="text"}={}){
      }
    }
    const remainder=[inner.fields.personality,inner.unmapped].filter(Boolean).join("\n\n");
-   if(remainder && remainder.trim()!==fields.personality.trim()){
+   if(remainder && remainder.trim()!==String(fields.personality||"").trim()){
      fields.personality=remainder;
      relocated.personality="Separated clearly labeled appearance, history or lore into dedicated Tipsy fields. Compare against the original and check that no detail was misplaced.";
      notices.push("The imported personality contained labeled subsections. Compare its original text with the separated fields for completeness.");
@@ -235,7 +235,7 @@ function analyze(input,{mode="tuned",format="text"}={}){
   }
  }
  if(!fields.name){
-  const first=parsed.unmapped.split("\n").map(x=>x.trim()).find(Boolean);
+  const first=String(parsed.unmapped||"").split("\n").map(x=>x.trim()).find(Boolean);
   const possible=first?first.replace(/^#+\s*|^\*+\s*/g,"").split(/\s+[—|]\s+/)[0].replace(/\s*\(\d{2,3}\)\s*$/,"").trim():"";
   if(possible&&/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){0,2}$/u.test(possible)){
    add("name",possible,"Possible name inferred from a standalone heading; verify spelling.");
@@ -370,8 +370,8 @@ async function extract(file){
  if(ext==="docx"){
    await script("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.13.0/mammoth.browser.min.js",()=>!!window.mammoth);
    const data=await window.mammoth.extractRawText({arrayBuffer:buf});
-   if(!data.value.trim())throw Error("The Word file has no selectable text. Save it as .txt first.");
-   return {text:data.value,format:"text",filename:file.name,warnings:(data.messages||[]).slice(0,2).map(x=>x.message)};
+   if(typeof data?.value!=="string"||!data.value.trim())throw Error("The DOCX reader returned no readable text. Try exporting this document as UTF-8 TXT, then upload it again.");
+   return {text:data.value,format:"text",filename:file.name,warnings:(Array.isArray(data.messages)?data.messages:[]).slice(0,2).map(x=>String(x?.message||"Document reader notice"))};
  }
  if(ext==="pdf"){
    await script("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",()=>!!window.pdfjsLib);
@@ -381,7 +381,7 @@ async function extract(file){
    const pages=[];
    for(let i=1;i<=pdf.numPages;i++){
     const page=await pdf.getPage(i),content=await page.getTextContent();
-    const line=content.items.map(x=>x.str+(x.hasEOL?"\n":" ")).join("").trim();
+    const line=(content?.items||[]).map(x=>String(x?.str||"")+(x?.hasEOL?"\n":" ")).join("").trim();
     if(line)pages.push(line);
    }
    if(!pages.length)throw Error("This PDF has no selectable text. Scanned pages must be converted to text first.");
