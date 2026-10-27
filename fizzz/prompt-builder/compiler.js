@@ -3,7 +3,7 @@
 "use strict";
 const $=s=>document.querySelector(s),ORDER=["occupation","species","appearance","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice"];
 const LABELS=["Identity & Role","Species & Biology","Appearance","Causal Background","Observable Personality","Internal Contradiction","Goals & Lasting Drive","Relationship With {{user}}","Growth & Pressure","Agency & Boundaries","Speaking Style"];
-const BUDGET=[520,800,950,850,1500,650,720,1120,980,1050,760],STORE="vr.fizzz.compiled.v2";
+const BUDGET=[520,800,950,850,1500,650,720,1120,980,1050,760];
 let version=null,accepted=false,base="";
 const src=()=>window.FizzzAtelier?.getState()||{};
 const tidy=s=>String(s||"").replace(/\r\n?/g,"\n").trim();
@@ -68,24 +68,28 @@ function checks(d){const m=[...bioIntegrity(d.bio,src().bio)];if(d.core.length>2
 function compile(mode="balanced"){const s=src(),c=coreCompile(mode);
  version={title:tidy(s.title),bio:bioCompile(),core:c.text,opening:intro(),originalCore:c.original,removed:c.removed,mode,notes:[],bioQualityV2:true};version.notes=checks(version);
  base=fingerprint();accepted=false;save();render();return version;}
-function save(){try{localStorage.setItem(STORE,JSON.stringify({version,accepted,base}))}catch{}}
-function load(){
- try{
-  const o=JSON.parse(localStorage.getItem(STORE)||"null");
-  if(!o)return;
-  version=o.version;accepted=o.accepted;base=o.base;
-  if(version&&!version.bioQualityV2){
-   const reference=tidy(src().bio),bad=bioIntegrity(version.bio,reference);
-   if(bad.length){
-    // Keep a backup of the user's old draft before restoring the original bio.
-    try{localStorage.setItem(STORE+".legacy-bio-backup",JSON.stringify(o));}catch{}
-    version.bio=reference;
-    accepted=false;
-    version.notes=[...checks(version),"An earlier compiler generated an incomplete bio. The full original bio has been restored; approve again after review."];
-   }
-   version.bioQualityV2=true;save();
-  }
- }catch{}
+function save(){window.FizzzSessionPrivacy?.edited?.();}
+function load(){/* No autosave. Only the current tab's JS memory is used. */}
+function snapshot(){
+ return {version:version?JSON.parse(JSON.stringify(version)):null,accepted,base};
+}
+function restoreSnapshot(saved){
+ if(saved?.version&&typeof saved.version.core==="string"&&typeof saved.version.opening==="string"){
+  version=JSON.parse(JSON.stringify(saved.version));
+  accepted=Boolean(saved.accepted);
+  base=String(saved.base||"");
+  if(base!==fingerprint())accepted=false;
+  version.notes=checks(version);
+  render();
+  message(accepted?"Compiled character restored from a manually uploaded backup.":"Compiled draft restored for review from a manually uploaded backup.");
+ }else{
+  version=null;accepted=false;base="";
+  for(const key of ["title","bio","core","opening"]){const area=$("#compiled-"+key);if(area)area.value="";}
+  const measure=$("#compiler-measure");if(measure)measure.textContent="Nothing compiled yet. Start with an import or blank character.";
+  const approve=$("#compiler-approve");if(approve)approve.disabled=true;
+  const selected=$("#compiler-selected");if(selected)selected.textContent="No compiled draft selected. All character data exists only until this tab closes.";
+  message("Fresh in-memory character. No compiler draft is stored or restored automatically.");
+ }
 }
 function message(t){const x=$("#compiler-status");if(x)x.textContent=t}
 function render(skipFields=false){if(!version)return;
@@ -97,7 +101,7 @@ function render(skipFields=false){if(!version)return;
 }
 function edit(){if(!version)return;for(const k of ["title","bio","core","opening"])version[k]=$("#compiled-"+k).value;version.notes=checks(version);accepted=false;save();render(true)}
 function approve(){if(!version)return;if(base!==fingerprint())return message("Source fields changed since compilation. Recompile before approving.");if(version.core.length>25000||version.opening.length>5000)return message("Exceeds Fizzz length limits."); const problems=bioIntegrity(version.bio,src().bio);if(problems.length)return message("Bio needs review: "+problems.join(" "));accepted=true;save();render();window.FizzzAtelier?.refreshReview?.();message("Approved. Existing TXT, DOCX and JSON outputs will now use this compiled core, public bio and greeting.");}
-function undo(){accepted=false;save();render();window.FizzzAtelier?.refreshReview?.();message("Original fields restored as export source. Edited compiled version stays saved.");}
+function undo(){accepted=false;save();render();window.FizzzAtelier?.refreshReview?.();message("Original fields restored as export source. Edited compiled version remains in this tab only.");}
 const filename=()=>tidy(src().name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";
 function file(name,content,type="application/json"){const b=content instanceof Blob?content:new Blob([content],{type}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
 function publishing(){
@@ -204,5 +208,5 @@ function mount(){
 }
 const css=document.createElement("style");css.textContent='.compiler-box{padding:22px;margin:28px 0;border:1px solid #bb9677;border-radius:13px;background:linear-gradient(120deg,#342139,#18121b)}.compiler-box h3{font:600 39px Georgia,serif;margin:8px 0}.compiler-box h3 em{color:#dfb8c9}.compiler-box h4{font:600 26px Georgia,serif}.compiler-box .field{margin:14px 0}.compiler-box .field input,.compiler-box .field textarea{width:100%;background:#100d15;border:1px solid #79576b;border-radius:7px;color:#f7e9f0;padding:10px;font:13px/1.6 sans-serif}.compiler-box #compiled-core{min-height:420px}.compiler-box #compiled-opening{min-height:290px}.compiler-box .actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:13px 0}.compiler-box select{background:#15101a;color:#fff;padding:8px}.compiler-diagnostics{white-space:pre-wrap;background:#110d16;padding:13px;border-left:3px solid #d8b785;line-height:1.7}.compiler-box details{padding:14px;border:1px solid #71566c;border-radius:8px;margin:14px 0}.compiler-box summary{cursor:pointer;color:#dfbf90}.compiler-box #compiler-ai-json{width:100%;display:block;min-height:130px;background:#100c14;color:white;margin:12px 0;padding:10px}';document.head.append(css);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});else mount();
-window.VelvetRuinFizzzCompiler=Object.freeze({selected,selectedText,selectedProfile,selectedWorld,compile,card,publishing,fullCore,aiBrief});
+window.VelvetRuinFizzzCompiler=Object.freeze({selected,selectedText,selectedProfile,selectedWorld,compile,card,publishing,fullCore,aiBrief,snapshot,restoreSnapshot});
 })();
