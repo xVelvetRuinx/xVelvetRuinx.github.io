@@ -36,6 +36,7 @@ function updated(){
 }
 function edited(){dirty=true;updated();}
 function backedUp(){dirty=false;updated();}
+function cleared(){dirty=false;updated();}
 function legacyPackage(){
  const prefix="velvetruin.fizzz.promptbuilder.v1",main=recovered[prefix];
  let project=null;
@@ -87,5 +88,5 @@ else{showRecovery();updated();}
 const styles=document.createElement("style");
 styles.textContent='.session-recovery{padding:16px;margin:14px 0;border:1px solid #d0ac84;background:#2c2026;border-radius:10px}.session-recovery p{font-size:12px;line-height:1.6;margin:9px 0 12px}.session-recovery strong{color:#ead2aa}#session-protection-status{font-size:12px;color:#e6cda8;line-height:1.6}';
 document.head.append(styles);
-window.FizzzSessionPrivacy=Object.freeze({edited,backedUp,hasWork,legacyRecoveryAvailable:()=>backupPending});
+window.FizzzSessionPrivacy=Object.freeze({edited,backedUp,cleared,hasWork,legacyRecoveryAvailable:()=>backupPending});
 })();
