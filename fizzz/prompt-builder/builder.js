@@ -490,7 +490,9 @@ function displayExtractedSource(name,raw,warnings=[]){
 function worldbookNotice(msg){
  const n=$("#worldbooks-import-status");if(n)n.textContent=msg;
 }
-function importBookEntries(entries,{label="Worldbook source",ask=true}={}){
+function importBookEntries(entries,{label="Worldbook source",ask=true,sourceCharacter=""}={}){
+ const currentName=String(data.name||"").trim();
+ if(sourceCharacter&&currentName&&sourceCharacter.trim().toLowerCase()!==currentName.toLowerCase()&&typeof confirm==="function"&&!confirm("This Worldbook file belongs to "+sourceCharacter+" but the current character is "+currentName+". Mixing these entries may overwrite the wrong character's lore. Import anyway?"))return false;
  const input=window.FizzzWorldbookSource?.fields(entries)||{};
  const applied=[];
  if(!Object.keys(input).length)throw Error("No recognized Worldbook titles, activation settings, keywords or full lore found.");
@@ -522,7 +524,9 @@ async function loadWorldbookBundle(file){
  const extracted=read?await read(file):{text:await file.text()};
  const parsed=window.FizzzWorldbookSource?.extract(extracted?.text||"");
  if(!parsed?.entries?.length)throw Error("No separate Worldbooks found. Import a Builder Backup JSON, three-Worldbook JSON bundle, or text with 'Worldbook 1 — Title' / <character_lore: ...> headings.");
- importBookEntries(parsed.entries,{label:file.name});
+ let sourceCharacter="";
+ try{const object=JSON.parse(extracted?.text||"");sourceCharacter=String(object?.name||object?.character_name||"");}catch{}
+ importBookEntries(parsed.entries,{label:file.name,sourceCharacter});
 }
 function mergeParsed(parsed,name,source){
  const originalSource=String(source||""),incoming=parsed.fields||{},weak=parsed.kind==="Partially recognized character document";
@@ -548,6 +552,10 @@ function mergeParsed(parsed,name,source){
   if(preserved)parsed.messages=[...(parsed.messages||[]),"Retained "+preserved+" existing Worldbook fields for the same character; this source did not contain replacements."];
  }
  data=normalizeIncomingFields(incoming);chosen=normalizeTags(parsed.tags);
+ const loreCount=[1,2,3].filter(n=>String(data["world"+n+"Body"]||"").trim()).length;
+ worldbookNotice(loreCount
+  ?loreCount+"/3 full Worldbook bodies are present in separate editable slots. Go to 04 · Worldbooks to review each."
+  :"No full Worldbook bodies were found in this source. Character-only files do not contain lore. Use Import Worldbooks 1–3 or a full Builder Backup JSON.");
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(parsed.compiler_draft||null);
  const populated=Object.entries(incoming).filter(([k,v])=>typeof v==="string"&&v.trim());
@@ -595,7 +603,7 @@ async function loadFile(file,forWorld=null){
  const isBundle=jsonMeta?.format==="VelvetRuin Fizzz Worldbook Bundle";
  const isCharacterJSON=Boolean(jsonMeta?.builder||jsonMeta?.spec||jsonMeta?.profile||jsonMeta?.character?.name||jsonMeta?.data?.name||jsonMeta?.name||jsonMeta?.initial_message||jsonMeta?.core_personality);
  if(world.entries.length&&(isBundle||(!containsCore&&!isCharacterJSON&&world.entries.some(x=>x.content)))){
-  const done=importBookEntries(world.entries,{label:file.name});
+  const done=importBookEntries(world.entries,{label:file.name,sourceCharacter:String(jsonMeta?.name||"")});
   if(done){mark("✓ Imported "+world.entries.length+" separate Worldbooks from "+file.name+"; the existing character was preserved.","success");showTab("world");}
   return;
  }
