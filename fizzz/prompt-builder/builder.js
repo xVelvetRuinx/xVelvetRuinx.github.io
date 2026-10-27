@@ -28,7 +28,7 @@ core:[
 ["behavior","Growth & behavior under pressure","How they change as trust is earned; what must remain consistent.","large"],
 ["boundaries","Behavioral boundaries / agency rules","Protect player autonomy and maintain character agency without flattening tension.","large"],
 ["voice","Speaking style · last in the core","Voice, sentence length, humor, pacing, and what dialogue should avoid.","short"],
-["coreRaw","Preserved Import Text / Verbatim Core Source","Archival duplicate text from source; stored in backup, not pasted twice into compiled Core.","large"]],
+["coreRaw","Preserved Import Text / Verbatim Core Source","Unmapped original text and character-card personality appear here. If the rest of the Core fields were not recognized, this entire text remains visible in the compiled Core instead of being discarded.","large"]],
 opening:[
 ["openingScene","Scene · location, time & atmosphere","Planning notes for the opening; do not duplicate inside a completed greeting.","short"],
 ["openingAction","What the character visibly does","Filmable actions, physical motion, and relationship cues.","short"],
