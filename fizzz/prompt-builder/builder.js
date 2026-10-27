@@ -68,6 +68,19 @@ const escape=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace
 function copy(t){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(t);const el=document.createElement("textarea");el.value=t;document.body.append(el);el.select();document.execCommand("copy");el.remove();return Promise.resolve();}
 function download(name,text,type="text/plain"){const a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:type+";charset=utf-8"}));a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
 function notify(t){const x=$("#toast");x.textContent=t;x.style.display="block";clearTimeout(notify._timer);notify._timer=setTimeout(()=>x.style.display="none",3300);}
+const BUILD_ID="14 · Import diagnostics";
+function reportImportError(error,stage="Character import"){
+ const message=error instanceof Error?error.message:String(error);
+ const stack=error?.stack||"Stack trace unavailable.";
+ mark(stage+" — "+message+" ("+BUILD_ID+")","error");
+ let panel=document.getElementById("import-debug-details");
+ if(!panel){
+  panel=document.createElement("details");panel.id="import-debug-details";
+  panel.innerHTML='<summary>Technical error details · copy for troubleshooting</summary><p>Only the error location is shown, not your character text.</p><textarea rows="7" readonly id="import-debug-text" style="width:100%;font-family:monospace"></textarea>';
+  document.getElementById("import-status")?.insertAdjacentElement("afterend",panel);
+ }
+ if(panel){panel.querySelector("#import-debug-text").value=BUILD_ID+"\nStage: "+stage+"\nMessage: "+message+"\nStack: "+stack;panel.open=true;}
+}
 function mark(t,state=""){const x=$("#import-status");x.className="import-status "+state;x.textContent=t;}
 function save(){window.FizzzSessionPrivacy?.edited?.();}
 function readSaved(){/* Every new tab starts blank. Character drafts are memory-only. */}
@@ -488,28 +501,36 @@ function mergeParsed(parsed,name,source){
  data=normalizeIncomingFields(incoming);chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(parsed.compiler_draft||null);
- const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
+ const populated=Object.entries(incoming).filter(([k,v])=>typeof v==="string"&&v.trim());
  const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
  if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
  const warning=weak||parsed.kind==="General character JSON"||parsed.kind==="Partially recognized character document";
  mark((warning?"⚠ Partial mapping — ":"✓ ")+parsed.kind+": "+populated.length+" populated values displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" "+(warning?"Open Core > Preserved Import Text for unsorted material; review before compiling.":"Review the panels, then compile."),warning?"error":"success");
- showTab("profile");buildSuggestions();
+ showTab("profile");
+ try{buildSuggestions();}catch(err){reportImportError(err,"Post-import recommendations");}
 }
 async function loadFile(file,forWorld=null){
+ let phase="File validation";
+ try{
  if(!file)return;
  if(file.size>12*1024*1024)throw Error("File is larger than 12 MB.");
  const ext=(file.name.split(".").pop()||"txt").toLowerCase();
  let content="",readerWarnings=[];
  const api=window.AtelierMigrator;
  if(api?.extract){
+  phase="Document text extraction";
   const extracted=await api.extract(file);
   content=str(extracted?.text||"");
   readerWarnings=extracted?.warnings||[];
  }else if(["txt","md","markdown","json"].includes(ext)){
+  phase="Reading text file";
   content=await file.text();
  }else throw Error("The document reader failed to initialize. Reload the page; DOCX, DOC, PDF, RTF, and PNG imports need the reader.");
+ phase="Checking extracted text";
  if(!content.trim())throw Error("No usable text extracted from this file. It has not replaced your current character.");
+ phase="Displaying extracted source preview";
  if(!forWorld)displayExtractedSource(file.name,content,readerWarnings);
+ phase=forWorld?"Updating individual Worldbook":"Identifying character document fields";
  if(forWorld){
   if(content.length>10000)throw Error("Worldbook "+forWorld+" exceeds 10,000 characters. No data was replaced.");
   const key="world"+forWorld+"Body";
@@ -520,8 +541,17 @@ async function loadFile(file,forWorld=null){
  const published=parseExportedFields(content);
  const structured=published?null:dataFromNumbered(content);
  const parsed=published||structured||parseGeneric(content,ext);
+ if(!parsed||typeof parsed!=="object")throw Error("The parser returned no character fields.");
  parsed.messages=[...(readerWarnings||[]),...(parsed.messages||[])];
+ phase="Populating character template";
  mergeParsed(parsed,file.name,content);
+ }catch(err){
+  const description=err instanceof Error?err.message:String(err);
+  const wrapped=new Error((file?.name||"Character file")+" · "+phase+": "+description);
+  if(err?.stack)wrapped.stack=wrapped.message+"\nCaused by: "+String(err.stack);
+  throw wrapped;
+ }
+
 }
 function isReadiness(){
  const issues=[],core=coreCompiled(),op=openingCompiled();
@@ -625,10 +655,10 @@ function init(){
  $("#jump-import").addEventListener("click",()=>{$("#import-box").open=true;$("#drop-area").scrollIntoView({behavior:"smooth",block:"center"})});
  $("#start-empty").addEventListener("click",()=>{if((data.name||data.bio)&&!confirm("Starting a new character discards this tab’s draft. Download a Builder Backup first if you need to keep it. Continue?"))return;data={...initial};chosen=[];original="";originalName="";sourceNotes=[];save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(null);window.FizzzSessionPrivacy?.cleared?.();showTab("profile");mark("New blank session-only character. Nothing is saved after this tab closes.");});
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
- $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
+ $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){reportImportError(err,"Upload")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
- $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(parseExportedFields(val)||dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
- $("#restore-backup").addEventListener("click",()=>{const input=document.createElement("input");input.type="file";input.accept=".json";input.onchange=()=>restoreJSON(input.files?.[0]).catch(e=>mark(e.message,"error"));input.click();});
+ $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(parseExportedFields(val)||dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){reportImportError(err,"Pasted text")}});
+ $("#restore-backup").addEventListener("click",()=>{const input=document.createElement("input");input.type="file";input.accept=".json";input.onchange=()=>restoreJSON(input.files?.[0]).catch(e=>reportImportError(e,"Restoring backup"));input.click();});
  $$("[data-builder-world]").forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;const n=Number(el.dataset.builderWorld);try{await loadFile(f,n)}catch(err){notify("Worldbook "+n+": "+err.message)}}));
  $("#refresh-suggestions").addEventListener("click",()=>{analyse();notify("Suggestions refreshed; changes require your approval.")});
  $("#download-txt").addEventListener("click",()=>download(filename()+"-fizzz-fields.txt",sections().map(([l,v])=>"# "+l+"\n\n"+(v||"")).join("\n\n"+"═".repeat(60)+"\n\n")));
