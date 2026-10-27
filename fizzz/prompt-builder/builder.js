@@ -487,6 +487,43 @@ function displayExtractedSource(name,raw,warnings=[]){
  details.querySelector("#extracted-source-info").textContent=name+" · "+raw.length.toLocaleString()+" characters extracted. "+(warnings||[]).join(" ");
  details.querySelector("#extracted-source-text").value=raw;
 }
+function worldbookNotice(msg){
+ const n=$("#worldbooks-import-status");if(n)n.textContent=msg;
+}
+function importBookEntries(entries,{label="Worldbook source",ask=true}={}){
+ const input=window.FizzzWorldbookSource?.fields(entries)||{};
+ const applied=[];
+ if(!Object.keys(input).length)throw Error("No recognized Worldbook titles, activation settings, keywords or full lore found.");
+ const changing=[1,2,3].filter(n=>{
+  const p="world"+n;
+  return ["Title","Mode","Keywords","Body"].some(s=>Object.hasOwn(input,p+s)&&String(input[p+s]||"")!==String(data[p+s]||"")&&String(data[p+s]||"").trim());
+ });
+ if(ask&&changing.length&&typeof confirm==="function"&&!confirm("This will update Worldbook "+changing.join(", ")+" in the CURRENT character. Download a Builder Backup first to preserve existing lore. Continue?"))return false;
+ for(const [k,value] of Object.entries(input)){
+  if(!Object.hasOwn(initial,k)||typeof value!=="string")continue;
+  if(k.endsWith("Body")&&value.length>10000)throw Error(k+" is over Fizzz's 10,000-character limit. No lore was imported.");
+ }
+ for(const [k,value] of Object.entries(input)){if(!Object.hasOwn(initial,k))continue;data[k]=value;applied.push(k);}
+ save();rerender();
+ const populated=[1,2,3].filter(n=>String(data["world"+n+"Body"]||"").trim()).length;
+ const summary=label+": "+[1,2,3].filter(n=>applied.some(k=>k.startsWith("world"+n))).map(n=>"Worldbook "+n).join(", ")+" imported as SEPARATE slots. "+populated+"/3 full lore bodies present.";
+ worldbookNotice(summary);notify(summary);return true;
+}
+function downloadBookBundle(){
+ const api=window.FizzzWorldbookSource;
+ if(!api)throw Error("Worldbook source tools haven't loaded. Refresh the builder.");
+ download(filename()+"-three-worldbooks-backup.json",JSON.stringify(api.bundle(data,data.name),null,2),"application/json");
+ worldbookNotice("Three-Worldbook backup downloaded. This file restores lore into the builder, NOT into the character card.");
+}
+async function loadWorldbookBundle(file){
+ if(!file)return;
+ if(file.size>12*1024*1024)throw Error("Worldbook source file exceeds 12 MB.");
+ const read=window.AtelierMigrator?.extract;
+ const extracted=read?await read(file):{text:await file.text()};
+ const parsed=window.FizzzWorldbookSource?.extract(extracted?.text||"");
+ if(!parsed?.entries?.length)throw Error("No separate Worldbooks found. Import a Builder Backup JSON, three-Worldbook JSON bundle, or text with 'Worldbook 1 — Title' / <character_lore: ...> headings.");
+ importBookEntries(parsed.entries,{label:file.name});
+}
 function mergeParsed(parsed,name,source){
  const originalSource=String(source||""),incoming=parsed.fields||{},weak=parsed.kind==="Partially recognized character document";
  const strongKeys=["name","title","bio","traits","appearance","backstory","relationship","initialRaw","occupation","boundaries","coreRaw"];
@@ -498,6 +535,16 @@ function mergeParsed(parsed,name,source){
   return;
  }
  /* Import history is not persisted. Export a backup explicitly before replacing an active draft. */
+ const oldName=String(data.name||"").trim().toLowerCase(),newName=String(incoming.name||"").trim().toLowerCase();
+ const sameCharacter=Boolean(oldName&&newName&&oldName===newName);
+ // Importing a character-only package must not erase its three already-edited
+ // Worldbooks. Never carry lore to a DIFFERENT character.
+ if(sameCharacter&&["Native Fizzz publishing-field manuscript","Character Card V2","Fizzz field package","Full 21-section Fizzz character"].includes(parsed.kind)){
+  for(let n=1;n<=3;n++)for(const part of ["Title","Mode","Keywords","Body"]){
+   const k="world"+n+part;
+   if((incoming[k]===undefined||incoming[k]===null||incoming[k]==="")&&String(data[k]||"").trim())incoming[k]=data[k];
+  }
+ }
  data=normalizeIncomingFields(incoming);chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(parsed.compiler_draft||null);
@@ -538,9 +585,25 @@ async function loadFile(file,forWorld=null){
   data[key]=content.trim();rerender();save();notify("Worldbook "+forWorld+" imported ("+content.length+" characters).");
   return;
  }
+ const world=window.FizzzWorldbookSource?.extract(content)||{entries:[]};
  const published=parseExportedFields(content);
  const structured=published?null:dataFromNumbered(content);
+ const containsCore=Boolean(published||structured||/^(?:#{0,4}\s*)?(?:name|character name|character chat name|public title|public bio|core personality|initial message|greeting|scenario)\s*:/im.test(content));
+ const isBundle=/^\s*\{\s*"format"\s*:\s*"VelvetRuin Fizzz Worldbook Bundle"/.test(content)||(()=>{try{return JSON.parse(content).format==="VelvetRuin Fizzz Worldbook Bundle"}catch{return false}})();
+ if(world.entries.length&&(isBundle||(!containsCore&&world.entries.some(x=>x.content)))){
+  importBookEntries(world.entries,{label:file.name});return;
+ }
  const parsed=published||structured||parseGeneric(content,ext);
+ if(world.entries.length){
+  const mapped=window.FizzzWorldbookSource.fields(world.entries);
+  // Complete separately identified lore takes precedence over a summary, but
+  // missing source bodies NEVER overwrite full lore.
+  for(const [key,value] of Object.entries(mapped)){
+   if(key.endsWith("Body")&&value)parsed.fields[key]=value;
+   else if(!String(parsed.fields[key]||"").trim()&&value)parsed.fields[key]=value;
+  }
+  parsed.messages=[...(parsed.messages||[]),"Worldbook source detected: "+world.entries.map(x=>x.number).join(", ")+". Distinct entries mapped to the Worldbooks editor, never included in the final card."];
+ }
  if(!parsed||typeof parsed!=="object")throw Error("The parser returned no character fields.");
  parsed.messages=[...(readerWarnings||[]),...(parsed.messages||[])];
  phase="Populating character template";
@@ -650,6 +713,13 @@ function init(){
  readSaved();for(const name of Object.keys(defs))fieldRender(name);worldRender();tagsRender();rerender();
  $("#tag-search")?.addEventListener("input",tagsRender);
  $("#tag-clear")?.addEventListener("click",()=>{chosen=[];tagsRender();save();refresh();});
+ $("#worldbooks-bundle-file")?.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];e.target.value="";if(!file)return;
+  try{await loadWorldbookBundle(file);}catch(err){worldbookNotice("Worldbook import failed: "+err.message);reportImportError(err,"Worldbooks import");}
+ });
+ $("#worldbooks-bundle-download")?.addEventListener("click",()=>{
+  try{downloadBookBundle();}catch(err){worldbookNotice(err.message);}
+ });
  $$(".tab").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.tab)));
  $$(".next").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.to)));
  $("#jump-import").addEventListener("click",()=>{$("#import-box").open=true;$("#drop-area").scrollIntoView({behavior:"smooth",block:"center"})});
