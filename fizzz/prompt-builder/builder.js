@@ -28,7 +28,7 @@ core:[
 ["behavior","Growth & behavior under pressure","How they change as trust is earned; what must remain consistent.","large"],
 ["boundaries","Behavioral boundaries / agency rules","Protect player autonomy and maintain character agency without flattening tension.","large"],
 ["voice","Speaking style · last in the core","Voice, sentence length, humor, pacing, and what dialogue should avoid.","short"],
-["coreRaw","Optional verbatim Core Personality · preserved source","Archival duplicate text from source; stored in backup, not pasted twice into compiled Core.","large"]],
+["coreRaw","Preserved Import Text / Verbatim Core Source","Archival duplicate text from source; stored in backup, not pasted twice into compiled Core.","large"]],
 opening:[
 ["openingScene","Scene · location, time & atmosphere","Planning notes for the opening; do not duplicate inside a completed greeting.","short"],
 ["openingAction","What the character visibly does","Filmable actions, physical motion, and relationship cues.","short"],
@@ -356,12 +356,23 @@ function displayExtractedSource(name,raw,warnings=[]){
  details.querySelector("#extracted-source-text").value=raw;
 }
 function mergeParsed(parsed,name,source){
- data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
- original=source;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
+ const originalSource=String(source||""),incoming=parsed.fields||{},weak=parsed.kind==="Partially recognized character document";
+ const strongKeys=["name","title","bio","traits","appearance","backstory","relationship","initialRaw","occupation","boundaries","coreRaw"];
+ const existingStrong=strongKeys.filter(k=>String(data[k]||"").trim()).length;
+ const arrivingStrong=strongKeys.filter(k=>String(incoming[k]||"").trim()).length;
+ // A partially mapped document must not silently erase a much richer draft.
+ if(weak&&existingStrong>=3&&arrivingStrong<3){
+  mark("This file's text was extracted but fewer than 3 meaningful fields were recognized. Your existing draft was NOT replaced. Read the extracted source preview or revise the file headings and try again.","error");
+  return;
+ }
+ try{localStorage.setItem(store+".previous-draft",JSON.stringify({data,chosen,original,originalName}));}catch{}
+ data={...initial,...incoming};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
+ original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
  const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
  if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
- mark("✓ "+parsed.kind+" imported: "+populated.length+" populated fields mapped and displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
+ const warning=weak||parsed.kind==="General character JSON"||parsed.kind==="Partially recognized character document";
+ mark((warning?"⚠ Partial mapping — ":"✓ ")+parsed.kind+": "+populated.length+" populated values displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" "+(warning?"Open Core > Preserved Import Text for unsorted material; review before compiling.":"Review the panels, then compile."),warning?"error":"success");
  showTab("profile");buildSuggestions();
 }
 async function loadFile(file,forWorld=null){
