@@ -68,7 +68,7 @@ function fieldRender(group){
   if(kind==="select"){inp=document.createElement("select");for(const v of options){const op=document.createElement("option");op.textContent=v;op.value=v;inp.append(op)}}
   else if(kind==="text"){inp=document.createElement("input");inp.type="text";}
   else{inp=document.createElement("textarea");inp.rows=kind==="long"?17:kind==="large"?9:4;inp.className=kind;}
-  inp.id=id;inp.dataset.key=key;inp.value=data[key]||"";
+  inp.id=id;inp.dataset.key=key;inp.value=data[key]||"";inp.autocomplete="off";inp.setAttribute("autocomplete","off");
   inp.addEventListener(kind==="select"?"change":"input",()=>{data[key]=inp.value;save();refresh()});
   const para=document.createElement("p");para.className="help";para.textContent=help;
   box.append(lab,inp,para);parent.append(box);
@@ -611,7 +611,7 @@ function init(){
  $$(".tab").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.tab)));
  $$(".next").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.to)));
  $("#jump-import").addEventListener("click",()=>{$("#import-box").open=true;$("#drop-area").scrollIntoView({behavior:"smooth",block:"center"})});
- $("#start-empty").addEventListener("click",()=>{if((data.name||data.bio)&&!confirm("Starting a new character discards this tab’s draft. Download a Builder Backup first if you need to keep it. Continue?"))return;data={...initial};chosen=[];original="";originalName="";sourceNotes=[];save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(null);showTab("profile");mark("New blank session-only character. Nothing is saved after this tab closes.");});
+ $("#start-empty").addEventListener("click",()=>{if((data.name||data.bio)&&!confirm("Starting a new character discards this tab’s draft. Download a Builder Backup first if you need to keep it. Continue?"))return;data={...initial};chosen=[];original="";originalName="";sourceNotes=[];save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(null);window.FizzzSessionPrivacy?.cleared?.();showTab("profile");mark("New blank session-only character. Nothing is saved after this tab closes.");});
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
  $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
