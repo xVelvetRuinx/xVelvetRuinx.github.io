@@ -14,7 +14,7 @@ const selectedText=k=>selected()?(k==="core"?selected().core:k==="opening"?selec
 const selectedProfile=()=>selected()?{title:selected().title,bio:selected().bio}:null;
 const selectedWorld=i=>selected()?.worldbooks?.[i-1]||null;
 const intro=()=>tidy(src().initialRaw)||["openingScene","openingAction","openingLine","openingBeat"].map(k=>tidy(src()[k])).filter(Boolean).join("\n\n");
-function fullCore(){const s=src(),out=["# "+(s.name||"Character")+" — Fizzz Core Personality"];if(s.age)out.push("Age: "+s.age);if(s.gender)out.push("Gender: "+s.gender);ORDER.forEach((k,i)=>{if(tidy(s[k]))out.push("\n## "+LABELS[i]+"\n"+tidy(s[k]))});return out.join("\n")}
+function fullCore(){const s=src(),out=["# "+(s.name||"Character")+" — Fizzz Core Personality"];if(s.age)out.push("Age: "+s.age);if(s.gender)out.push("Gender: "+s.gender);ORDER.forEach((k,i)=>{if(tidy(s[k]))out.push("\n## "+LABELS[i]+"\n"+tidy(s[k]))});if(ORDER.filter(k=>tidy(s[k])).length<5&&tidy(s.coreRaw))out.push("\n## PRESERVED ORIGINAL SOURCE — UNCLASSIFIED (SORT BEFORE PUBLISHING)\n"+tidy(s.coreRaw));return out.join("\n")}
 function close(a,b){const x=new Set(norm(a).split(" ").filter(w=>w.length>=4)),y=new Set(norm(b).split(" ").filter(w=>w.length>=4));let n=0;for(const t of x)if(y.has(t))n++;return x.size&&y.size&&n/Math.min(x.size,y.size)>.88&&n/Math.max(x.size,y.size)>.53}
 function weight(str,key){let w=2;const t=norm(str);
  if(/never|must|cannot|do not|not automatically|without consent|agency|autonomy|choice/.test(t))w+=5;
@@ -25,7 +25,10 @@ function weight(str,key){let w=2;const t=norm(str);
  return w;
 }
 function coreCompile(mode){
- const full=fullCore();if(mode==="full")return {text:full,removed:0,original:full.length};
+ const full=fullCore(),source=src();
+ // Never discard a fallback import merely because its labels were not mapped.
+ // The entire source remains visible until the creator sorts it into fields.
+ if(mode==="full"||(tidy(source.coreRaw)&&ORDER.filter(k=>tidy(source[k])).length<5))return {text:full,removed:0,original:full.length};
  const groups=[],seen=[],s=src(),short=mode==="lean"?0.81:1,limit=mode==="lean"?8500:9900;let total=0;
  for(let i=0;i<ORDER.length;i++){
   const key=ORDER[i],items=[],lines=tidy(s[key]).split("\n");let heading="";
