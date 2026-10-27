@@ -239,6 +239,97 @@ function dataFromNumbered(source){
  const tags=[...new Set(incoming.map(t=>synonyms[t]||tagsKnown.find(k=>norm(k).replace(/ /g,"")===t)).filter(Boolean))].slice(0,7);
  return {fields:d,tags,messages,kind:"Full 21-section Fizzz character"};
 }
+/* Parse the field-by-field TXT/Markdown output of THIS creator before
+   handing anything to a generic parser that might mistake PUBLIC TITLE
+   for a proper character name. This makes our own exports reversible. */
+function parseExportedFields(source){
+ const txt=str(source).replace(/^\uFEFF/,"");
+ const d={...initial},tags=[],notes=[],parts=[],recognized=new Set();
+ const names={
+  "PUBLIC TITLE":"title","CHARACTER CHAT NAME":"name",
+  "AGE":"age","CHARACTER AGE":"age","GENDER":"gender",
+  "POV":"pov","RATING":"rating","CREATION DATE":"creationDate",
+  "DISCOVERY TAGS":"tags","PUBLIC BIO":"bio","CONTENT ADVISORY":"warning",
+  "CORE PERSONALITY":"coreRaw","INITIAL MESSAGE":"initialRaw",
+  "COVER DIRECTIONS":"coverDirection","CHARACTER IMAGE DIRECTIONS":"imageDirection",
+  "OPENING FILM DIRECTIONS":"videoDirection","VOICE DIRECTIONS":"voiceDirection",
+  "VOICE DESIGN PROMPT":"voiceDesignPrompt"
+ };
+ const heading=line=>{
+  const clean=line.trim().replace(/^#{1,3}\s*/,"").replace(/^\*\*(.*?)\*\*$/,"$1").replace(/:$/,"").trim();
+  const upper=clean.toUpperCase().replace(/\s+/g," ");
+  if(names[upper])return {key:names[upper],label:clean};
+  const match=clean.match(/^Worldbook\s+([1-3])(?:\s*[—–:-]\s*(.+))?$/i);
+  return match?{key:"world"+match[1],number:Number(match[1]),label:match[2]||"Worldbook "+match[1]}:null;
+ };
+ let active=null,chunk=[];
+ const emit=()=>{if(active){parts.push({heading:active,value:chunk.join("\n").trim()});chunk=[];}};
+ for(const line of txt.split("\n")){
+  if(/^\s*[═━─=]{12,}\s*$/.test(line))continue;
+  const h=heading(line);
+  if(h){emit();active=h;recognized.add(h.key);}
+  else if(active)chunk.push(line);
+ }
+ emit();
+ if(recognized.size<4||!parts.some(x=>["bio","coreRaw","initialRaw"].includes(x.heading.key)))return null;
+ let countBooks=0;
+ const coreNames={
+  "Identity & Role":"occupation","Species & Biology":"species",
+  "Appearance":"appearance","Causal Background":"backstory",
+  "Core Personality & Observable Behavior":"traits","Core Personality & Behavior":"traits",
+  "Observable Personality":"traits","Internal Contradiction":"contradiction",
+  "Character Goals":"motivation","Goals & Lasting Drive":"motivation",
+  "Starting Relationship with {{user}}":"relationship","Relationship With {{user}}":"relationship",
+  "Growth and Behavior under Pressure":"behavior","Growth & Pressure":"behavior",
+  "Behavioral Boundaries":"boundaries","Agency & Boundaries":"boundaries",
+  "Player Agency & Boundaries":"boundaries","Speaking Style":"voice"
+ };
+ const norm=x=>String(x).toLowerCase().replace(/\s+/g," ").trim();
+ const normalized=Object.fromEntries(Object.entries(coreNames).map(([k,v])=>[norm(k),v]));
+ for(const {heading:h,value} of parts){
+  if(h.key==="tags"){tags.push(...value.split(/[,;\n]+/).map(x=>x.trim().replace(/^#/,"")).filter(Boolean));continue;}
+  if(h.number){
+   const n=h.number,p="world"+n;countBooks++;d[p+"Title"]=h.label;
+   const lines=value.split("\n");
+   const activationIndex=lines.findIndex(x=>/^\s*Activation\s*:/i.test(x.replace(/\*/g,"")));
+   const keywordsIndex=lines.findIndex(x=>/^\s*Keywords\s*:/i.test(x.replace(/\*/g,"")));
+   const activation=activationIndex>=0?lines[activationIndex].replace(/\*/g,""):"";
+   const keys=keywordsIndex>=0?lines[keywordsIndex].replace(/\*/g,""):"";
+   d[p+"Mode"]= /always active|:\s*always/i.test(activation)?"always":"keyword";
+   let parsedKeys=keys.replace(/^\s*Keywords\s*:\s*/i,"").trim();
+   const continuation=keywordsIndex>=0&&!parsedKeys&&lines[keywordsIndex+1]?.trim()?keywordsIndex+1:-1;
+   if(continuation>=0)parsedKeys=lines[continuation].trim();
+   d[p+"Keywords"]= /^(none|none required|n\/a)$/i.test(parsedKeys)?"":parsedKeys;
+   const lore=lines.filter((line,i)=>i!==activationIndex&&i!==keywordsIndex&&i!==continuation).join("\n").trim();
+   if(lore&&!/^\[(?:Missing full lore|No full lore imported|Outline only|Full source lore missing)/i.test(lore))d[p+"Body"]=lore;
+   continue;
+  }
+  if(h.key==="coreRaw"){
+   d.coreRaw=value;
+   let section=null,acc=[];
+   const finish=()=>{const v=acc.join("\n").trim();if(section&&v&&!d[section])d[section]=v;acc=[];};
+   for(const line of value.split("\n")){
+    const m=line.trim().match(/^#{2,4}\s+(.+)$/);
+    const newSection=m&&normalized[norm(m[1])];
+    if(newSection){finish();section=newSection;continue;}
+    if(section)acc.push(line);
+   }
+   finish();
+   continue;
+  }
+  if(h.key==="pov")d.pov=/female/i.test(value)?"Female POV":/male/i.test(value)?"Male POV":"Any POV";
+  else if(h.key==="rating")d.rating=/limitless/i.test(value)?"Limitless":"Limited";
+  else if(h.key==="gender")d.gender=/^male$/i.test(value)?"Male":/^female$/i.test(value)?"Female":/^non.?binary$/i.test(value)?"Non-binary":"";
+  else if(["title","name"].includes(h.key)){const v=value.trim();d[h.key]=names[v.toUpperCase()]?"":v;}
+  else d[h.key]=value;
+ }
+ if(/^PUBLIC TITLE$/i.test(d.name))d.name="";
+ const mapped=["occupation","species","appearance","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice"].filter(x=>d[x]).length;
+ notes.push("Parsed "+recognized.size+" known Fizzz publishing fields from an exported TXT/Markdown manuscript, with "+countBooks+" Worldbook entries.");
+ if(d.coreRaw&&mapped<5)notes.push("Compiled Core preserved verbatim. Some details remain in Preserved Import Text because the source did not label its subfields.");
+ if(!d.name)notes.push("No chat name was found in the exported manuscript; a heading was not mistaken for the name.");
+ return {fields:d,tags,messages:notes,kind:"Native Fizzz publishing-field manuscript"};
+}
 function parseGeneric(source,ext){
  const raw=str(source),d={...initial},messages=[];
  const normalizeChoice=x=>String(x||"").trim();
@@ -397,8 +488,9 @@ async function loadFile(file,forWorld=null){
   data[key]=content.trim();rerender();save();notify("Worldbook "+forWorld+" imported ("+content.length+" characters).");
   return;
  }
- const structured=dataFromNumbered(content);
- const parsed=structured||parseGeneric(content,ext);
+ const published=parseExportedFields(content);
+ const structured=published?null:dataFromNumbered(content);
+ const parsed=published||structured||parseGeneric(content,ext);
  parsed.messages=[...(readerWarnings||[]),...(parsed.messages||[])];
  mergeParsed(parsed,file.name,content);
 }
@@ -502,7 +594,7 @@ function init(){
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
  $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
- $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
+ $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(parseExportedFields(val)||dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
  $("#restore-backup").addEventListener("click",()=>{const input=document.createElement("input");input.type="file";input.accept=".json";input.onchange=()=>restoreJSON(input.files?.[0]).catch(e=>mark(e.message,"error"));input.click();});
  $$("[data-builder-world]").forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;const n=Number(el.dataset.builderWorld);try{await loadFile(f,n)}catch(err){notify("Worldbook "+n+": "+err.message)}}));
  $("#refresh-suggestions").addEventListener("click",()=>{analyse();notify("Suggestions refreshed; changes require your approval.")});
