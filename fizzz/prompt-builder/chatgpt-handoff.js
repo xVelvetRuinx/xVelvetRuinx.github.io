@@ -23,15 +23,9 @@
    ["Initial Message — Paste Into Fizzz",f.initial_message]]){
     blocks.push("## "+label+"\n\n"+String(value||""));
   }
-  for(const [i,book] of f.worldbooks.entries()){
-   blocks.push("## Worldbook "+(i+1)+" — "+(book.title||"Untitled")+"\n\n"+
-    "**Activation:** "+(book.mode==="always"?"Always Active":"Keyword Trigger")+"\n\n"+
-    "**Keywords:** "+(book.keywords||"None")+"\n\n"+
-    (book.content||"**Full source lore missing: import before publishing**"));
-  }
   const slug=(p.name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   save(slug+"-fizzz-final-bot.md",blocks.join("\n\n---\n\n"),"text/markdown");
-  info("Complete Fizzz Markdown character saved from your APPROVED AI/compiler version. Copy the individual fields into Fizzz.");
+  info("Approved character Markdown exported without Worldbooks. Copy each Worldbook independently using the transfer tools.");
  }
  function copiedPrompt(mode){
   const api=window.VelvetRuinFizzzCompiler;if(!api)throw Error("Prompt compiler is unavailable.");

@@ -34,18 +34,12 @@ opening:[
 ["openingAction","What the character visibly does","Filmable actions, physical motion, and relationship cues.","short"],
 ["openingLine","One or two spoken lines","Memorable voice samples for Opening Film.","short"],
 ["openingBeat","Playable opening beat","An unresolved choice for {{user}}.","short"],
-["initialRaw","Complete Initial Message","Use full original prose when imported; max 5,000 characters.","long"]],
-media:[
-["coverDirection","Cover image composition","Recommended 3:4; unobstructed mature face, readable crop.","short"],
-["imageDirection","9:16 character image directions","Photorealistic/painterly look, identity locked, up to three images.","large"],
-["videoDirection","Opening film direction","One practical movement aligned with opening scene.","short"],
-["voiceDirection","Voice casting notes","Timbre, accent if grounded, pace, emotional texture.","short"],
-["voiceDesignPrompt","Voice Design Prompt","Twenty words maximum.","short"]]
+["initialRaw","Complete Initial Message","Use full original prose when imported; max 5,000 characters.","long"]]
 };
 const initial={};for(const arr of Object.values(defs))for(const [k] of arr)initial[k]="";
 for(let n=1;n<=3;n++){initial["world"+n+"Title"]="";initial["world"+n+"Mode"]=n===1?"always":"keyword";initial["world"+n+"Keywords"]="";initial["world"+n+"Body"]="";}
 initial.pov="Any POV";initial.rating="Limited";
-let data={...initial},chosen=[],original="",originalName="",recommendations=[],sourceNotes=[],portraitURL="";
+let data={...initial},chosen=[],original="",originalName="",recommendations=[],sourceNotes=[];
 const norm=x=>String(x||"").toLowerCase().replace(/[#*[\]_.:—–/()-]+/g," ").replace(/\s+/g," ").trim();
 const str=x=>String(x??"").replace(/\r\n?/g,"\n");
 const limit=k=>k==="initialRaw"?5000:k.endsWith("Body")?10000:k==="coreRaw"?25000:null;
@@ -121,8 +115,8 @@ function openingCompiled(){
 function sections(){
  const finalized=window.VelvetRuinFizzzCompiler?.selectedProfile();
  const out=[["PUBLIC TITLE",finalized?.title||data.title],["CHARACTER CHAT NAME",data.name],["AGE",data.age],["GENDER",data.gender],["POV",data.pov],["RATING",data.rating],["CREATION DATE",data.creationDate],["DISCOVERY TAGS",chosen.join(", ")],["PUBLIC BIO",finalized?.bio||data.bio],["CONTENT ADVISORY",data.warning],["CORE PERSONALITY",coreCompiled()],["INITIAL MESSAGE",openingCompiled()]];
- for(let i=1;i<=3;i++)out.push(["WORLDBOOK "+i+" — "+(data["world"+i+"Title"]||"Untitled"),"Activation: "+(data["world"+i+"Mode"]==="always"?"Always Active":"Keyword Trigger")+"\nKeywords: "+(data["world"+i+"Keywords"]||"None")+"\n\n"+(data["world"+i+"Body"]||"[Missing full lore — import or paste the complete Worldbook]")]);
- for(const [key,label] of [["coverDirection","COVER DIRECTIONS"],["imageDirection","CHARACTER IMAGE DIRECTIONS"],["videoDirection","OPENING FILM DIRECTIONS"],["voiceDirection","VOICE DIRECTIONS"],["voiceDesignPrompt","VOICE DESIGN PROMPT"]])if(data[key])out.push([label,data[key]]);
+
+
  return out;
 }
 function counts(){
@@ -499,13 +493,13 @@ function isReadiness(){
  if(!data.title.trim())issues.push("Public title missing.");
  if(!data.name.trim())issues.push("Chat name missing.");
  if(!data.bio.trim())issues.push("Public bio missing.");
- if(!data.voiceDirection.trim()&&!data.voiceDesignPrompt.trim())issues.push("Voice selection/direction not yet complete.");
+
  if(core.length>25000)issues.push("Core exceeds Fizzz's 25,000-character limit.");
  else if(core.length>10000)issues.push("Core exceeds the recommended 10,000 characters but is within the 25,000 maximum.");
  if(op.length>5000)issues.push("Opening exceeds 5,000 characters.");
  if(!op)issues.push("Opening message missing.");
- for(let n=1;n<=3;n++){const body=data["world"+n+"Body"]||"",title=data["world"+n+"Title"]||"";if(body.length>10000)issues.push("Worldbook "+n+" exceeds 10,000 characters.");if(title&&!body.trim())issues.push("Worldbook "+n+" has a title but no complete lore text.");if(data["world"+n+"Mode"]==="keyword"&&title&&!data["world"+n+"Keywords"].trim())issues.push("Worldbook "+n+" is keyword activated but has no triggers.");}
- if(str(data.voiceDesignPrompt).trim().split(/\s+/).filter(Boolean).length>20)issues.push("Voice Design Prompt exceeds 20 words.");
+
+
  return issues;
 }
 /* Local string matching cannot write complete creative prose safely.
@@ -601,7 +595,7 @@ function init(){
  $("#download-txt").addEventListener("click",()=>download(filename()+"-fizzz-fields.txt",sections().map(([l,v])=>"# "+l+"\n\n"+(v||"")).join("\n\n"+"═".repeat(60)+"\n\n")));
  $("#download-original").addEventListener("click",()=>original?download((originalName||"original-character")+".txt",original):notify("No imported original exists. Your current character is editable and can be backed up."));
  $("#download-notes").addEventListener("click",()=>download(filename()+"-improvement-report.txt",["SOURCE MAPPING NOTES",...sourceNotes,"","READINESS CHECKS",...isReadiness(),"","EDITORIAL SUGGESTIONS",...buildSuggestions().map(r=>r.title+"\nField: "+r.field+"\nReason: "+r.why)].join("\n")));
- $("#export-png-image").addEventListener("change",e=>{if(portraitURL)URL.revokeObjectURL(portraitURL);portraitURL=e.target.files?.[0]?URL.createObjectURL(e.target.files[0]):"";const x=$("#portrait-preview");if(portraitURL)x.src=portraitURL;else x.removeAttribute("src");});
+ $("#export-png-image")?.addEventListener("change",e=>notify(e.target.files?.[0]?"Portrait selected for PNG export: "+e.target.files[0].name:"PNG card will use the typographic background."));
  // Compatibility with ../atelier/export-suite.js for actual JSON/DOCX/PNG exports.
  window.FizzzAtelier=Object.freeze({getState:()=>({...data}),getTags:()=>chosen.slice(),coreCompiled,openingCompiled,sections,importDraft:(patch,{replace=false}={})=>{const applied=[];for(const [k,v] of Object.entries(patch)){if(Object.hasOwn(initial,k)&&typeof v==="string"&&(replace||!data[k])){data[k]=v;applied.push(k)}}rerender();save();return {applied}},download,refreshReview:()=>{refresh();renderOutput();},backup:()=>JSON.stringify(project(),null,2)});
 }

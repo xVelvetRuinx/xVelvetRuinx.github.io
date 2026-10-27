@@ -8,11 +8,11 @@ let version=null,accepted=false,base="";
 const src=()=>window.FizzzAtelier?.getState()||{};
 const tidy=s=>String(s||"").replace(/\r\n?/g,"\n").trim();
 const norm=s=>tidy(s).toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
-function fingerprint(){let h=2166136261;const data=src();for(const k of [...ORDER,"title","name","age","gender","creationDate","pov","rating","bio","initialRaw","world1Body","world2Body","world3Body","world1Title","world2Title","world3Title","world1Mode","world2Mode","world3Mode","world1Keywords","world2Keywords","world3Keywords"]){for(const c of String(data[k]||"")){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}}return String(h>>>0)}
+function fingerprint(){let h=2166136261;const data=src();for(const k of [...ORDER,"title","name","age","gender","creationDate","pov","rating","bio","initialRaw"]){for(const c of String(data[k]||"")){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}}return String(h>>>0)}
 const selected=()=>accepted&&version&&base===fingerprint()?version:null;
 const selectedText=k=>selected()?(k==="core"?selected().core:k==="opening"?selected().opening:null):null;
 const selectedProfile=()=>selected()?{title:selected().title,bio:selected().bio}:null;
-const selectedWorld=i=>selected()?.worldbooks?.[i-1]||null;
+const selectedWorld=i=>{const s=src(),p="world"+i;return{title:s[p+"Title"]||"",mode:s[p+"Mode"]||"keyword",keywords:s[p+"Keywords"]||"",content:s[p+"Body"]||""};};
 const intro=()=>tidy(src().initialRaw)||["openingScene","openingAction","openingLine","openingBeat"].map(k=>tidy(src()[k])).filter(Boolean).join("\n\n");
 function fullCore(){const s=src(),out=["# "+(s.name||"Character")+" — Fizzz Core Personality"];if(s.age)out.push("Age: "+s.age);if(s.gender)out.push("Gender: "+s.gender);ORDER.forEach((k,i)=>{if(tidy(s[k]))out.push("\n## "+LABELS[i]+"\n"+tidy(s[k]))});if(ORDER.filter(k=>tidy(s[k])).length<5&&tidy(s.coreRaw))out.push("\n## PRESERVED ORIGINAL SOURCE — UNCLASSIFIED (SORT BEFORE PUBLISHING)\n"+tidy(s.coreRaw));return out.join("\n")}
 function close(a,b){const x=new Set(norm(a).split(" ").filter(w=>w.length>=4)),y=new Set(norm(b).split(" ").filter(w=>w.length>=4));let n=0;for(const t of x)if(y.has(t))n++;return x.size&&y.size&&n/Math.min(x.size,y.size)>.88&&n/Math.max(x.size,y.size)>.53}
@@ -64,12 +64,9 @@ function bioIntegrity(candidate,original){
 }
 function checks(d){const m=[...bioIntegrity(d.bio,src().bio)];if(d.core.length>25000)m.push("Core exceeds 25,000 characters.");else if(d.core.length>10000)m.push("Core exceeds recommended 10,000 characters.");
  if(d.opening.length>5000)m.push("Opening exceeds 5,000 characters.");
- d.worldbooks.forEach((w,i)=>{if(w.title&&!w.content)m.push("Worldbook "+(i+1)+" full lore is missing.");if(w.content.length>10000)m.push("Worldbook "+(i+1)+" is over 10,000 characters.")});
- if(!tidy(src().voiceDirection)&&!tidy(src().voiceDesignPrompt))m.push("Voice still needs to be configured in Fizzz.");
  return m;}
 function compile(mode="balanced"){const s=src(),c=coreCompile(mode);
- const books=[1,2,3].map(i=>({title:tidy(s["world"+i+"Title"]),mode:s["world"+i+"Mode"]||"keyword",keywords:tidy(s["world"+i+"Keywords"]),content:tidy(s["world"+i+"Body"])}));
- version={title:tidy(s.title),bio:bioCompile(),core:c.text,opening:intro(),worldbooks:books,originalCore:c.original,removed:c.removed,mode,notes:[],bioQualityV2:true};version.notes=checks(version);
+ version={title:tidy(s.title),bio:bioCompile(),core:c.text,opening:intro(),originalCore:c.original,removed:c.removed,mode,notes:[],bioQualityV2:true};version.notes=checks(version);
  base=fingerprint();accepted=false;save();render();return version;}
 function save(){try{localStorage.setItem(STORE,JSON.stringify({version,accepted,base}))}catch{}}
 function load(){
@@ -94,7 +91,7 @@ function message(t){const x=$("#compiler-status");if(x)x.textContent=t}
 function render(skipFields=false){if(!version)return;
  for(const k of ["title","bio","core","opening"]){const x=$("#compiled-"+k);if(x&&!skipFields)x.value=version[k]}
  $("#compiler-measure").textContent="Original core "+version.originalCore.toLocaleString()+" chars → compiled "+version.core.length.toLocaleString()+" chars; "+version.removed+" repetitive/secondary source lines omitted.";
- $("#compiler-warnings").textContent=version.notes.length?version.notes.map(x=>"• "+x).join("\n"):"✓ No length or missing-lore warnings. Test on Fizzz.";
+ $("#compiler-warnings").textContent=version.notes.length?version.notes.map(x=>"• "+x).join("\n"):"✓ Character card text is within the structural checks. Worldbooks transfer separately.";
  $("#compiler-approve").disabled=!version.core||!version.opening||version.core.length>25000||version.opening.length>5000||bioIntegrity(version.bio,src().bio).length>0;
  $("#compiler-selected").textContent=selected()?"✓ Approved compiled version selected for all final exports.":accepted&&base!==fingerprint()?"Source changed; recompile before export.":"Compiled text is not yet approved; original text remains the export source. The full public bio is retained by default.";
 }
@@ -103,9 +100,23 @@ function approve(){if(!version)return;if(base!==fingerprint())return message("So
 function undo(){accepted=false;save();render();window.FizzzAtelier?.refreshReview?.();message("Original fields restored as export source. Edited compiled version stays saved.");}
 const filename=()=>tidy(src().name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";
 function file(name,content,type="application/json"){const b=content instanceof Blob?content:new Blob([content],{type}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
-function publishing(){const s=src(),d=selected();if(!d)throw Error("Approve your compiled character first.");return{format:"Fizzz Publishing Fields",note:"Copy field-by-field into Fizzz; platform does not document full character card file import.",profile:{title:d.title,name:s.name,age:s.age,gender:s.gender,pov:s.pov,rating:s.rating,created:s.creationDate,bio:d.bio,warning:s.warning,tags:window.FizzzAtelier?.getTags?.()||[]},core_personality:d.core,initial_message:d.opening,worldbooks:d.worldbooks}}
-function card(){const f=publishing(),s=f.profile;const entries=f.worldbooks.filter(w=>w.content).map((w,i)=>({keys:w.mode==="always"?[]:w.keywords.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean),content:w.content,enabled:true,constant:w.mode==="always",insertion_order:i,case_sensitive:false,selective:false,secondary_keys:[],position:"before_char",priority:10,comment:w.title,name:w.title,id:i,extensions:{}}));
- return {spec:"chara_card_v2",spec_version:"2.0",data:{name:s.name,description:f.core_personality,personality:"",scenario:"",first_mes:f.initial_message,mes_example:"",creator_notes:"Portable card metadata, NOT documented as native Fizzz character-file import. Public Bio: "+s.bio,system_prompt:"",post_history_instructions:"",alternate_greetings:[],tags:s.tags,creator:"",character_version:"1.0",extensions:{fizzz:{title:s.title,bio:s.bio,age:s.age,pov:s.pov,rating:s.rating,created:s.created}},character_book:{name:s.name+" Worldbooks",entries}}}}
+function publishing(){
+ const s=src(),d=selected();
+ if(!d)throw Error("Approve your compiled character first.");
+ return {format:"Fizzz Publishing Fields",version:3,
+  note:"Character-only package: Worldbooks and Media/Voice settings are deliberately excluded. Add each Worldbook separately in Fizzz using the dedicated transfer controls. Native one-click import is unverified.",
+  profile:{title:d.title,name:s.name,age:s.age,gender:s.gender,pov:s.pov,rating:s.rating,created:s.creationDate,bio:d.bio,warning:s.warning,tags:window.FizzzAtelier?.getTags?.()||[]},
+  core_personality:d.core,initial_message:d.opening};
+}
+function card(){
+ const f=publishing(),s=f.profile;
+ return {spec:"chara_card_v2",spec_version:"2.0",data:{
+  name:s.name,description:f.core_personality,personality:"",scenario:"",first_mes:f.initial_message,mes_example:"",
+  creator_notes:"Portable Character Card V2. Worldbooks are separate and NOT embedded. This is not a verified native Fizzz bulk import. Public Bio: "+s.bio,
+  system_prompt:"",post_history_instructions:"",alternate_greetings:[],tags:s.tags,creator:"",character_version:"1.0",
+  extensions:{fizzz:{title:s.title,bio:s.bio,age:s.age,pov:s.pov,rating:s.rating,created:s.created}}
+ }};
+}
 function crc(bytes){let c=-1;for(const b of bytes){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0)}return(c^-1)>>>0}
 function num(n){const a=new Uint8Array(4);new DataView(a.buffer).setUint32(0,n,false);return a}
 function embed(buffer,text){
@@ -119,7 +130,7 @@ async function art(format="9:16"){
  const can=document.createElement("canvas");can.width=900;can.height=format==="3:4"?1200:1600;
  const ctx=can.getContext("2d"),imgFile=$("#export-png-image")?.files?.[0];
  if(imgFile){const url=URL.createObjectURL(imgFile);try{const im=new Image();await new Promise((r,j)=>{im.onload=r;im.onerror=j;im.src=url});const scale=Math.max(can.width/im.naturalWidth,can.height/im.naturalHeight),w=im.naturalWidth*scale,h=im.naturalHeight*scale;ctx.drawImage(im,(can.width-w)/2,(can.height-h)/2,w,h)}finally{URL.revokeObjectURL(url)}}
- else{ctx.fillStyle="#231624";ctx.fillRect(0,0,can.width,can.height);ctx.fillStyle="#e5c9a1";ctx.textAlign="center";ctx.font="48px Georgia";ctx.fillText(src().name||"Character",450,can.height/2);ctx.font="21px Georgia";ctx.fillText("Upload portrait under Media for real artwork",450,can.height/2+40);}
+ else{ctx.fillStyle="#231624";ctx.fillRect(0,0,can.width,can.height);ctx.fillStyle="#e5c9a1";ctx.textAlign="center";ctx.font="48px Georgia";ctx.fillText(src().name||"Character",450,can.height/2);ctx.font="21px Georgia";ctx.fillText("Choose an optional portrait in Compile & Export",450,can.height/2+40);}
  return new Promise((r,j)=>can.toBlob(b=>b?b.arrayBuffer().then(r,j):j(Error("Could not encode card")),"image/png"));}
 async function cardPNG(){const c=card(),pic=await art(),result=embed(pic,b64(JSON.stringify(c)));file(filename()+"-portable-card-v2.png",new Blob([result],{type:"image/png"}));message("Portable PNG saved with embedded Character Card V2 metadata. Fizzz may read it only as an image.");}
 async function cover(){publishing();const b=await art("3:4");file(filename()+"-fizzz-cover-3x4.png",new Blob([b],{type:"image/png"}));message("3:4 cover art created for separate upload to Fizzz.");}
@@ -133,7 +144,7 @@ function aiBrief(mode="complete"){const scope=["bio","core","opening","complete"
  "FIRST MESSAGE: Preserve the original fully playable novel-style scene, character dialogue, logical continuity, and a clear choice for the player. Rewrite only if it improves the prose and pacing.",
  "CHANGE LOG: For each actual edit, explain the specific writing improvement. If no change is necessary, preserve original exactly and explain why in changeLog.",
  "TITLE:\n"+src().title,"BIO:\n"+src().bio,"CORE:\n"+fullCore(),"OPENING:\n"+intro(),
- "WORLDBOOKS (EXISTING ONLY — DO NOT INVENT LORE):\n"+[1,2,3].map(i=>"Worldbook "+i+": "+(src()["world"+i+"Title"]||"")+"\nActivation: "+(src()["world"+i+"Mode"]||"keyword")+"\nKeywords: "+(src()["world"+i+"Keywords"]||"")+"\nFull lore: "+(src()["world"+i+"Body"]||"[NOT PROVIDED — DO NOT INVENT]")).join("\n\n")
+ "Worldbooks are edited and uploaded separately; do NOT copy their complete lore into Core Personality or the final character card."
  ].join("\n\n")}
 function aiImport(){
  try{
@@ -175,9 +186,9 @@ function mount(){
  '<div class="actions"><button class="primary" id="compiler-approve" disabled>✓ Use Compiled Bot for Exports</button><button id="compiler-publishing">↓ Fizzz Publishing JSON</button></div>',
  '<p id="compiler-selected" class="hint">Original fields currently drive exports.</p>',
  '<details><summary>✧ Deep creative rewrite with AI (optional and reviewable)</summary><p class="muted">This static GitHub site has no secure generative AI backend. Copy the detailed source prompt into ChatGPT and paste back complete proposed JSON; nothing changes until you approve.</p><button id="compiler-copy-ai">Copy Source-Aware AI Brief</button><textarea id="compiler-ai-json" rows="5" placeholder="Paste JSON returned from ChatGPT"></textarea><button id="compiler-import-ai">Review AI Proposal</button></details>',
- '<h4>Portable character card & Fizzz art</h4><p class="muted">The Character Card PNG/JSON embeds full text metadata for compatible software; Fizzz does not document native full-card import. Publish using the Fizzz-specific field exports, upload separate images, and choose voice inside Fizzz.</p>',
+ '<h4>Portable character card & Fizzz art</h4><p class="muted">The portable Character Card PNG/JSON contains only your approved profile, Core Personality and Initial Message. It never embeds Worldbooks. Transfer lore separately with the Worldbook controls. This is not a verified native Fizzz one-click character import.</p>',
  '<div class="actions"><button id="compiler-card-png">↓ Character Card PNG (data embedded)</button><button id="compiler-card-json">↓ Character Card V2 JSON</button><button id="compiler-cover">↓ 3:4 Fizzz Cover PNG</button></div>',
- '<p id="compiler-status" class="muted" role="status">Choose or upload a 9:16 portrait under Media to include it in the card.</p>'
+ '<p id="compiler-status" class="muted" role="status">Optional: choose a portrait in the Export section above for a character-art PNG. The PNG card contains no Worldbooks.</p>'
  ].join("");
  const anchor=panel.querySelector(".output-tools");if(anchor)anchor.parentNode.insertBefore(box,anchor);else panel.append(box);
  const click=(id,fn)=>$("#"+id).addEventListener("click",()=>Promise.resolve().then(fn).catch(e=>message(e.message)));

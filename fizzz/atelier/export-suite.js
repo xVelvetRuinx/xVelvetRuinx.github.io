@@ -10,12 +10,17 @@
  function save(name,blob){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);}
  const esc=x=>String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
  function compiled(){
-  const s=A().getState(),reviewed=window.VelvetRuinFizzzCompiler?.selectedProfile(),books=[];
-  for(let i=1;i<=3;i++)if(s["world"+i+"Title"]||s["world"+i+"Body"]||s["world"+i+"Keywords"]){
-   books.push({number:i,title:s["world"+i+"Title"]||"",activation:s["world"+i+"Mode"]||"keyword",keywords:(s["world"+i+"Keywords"]||"").split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean),content:s["world"+i+"Body"]||"",complete:Boolean((s["world"+i+"Body"]||"").trim())});
-  }
+  const s=A().getState(),reviewed=window.VelvetRuinFizzzCompiler?.selectedProfile();
   const date=(s.bio||"").match(/CREATION DATE:\*{0,2}\s*(November\s+1,\s+2026|\d{4}-\d{2}-\d{2})/i)?.[1]||"";
-  return {format:"VelvetRuin Fizzz field package",schema_version:2,platform:"Fizzz",note:"Creator-ready field package, not an official Fizzz bulk-import schema; copy fields into Fizzz.",creation_date:s.creationDate||date,profile:{public_title:reviewed?.title||s.title||"",chat_name:s.name||"",age:s.age||"",gender:s.gender||"",pov:s.pov||"",rating:s.rating||"",bio:reviewed?.bio||s.bio||"",content_advisory:s.warning||"",discovery_tags:A().getTags()},core_personality:A().coreCompiled(),initial_message:A().openingCompiled(),worldbooks:books,media:{cover_direction:s.coverDirection||"",character_images_direction:s.imageDirection||"",voice_direction:s.voiceDirection||"",voice_design:s.voiceDesignPrompt||"",opening_film:s.videoDirection||""},checks:{core_characters:A().coreCompiled().length,opening_characters:A().openingCompiled().length,worldbooks:books.map(x=>({number:x.number,characters:x.content.length,complete:x.complete}))}};
+  const core=A().coreCompiled(),opening=A().openingCompiled();
+  return {
+   format:"VelvetRuin Fizzz field package",schema_version:3,platform:"Fizzz",
+   note:"Character-only publishing file. Worldbooks and media/voice are excluded. Copy the three Worldbooks individually via the transfer controls. Not a verified native Fizzz bulk-import schema.",
+   creation_date:s.creationDate||date,
+   profile:{public_title:reviewed?.title||s.title||"",chat_name:s.name||"",age:s.age||"",gender:s.gender||"",pov:s.pov||"",rating:s.rating||"",bio:reviewed?.bio||s.bio||"",content_advisory:s.warning||"",discovery_tags:A().getTags()},
+   core_personality:core,initial_message:opening,
+   checks:{core_characters:core.length,opening_characters:opening.length}
+  };
  }
  function exportJSON(){const out=compiled();save(filename()+"-fizzz-final.json",new Blob([JSON.stringify(out,null,2)],{type:"application/json"}));status("Structured final JSON exported. Fizzz does not currently have a verified native JSON import for this package.");}
  function crc32(b){let c=-1;for(const x of b){c^=x;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^(-1))>>>0;}
@@ -43,7 +48,6 @@
   const all=[paragraph(out.profile.chat_name||"Fizzz Character",true),paragraph("Creator-ready field manuscript · Validate and paste individual fields into Fizzz.")];
   for(const [label,content] of blocks){
    all.push(paragraph(label,true));
-   if(/^WORLDBOOK/.test(label)&&!/[\s\S]*\n\n\S/.test(content||""))all.push(paragraph("[Outline only — add the full Worldbook text before publishing]"));
    for(const line of String(content||"").split("\n"))all.push(paragraph(line));
   }
   const document='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
@@ -55,7 +59,7 @@
    "word/document.xml":document
   };
   save(filename()+"-fizzz-final.docx",makeZip(files));
-  status("DOCX exported with the compiled fields. Wordbook bodies that were only outlined in the import must still be supplied.");
+  status("DOCX exported with character profile, Core and Initial Message only. Copy Worldbooks separately from the transfer panel.");
  }
  function drawWrap(ctx,text,x,y,maxWidth,lineH,maxLines=4){
   let words=String(text||"").replace(/[#*_]/g,"").split(/\s+/).filter(Boolean),line="",drawn=0;
