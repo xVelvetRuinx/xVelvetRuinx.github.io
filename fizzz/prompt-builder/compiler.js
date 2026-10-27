@@ -194,7 +194,8 @@ function mount(){
  '<div class="actions"><button id="compiler-card-png">↓ Character Card PNG (data embedded)</button><button id="compiler-card-json">↓ Character Card V2 JSON</button><button id="compiler-cover">↓ 3:4 Fizzz Cover PNG</button></div>',
  '<p id="compiler-status" class="muted" role="status">Optional: choose a portrait in the Export section above for a character-art PNG. The PNG card contains no Worldbooks.</p>'
  ].join("");
- const anchor=panel.querySelector(".output-tools");if(anchor)anchor.parentNode.insertBefore(box,anchor);else panel.append(box);
+ for(const input of box.querySelectorAll("input,textarea"))input.setAttribute("autocomplete","off");
+  const anchor=panel.querySelector(".output-tools");if(anchor)anchor.parentNode.insertBefore(box,anchor);else panel.append(box);
  const click=(id,fn)=>$("#"+id).addEventListener("click",()=>Promise.resolve().then(fn).catch(e=>message(e.message)));
  click("compiler-start",()=>{compile($("#compiler-mode").value);message("Bot compiled. Review the optimized Core and Bio, then approve for publication.");});
  click("compiler-original",undo);click("compiler-approve",approve);
