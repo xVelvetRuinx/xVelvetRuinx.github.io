@@ -3,7 +3,7 @@
 (()=>{
 "use strict";
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
-const store="velvetruin.fizzz.promptbuilder.v1";
+
 const tagsKnown=["Female","Male","Trans","Non-binary","Femboy","AnyPOV","MalePOV","FemPOV","SFW","NSFW","OC","Fictional","Game","Anime","Movies / TV","Books","MLM","WLW","Enemies to Lovers","Friends to Lovers","Love Interest","Harem","Reverse Harem","Polyamory","Multiple People","Dominant","Submissive","Switch","Villain","Hero","Yandere","Tsundere","Kuudere","Smut","Fluff","Angst","Comedy","Dead Dove","Horror","Drama","Slow Burn","Wholesome","Historical","Royalty","Sci-Fi","Magical","RPG","Scenario","Demi-Human","Monster Girl","Monster","Non-Human","Vampire","Elf","Werewolf","Demon","Angel","Dragon","Furry","Robot","Alien","Mafia","Military","Police","CEO / Boss","Teacher","Student","Doctor","Nurse","Maid","Butler","Knight","Assassin","Spy","Bodyguard","Idol","Rockstar","Model","Pirate"];
 const TAG_LIMIT=10;
 const defs={
@@ -57,8 +57,8 @@ function copy(t){if(navigator.clipboard?.writeText)return navigator.clipboard.wr
 function download(name,text,type="text/plain"){const a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:type+";charset=utf-8"}));a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
 function notify(t){const x=$("#toast");x.textContent=t;x.style.display="block";clearTimeout(notify._timer);notify._timer=setTimeout(()=>x.style.display="none",3300);}
 function mark(t,state=""){const x=$("#import-status");x.className="import-status "+state;x.textContent=t;}
-function save(){try{localStorage.setItem(store,JSON.stringify({data,chosen,original,originalName}));}catch{}}
-function readSaved(){try{const x=JSON.parse(localStorage.getItem(store)||"null");if(x&&x.data){data={...initial,...x.data};chosen=normalizeTags(x.chosen);original=x.original||"";originalName=x.originalName||"";}}catch{}}
+function save(){window.FizzzSessionPrivacy?.edited?.();}
+function readSaved(){/* Every new tab starts blank. Character drafts are memory-only. */}
 function fieldRender(group){
  const parent=$("#fields-"+group);
  for(const [key,label,help,kind,options] of defs[group]){
@@ -68,7 +68,7 @@ function fieldRender(group){
   if(kind==="select"){inp=document.createElement("select");for(const v of options){const op=document.createElement("option");op.textContent=v;op.value=v;inp.append(op)}}
   else if(kind==="text"){inp=document.createElement("input");inp.type="text";}
   else{inp=document.createElement("textarea");inp.rows=kind==="long"?17:kind==="large"?9:4;inp.className=kind;}
-  inp.id=id;inp.dataset.key=key;inp.value=data[key]||"";
+  inp.id=id;inp.dataset.key=key;inp.value=data[key]||"";inp.autocomplete="off";inp.setAttribute("autocomplete","off");
   inp.addEventListener(kind==="select"?"change":"input",()=>{data[key]=inp.value;save();refresh()});
   const para=document.createElement("p");para.className="help";para.textContent=help;
   box.append(lab,inp,para);parent.append(box);
@@ -354,7 +354,7 @@ function parseGeneric(source,ext){
  if(ext==="json"||raw.trim().startsWith("{")){
   let obj;try{obj=JSON.parse(raw);}catch(e){throw Error("Character JSON could not be read: "+e.message)}
   if(obj?.builder==="VelvetRuin Fizzz Prompt Builder"&&obj.data)
-   return {fields:{...initial,...obj.data},tags:obj.tags||[],messages:["Restored complete Fizzz Prompt Builder project."],kind:"Existing Fizzz creator project"};
+   return {fields:{...initial,...obj.data},tags:obj.tags||[],compiler_draft:obj.compiler_draft||null,messages:["Imported project into this tab only; no browser autosave."],kind:"Existing Fizzz creator project"};
   if(obj?.tool==="VelvetRuin Fizzz Atelier"&&obj.project)
    return {fields:{...initial,...obj.project},tags:obj.project.tags||[],messages:["Imported complete Fizzz Atelier project."],kind:"Fizzz Atelier project"};
   if(obj?.atelier_project?.project)
@@ -472,9 +472,10 @@ function mergeParsed(parsed,name,source){
   mark("This file's text was extracted but fewer than 3 meaningful fields were recognized. Your existing draft was NOT replaced. Read the extracted source preview or revise the file headings and try again.","error");
   return;
  }
- try{localStorage.setItem(store+".previous-draft",JSON.stringify({data,chosen,original,originalName}));}catch{}
+ /* Import history is not persisted. Export a backup explicitly before replacing an active draft. */
  data={...initial,...incoming};chosen=normalizeTags(parsed.tags);
  original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
+ window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(parsed.compiler_draft||null);
  const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
  const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
  if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
@@ -597,10 +598,12 @@ function renderOutput(){
   head.append(title,button);const pre=document.createElement("pre");pre.className="pre";pre.textContent=value||"— Missing content —";sect.append(head,pre);dst.append(sect);
  }
 }
-function project(){return {builder:"VelvetRuin Fizzz Prompt Builder",version:1,data,source_filename:originalName,original_source:original,tags:chosen,export_note:"Editable source project; use Restore Saved JSON to re-import."};}
+function project(){return {builder:"VelvetRuin Fizzz Prompt Builder",version:2,data,source_filename:originalName,original_source:original,tags:chosen,
+ compiler_draft:window.VelvetRuinFizzzCompiler?.snapshot?.()||null,
+ export_note:"This JSON is a manually downloaded backup. Nothing is saved automatically after this tab closes."};}
 function filename(){return (data.name||"character").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"character";}
-function sendProject(){download(filename()+"-fizzz-project.json",JSON.stringify(project(),null,2),"application/json");}
-async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data={...initial,...obj.data};chosen=normalizeTags(obj.tags);original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();notify("Project restored.");}
+function sendProject(){download(filename()+"-fizzz-project.json",JSON.stringify(project(),null,2),"application/json");window.FizzzSessionPrivacy?.backedUp?.();notify("Backup downloaded. Keep the JSON file to restore your character later.");}
+async function restoreJSON(file){if(!file)return;const content=await file.text(),obj=JSON.parse(content);if(!obj||obj.builder!=="VelvetRuin Fizzz Prompt Builder"||!obj.data)throw Error("Not a compatible project backup. Use standard Import for other JSON.");data={...initial,...obj.data};chosen=normalizeTags(obj.tags);original=obj.original_source||"";originalName=obj.source_filename||file.name;save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(obj.compiler_draft||null);notify("Project restored into this tab only. Export a backup before closing.");}
 function init(){
  readSaved();for(const name of Object.keys(defs))fieldRender(name);worldRender();tagsRender();rerender();
  $("#tag-search")?.addEventListener("input",tagsRender);
@@ -608,7 +611,7 @@ function init(){
  $$(".tab").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.tab)));
  $$(".next").forEach(el=>el.addEventListener("click",()=>showTab(el.dataset.to)));
  $("#jump-import").addEventListener("click",()=>{$("#import-box").open=true;$("#drop-area").scrollIntoView({behavior:"smooth",block:"center"})});
- $("#start-empty").addEventListener("click",()=>{if((data.name||data.bio)&&!confirm("Start a new bot? Download a JSON backup if you want to keep this draft."))return;data={...initial};chosen=[];original="";originalName="";sourceNotes=[];save();rerender();showTab("profile");mark("Blank creator template ready.");});
+ $("#start-empty").addEventListener("click",()=>{if((data.name||data.bio)&&!confirm("Starting a new character discards this tab’s draft. Download a Builder Backup first if you need to keep it. Continue?"))return;data={...initial};chosen=[];original="";originalName="";sourceNotes=[];save();rerender();window.VelvetRuinFizzzCompiler?.restoreSnapshot?.(null);window.FizzzSessionPrivacy?.cleared?.();showTab("profile");mark("New blank session-only character. Nothing is saved after this tab closes.");});
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
  $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
