@@ -28,7 +28,7 @@ core:[
 ["behavior","Growth & behavior under pressure","How they change as trust is earned; what must remain consistent.","large"],
 ["boundaries","Behavioral boundaries / agency rules","Protect player autonomy and maintain character agency without flattening tension.","large"],
 ["voice","Speaking style · last in the core","Voice, sentence length, humor, pacing, and what dialogue should avoid.","short"],
-["coreRaw","Optional verbatim Core Personality · preserved source","Archival duplicate text from source; stored in backup, not pasted twice into compiled Core.","large"]],
+["coreRaw","Preserved Import Text / Verbatim Core Source","Unmapped original text and character-card personality appear here. If the rest of the Core fields were not recognized, this entire text remains visible in the compiled Core instead of being discarded.","large"]],
 opening:[
 ["openingScene","Scene · location, time & atmosphere","Planning notes for the opening; do not duplicate inside a completed greeting.","short"],
 ["openingAction","What the character visibly does","Filmable actions, physical motion, and relationship cues.","short"],
@@ -107,6 +107,10 @@ function coreCompiled(){
  const out=["# "+(data.name||"Character")+" — Character Settings"];
  if(data.age)out.push("Age: "+data.age);if(data.gender)out.push("Gender: "+data.gender);
  for(const [label,fields] of order){const v=fields.map(k=>str(data[k]).trim()).filter(Boolean).join("\n");if(v)out.push("\n## "+label+"\n"+v);}
+ if(data.coreRaw?.trim()){
+  const typed=["occupation","species","appearance","backstory","traits","contradiction","motivation","relationship","behavior","boundaries","voice"].filter(k=>data[k]?.trim()).length;
+  if(typed<5)out.push("\n## PRESERVED SOURCE — REVIEW & SORT INTO FIZZZ FIELDS\n"+data.coreRaw.trim());
+ }
  return out.join("\n").trim();
 }
 function openingCompiled(){
@@ -144,10 +148,41 @@ function rerender(){ $$("[data-key]").forEach(el=>el.value=data[el.dataset.key]|
 function showTab(tab){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.tab===tab);b.setAttribute("aria-selected",b.dataset.tab===tab)});$$(".panel").forEach(p=>p.hidden=p.id!=="panel-"+tab);if(tab==="output"){analyse();renderOutput();}if(window.innerWidth<900)document.querySelector(".tabs").scrollIntoView({block:"start",behavior:"smooth"});}
 function stripMd(s){return str(s).replace(/\*\*/g,"").replace(/^#+\s?/gm,"").trim();}
 function dataFromNumbered(source){
- const text=str(source);const re=/^##\s+(\d{1,2})\.\s+(.+)\s*$/gm,h=[...text.matchAll(re)];
- if(h.length<12||!h.some(x=>+x[1]===21))return null;
- const config=text.search(/^#\s+.+WORLDBOOK CONFIGURATION\s*$/m),sec={};
- for(let i=0;i<h.length;i++){let end=i+1<h.length?h[i+1].index:text.length;if(+h[i][1]===21&&config>=0)end=Math.min(end,config);sec[+h[i][1]]=text.slice(h[i].index+h[i][0].length,end).trim();}
+ const text=str(source).replace(/\u00a0/g," ");
+ // Word/DOCX extraction often removes Markdown heading marks (##). Numbered
+ // labels may also be Word automatic numbering and disappear entirely.
+ // Accept only KNOWN section labels, never numbered steps from source lore.
+ const headingNames={
+  1:["Public Title"],2:["Character Chat Name"],3:["Character Age / Age Range","Character Age","Age / Age Range"],
+  4:["Gender Tag"],5:["POV Tag"],6:["Rating Tag"],
+  7:["Character Bio · Public","Character Bio - Public","Character Bio Public","Public Character Bio","Public Bio"],
+  8:["Optional Content Advisory","Content Advisory"],
+  9:["Identity & Role","Identity and Role"],10:["Species / Supernatural Identity","Species and Supernatural Identity","Species & Biology"],
+  11:["Appearance the Text Model Must Know","Appearance Text Model Must Know","Appearance"],
+  12:["Causal Background","Background"],
+  13:["Core Personality · Observable Behavior","Core Personality Observable Behavior","Observable Personality"],
+  14:["Internal Contradiction"],15:["Character Goals & Lasting Drive","Character Goals and Lasting Drive"],
+  16:["Relationship with {{user}} · Starting State","Relationship with {{user}} Starting State","Relationship with User Starting State"],
+  17:["Growth & Behavior Under Pressure","Growth and Behavior Under Pressure"],
+  18:["Behavioral Boundaries / Agency Rules","Behavioral Boundaries Agency Rules"],
+  19:["Speaking Style · Last in the Core","Speaking Style Last in the Core","Speaking Style"],
+  20:["Optional Verbatim Core Personality · Preserved Source","Optional Verbatim Core Personality Preserved Source"],
+  21:["Complete Initial Message · Recommended","Complete Initial Message Recommended","Complete Initial Message"]
+ };
+ const normalizeHeading=x=>String(x).toLowerCase().replace(/\*+/g,"").replace(/\{\{user\}\}/gi,"user").replace(/[^\p{L}\p{N}]+/gu," ").trim().replace(/\s+/g," ");
+ const lines=text.split("\n"),h=[];
+ let cursor=0;
+ for(const line of lines){
+  const at=cursor;cursor+=line.length+1;
+  let heading=line.trim().replace(/^#{1,6}\s*/,"").replace(/^\*\*(.*?)\*\*$/,"$1").trim();
+  const num=heading.match(/^(\d{1,2})\s*[.)·:—–-]\s*(.+)$/u);
+  const n=num?Number(num[1]):null,label=(num?num[2]:heading).replace(/\*+$/,"").trim(),id=normalizeHeading(label);
+  const matches=Object.entries(headingNames).filter(([index,aliases])=>(n===null||Number(index)===n)&&aliases.some(a=>normalizeHeading(a)===id));
+  if(matches.length===1)h.push({index:at,0:line,1:Number(matches[0][0]),2:label});
+ }
+ if(h.length<10||!h.some(x=>x[1]===7)||!h.some(x=>x[1]===21))return null;
+ const config=text.search(/^(?:#{1,6}\s*)?(?:[\p{L}\p{N} '\-]+\s*[—–-]\s*)?WORLDBOOK CONFIGURATION\s*$/imu),sec={};
+ for(let i=0;i<h.length;i++){let end=i+1<h.length?h[i+1].index:text.length;if(+h[i][1]===21&&config>=0)end=Math.min(end,config);const val=text.slice(h[i].index+h[i][0].length,end).trim();if(!sec[h[i][1]])sec[h[i][1]]=val;}
  const d={...initial},messages=[];
  d.title=sec[1]||"";d.name=sec[2]||"";
  d.age=(sec[3]||"").match(/\*\*Age:\*\*\s*(\d{2,3})/i)?.[1]||(sec[3]||"").match(/\b(\d{2,3})\b/)?.[1]||"";
@@ -159,19 +194,36 @@ function dataFromNumbered(source){
  for(const [i,k] of Object.entries(map))d[k]=sec[i]||"";
  d.creationDate=sec[7]?.match(/CREATION DATE:\*{0,2}\s*(November\s+\d{1,2},\s+\d{4}|\d{4}-\d{2}-\d{2})/i)?.[1]||"";
  if(sec[21]){
-  const lines=sec[21].split("\n"),labels=["Scene · Location, Time & Atmosphere","What the Character Visibly Does","One or Two Spoken Lines","Playable Opening Beat"],keys=["openingScene","openingAction","openingLine","openingBeat"];
-  const headers=[...sec[21].matchAll(/^###\s+([^\n]+)$/gm)];
-  let proseStart=-1;const beat=lines.findIndex(l=>/^###\s+Playable Opening Beat/i.test(l));
-  if(beat>=0){for(let j=beat+1;j<lines.length;j++){const line=lines[j].trim();if(!line||line.startsWith("- ")||line.startsWith("* ")||line.startsWith("###"))continue;proseStart=j;break;}}
-  if(proseStart>=0){
-   d.initialRaw=lines.slice(proseStart).join("\n").trim();
-   const pre=lines.slice(0,proseStart).join("\n");
-   const bounds=[...pre.matchAll(/^###\s+([^\n]+)$/gm)];
-   for(let j=0;j<labels.length;j++){const idx=bounds.findIndex(h=>norm(h[1])===norm(labels[j]));if(idx>=0)d[keys[j]]=pre.slice(bounds[idx].index+bounds[idx][0].length,idx+1<bounds.length?bounds[idx+1].index:pre.length).trim();}
-  }else{d.initialRaw=sec[21];messages.push("Opening narrative was not distinguishable from section 21 notes; review the opening before publishing.");}
+  const lines=sec[21].split("\n");
+  const labels=["Scene · Location, Time & Atmosphere","What the Character Visibly Does","One or Two Spoken Lines","Playable Opening Beat"];
+  const keys=["openingScene","openingAction","openingLine","openingBeat"];
+  const simplified=x=>String(x).replace(/^#{1,6}\s*/,"").replace(/^\*\*(.*?)\*\*$/,"$1").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
+  const indexes=labels.map(label=>lines.findIndex(line=>simplified(line)===simplified(label)));
+  // Word extracts text but not the original ### formatting. Locate the
+  // opening planner by its actual four headings, not the Markdown prefix.
+  if(indexes[3]>=0){
+   let proseStart=-1;
+   for(let j=indexes[3]+1;j<lines.length;j++){
+    const line=lines[j].trim();
+    if(!line||/^[-*•]\s+/.test(line)||/^#{1,6}\s+/.test(line))continue;
+    proseStart=j;break;
+   }
+   for(let j=0;j<4;j++){
+    const a=indexes[j],b=j<3?indexes[j+1]:(proseStart<0?lines.length:proseStart);
+    if(a>=0&&b>a)d[keys[j]]=lines.slice(a+1,b).join("\n").trim();
+   }
+   if(proseStart>=0)d.initialRaw=lines.slice(proseStart).join("\n").trim();
+   else {
+    d.initialRaw="";
+    messages.push("Section 21 contains opening notes but no distinguishable complete scene. Write or import the actual greeting; do not mistake the planner for finished prose.");
+   }
+  }else{
+   d.initialRaw=sec[21];
+   messages.push("No four-part opening planner detected; the complete Section 21 text was retained as the initial message for review.");
+  }
  }
  if(config>=0){
-  const chunk=text.slice(config),wb=[...chunk.matchAll(/^##\s+Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gm)];
+  const chunk=text.slice(config),wb=[...chunk.matchAll(/^(?:#{1,6}\s*)?Worldbook\s+([1-3])\s*[—–-]\s*(.+)\s*$/gim)];
   for(let i=0;i<wb.length;i++){
    const n=+wb[i][1],body=chunk.slice(wb[i].index+wb[i][0].length,i+1<wb.length?wb[i+1].index:chunk.length);
    d["world"+n+"Title"]=wb[i][2].trim();
@@ -188,54 +240,156 @@ function dataFromNumbered(source){
  return {fields:d,tags,messages,kind:"Full 21-section Fizzz character"};
 }
 function parseGeneric(source,ext){
- if(ext==="json"||str(source).trim().startsWith("{")){
-  let obj;try{obj=JSON.parse(source)}catch(e){throw Error("Invalid character JSON: "+e.message)}
-  if(obj.format==="VelvetRuin Fizzz field package"){
-   const p=obj.profile||{},d={...initial,...(obj.project||{})};
-   Object.assign(d,{title:p.public_title||"",name:p.chat_name||"",age:p.age||"",gender:p.gender||"",pov:p.pov||"Any POV",rating:p.rating||"Limited",bio:p.bio||"",warning:p.content_advisory||"",initialRaw:obj.initial_message||""});
-   (obj.worldbooks||[]).forEach((w,i)=>{const n=w.number||i+1;if(n<1||n>3)return;d["world"+n+"Title"]=w.title||"";d["world"+n+"Mode"]=w.activation||"keyword";d["world"+n+"Keywords"]=Array.isArray(w.keywords)?w.keywords.join(", "):w.keywords||"";d["world"+n+"Body"]=w.content||"";});
-   if(!d.coreRaw&&obj.core_personality)d.coreRaw=obj.core_personality;
-   return {fields:d,tags:p.discovery_tags||[],messages:["Imported compiled package. Review optional Core Personality and Wordbook bodies."],kind:"Fizzz field package"};
+ const raw=str(source),d={...initial},messages=[];
+ const normalizeChoice=x=>String(x||"").trim();
+ const cleanCore=x=>String(x||"").trim();
+ let tags=[];
+ if(ext==="json"||raw.trim().startsWith("{")){
+  let obj;try{obj=JSON.parse(raw);}catch(e){throw Error("Character JSON could not be read: "+e.message)}
+  if(obj?.builder==="VelvetRuin Fizzz Prompt Builder"&&obj.data)
+   return {fields:{...initial,...obj.data},tags:obj.tags||[],messages:["Restored complete Fizzz Prompt Builder project."],kind:"Existing Fizzz creator project"};
+  if(obj?.tool==="VelvetRuin Fizzz Atelier"&&obj.project)
+   return {fields:{...initial,...obj.project},tags:obj.project.tags||[],messages:["Imported complete Fizzz Atelier project."],kind:"Fizzz Atelier project"};
+  if(obj?.atelier_project?.project)
+   return {fields:{...initial,...obj.atelier_project.project},tags:obj.atelier_project.project.tags||[],messages:["Imported saved Atelier project."],kind:"Fizzz Atelier backup"};
+  // Portable V2 character cards contain the entire core in description.
+  if(obj?.spec==="chara_card_v2"&&obj.data){
+   const card=obj.data,meta=card.extensions?.fizzz||{};
+   Object.assign(d,{
+    title:meta.title||card.name||"",name:card.name||meta.chat_name||"",
+    age:String(meta.age||""),gender:meta.gender||"",pov:meta.pov||"Any POV",
+    rating:meta.rating||"Limited",bio:meta.bio||card.creator_notes||"",
+    initialRaw:card.first_mes||"",coreRaw:card.description||card.personality||"",
+    creationDate:meta.creation_date||meta.created||""
+   });
+   tags=Array.isArray(card.tags)?card.tags:[];
+   (card.character_book?.entries||[]).filter(item=>item&&item.content).slice(0,3).forEach((item,i)=>{
+    const n=i+1;d["world"+n+"Title"]=item.name||"Worldbook "+n;
+    d["world"+n+"Body"]=item.content;
+    d["world"+n+"Mode"]=item.constant?"always":"keyword";
+    d["world"+n+"Keywords"]=(item.keys||[]).join(", ");
+   });
+   return {fields:d,tags,messages:["Portable character card imported. Original Core Personality is preserved verbatim and visible under Core Personality > Preserved Source."],kind:"Character Card V2"};
   }
-  if(obj.tool==="VelvetRuin Fizzz Atelier"&&obj.project)return {fields:{...initial,...obj.project},tags:obj.project.tags||[],messages:[],kind:"Atelier project"};
-  if(obj.builder==="VelvetRuin Fizzz Prompt Builder"&&obj.data)return {fields:{...initial,...obj.data},tags:obj.tags||[],messages:[],kind:"Prompt Builder project"};
-  if(obj.atelier_project?.project)return {fields:{...initial,...obj.atelier_project.project},tags:obj.atelier_project.project.tags||[],messages:[],kind:"Fizzz package project"};
-  const src=obj.fields||obj.character||obj;
-  const d={...initial};
-  for(const k of Object.keys(initial))if(typeof src[k]==="string")d[k]=src[k];
-  for(const [from,to] of [["description","bio"],["personality","coreRaw"],["first_mes","initialRaw"],["greeting","initialRaw"],["chat_name","name"],["scenario","relationship"]])if(typeof src[from]==="string"&&!d[to])d[to]=src[from];
-  return {fields:d,tags:src.tags||[],messages:["Generic JSON imported. Review field mapping for this source format."],kind:"General character JSON"};
+  // Re-import both previous JSON export variants, retaining the entire core.
+  if(["VelvetRuin Fizzz field package","Fizzz Publishing Fields","VelvetRuin Fizzz Publishing Fields"].includes(obj?.format)||obj?.schema==="VelvetRuin Fizzz compilation"){
+   const p=obj.profile||{};
+   Object.assign(d,{
+    title:p.public_title||p.title||"",name:p.chat_name||p.name||"",
+    age:String(p.age||""),gender:p.gender||"",pov:p.pov||"Any POV",
+    rating:p.rating||"Limited",bio:p.bio||"",warning:p.content_advisory||p.warning||"",
+    creationDate:p.creation_date||p.created||obj.creation_date||"",
+    initialRaw:obj.initial_message||"",coreRaw:obj.core_personality||""
+   });
+   (obj.worldbooks||[]).slice(0,3).forEach((book,i)=>{
+    const n=book.number||i+1;if(n<1||n>3)return;
+    d["world"+n+"Title"]=book.title||"";
+    d["world"+n+"Mode"]=book.activation||book.mode||"keyword";
+    d["world"+n+"Keywords"]=Array.isArray(book.keywords)?book.keywords.join(", "):book.keywords||"";
+    d["world"+n+"Body"]=book.content||"";
+   });
+   tags=p.discovery_tags||p.tags||[];
+   return {fields:d,tags,messages:["Complete Fizzz publishing package imported. Core Personality is preserved verbatim under Preserved Source and in compiled output."],kind:"Fizzz field package"};
+  }
+  const sourceObj=obj.fields||obj.character||obj.data||obj;
+  for(const key of Object.keys(initial)){
+   if(typeof sourceObj[key]==="string")d[key]=sourceObj[key];
+  }
+  const map={description:"bio",public_description:"bio",char_name:"name",chat_name:"name",first_mes:"initialRaw",firstMessage:"initialRaw",initial_message:"initialRaw",greeting:"initialRaw",personality:"coreRaw",scenario:"relationship",system_prompt:"boundaries"};
+  for(const [key,to] of Object.entries(map))if(!d[to]&&typeof sourceObj[key]==="string")d[to]=sourceObj[key];
+  if(!d.coreRaw&&typeof sourceObj.character_definition==="string")d.coreRaw=sourceObj.character_definition;
+  if(!d.name&&typeof obj.name==="string")d.name=obj.name;
+  tags=Array.isArray(sourceObj.tags)?sourceObj.tags:[];
+  messages.push("Imported general character JSON. Original personality text is retained under Core > Preserved Source; review placement and mapping.");
+  return {fields:d,tags,messages,kind:"General character JSON"};
  }
- const text=str(source);const d={...initial},patterns=[
- ["title",/^(?:public title|published title|bot title)\s*:\s*(.+)$/im],
- ["name",/^(?:character chat name|full name|name)\s*:\s*(.+)$/im],
- ["age",/^(?:age)\s*:\s*(\d{2,3})/im],
- ["bio",/^(?:description|public bio)\s*:\s*([^\n]+)/im],
- ["initialRaw",/^(?:initial message|greeting|first message)\s*:\s*([\s\S]+)$/im]];
- for(const [k,re] of patterns){const match=text.match(re);if(match)d[k]=match[1].trim();}
- if(!d.coreRaw&&text.trim())d.coreRaw=text.trim();
- return {fields:d,tags:[],messages:["This source did not use numbered template headings. Kept the full text as a preserved Core source so no original material is lost. Sort it into the editable sections."],kind:"Unstructured character text"};
+ // Generic rich-text and unnumbered templates (including Word text) can still
+ // contain recognizable named fields. Use the already loaded document parser.
+ const parsed=window.AtelierMigrator?.fromText?.(raw)||{fields:{},unmapped:raw};
+ const p=parsed.fields||{};
+ const mapping={
+  title:"title",name:"name",age:"age",gender:"gender",rating:"rating",
+  hook:"bio",userRole:"relationship",scenario:"relationship",
+  appearance:"appearance",personality:"traits",contradiction:"contradiction",
+  voice:"voice",occupation:"occupation",backstory:"backstory",
+  anchors:"boundaries",surfaceGoal:"motivation",hiddenGoal:"motivation",
+  customGreeting:"initialRaw",openingScene:"openingScene",openingAction:"openingAction",
+  openingDialogue:"openingLine",openingBeat:"openingBeat",lore:"world1Body"
+ };
+ for(const [old,newKey] of Object.entries(mapping)){
+  const text=typeof p[old]==="string"?p[old].trim():"";
+  if(!text)continue;
+  if(d[newKey]){if(["traits","backstory","motivation","relationship","boundaries"].includes(newKey))d[newKey]+="\n\n"+text;}
+  else d[newKey]=text;
+ }
+ if(p.name&&!d.name)d.name=p.name;
+ if(p.age&&!d.age)d.age=p.age;
+ if(d.gender){if(/^male$/i.test(d.gender))d.gender="Male";else if(/^female$/i.test(d.gender))d.gender="Female";}
+ if(d.rating&&!["Limited","Limitless"].includes(d.rating))d.rating="Limited";
+ if(!d.name){
+  const first=raw.split("\n").map(x=>x.trim()).find(x=>x.length>1&&x.length<100);
+  const heading=first?.replace(/^#{1,6}\s*/,"").replace(/\*\*/g,"").split(/\s+[|—–]\s+/)[0].trim()||"";
+  if(/^[A-Z][\p{L}.'-]+(?:\s+[A-Z][\p{L}.'-]+){1,2}$/u.test(heading))d.name=heading;
+ }
+ // Import cannot just silently leave a 28k-character character file in a
+ // hidden coreRaw slot. Preserve and surface ALL content if few fields mapped.
+ const meaningful=["name","bio","traits","appearance","backstory","relationship","initialRaw","occupation","boundaries","voice"].filter(k=>d[k]);
+ const residual=(parsed.unmapped||"").trim();
+ if(residual&&residual!==d.traits&&residual!==d.coreRaw)d.coreRaw=residual;
+ if(meaningful.length<3){
+  d.coreRaw=raw.trim();
+  messages.push("WARNING: This file did not contain enough recognized Fizzz field headings. All extracted text has been preserved under Core > Preserved Source, NOT discarded. It still needs field placement.");
+ }else{
+  messages.push("Recognized "+meaningful.length+" meaningful fields from a non-numbered document. Unclassified original text is preserved under Core > Preserved Source where available.");
+ }
+ return {fields:d,tags,messages,kind:meaningful.length<3?"Partially recognized character document":"Mapped general character document"};
+}
+function displayExtractedSource(name,raw,warnings=[]){
+ let details=document.getElementById("extracted-source-preview");
+ if(!details){
+  details=document.createElement("details");
+  details.id="extracted-source-preview";details.className="import-source-preview";
+  details.innerHTML='<summary>View what the uploader actually read from your file</summary><p id="extracted-source-info"></p><textarea id="extracted-source-text" readonly rows="12" style="width:100%;min-height:160px"></textarea>';
+  document.getElementById("import-status")?.insertAdjacentElement("afterend",details);
+ }
+ details.querySelector("#extracted-source-info").textContent=name+" · "+raw.length.toLocaleString()+" characters extracted. "+(warnings||[]).join(" ");
+ details.querySelector("#extracted-source-text").value=raw;
 }
 function mergeParsed(parsed,name,source){
- data={...initial,...parsed.fields};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
- original=source;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
+ const originalSource=String(source||""),incoming=parsed.fields||{},weak=parsed.kind==="Partially recognized character document";
+ const strongKeys=["name","title","bio","traits","appearance","backstory","relationship","initialRaw","occupation","boundaries","coreRaw"];
+ const existingStrong=strongKeys.filter(k=>String(data[k]||"").trim()).length;
+ const arrivingStrong=strongKeys.filter(k=>String(incoming[k]||"").trim()).length;
+ // A partially mapped document must not silently erase a much richer draft.
+ if(weak&&existingStrong>=3&&arrivingStrong<3){
+  mark("This file's text was extracted but fewer than 3 meaningful fields were recognized. Your existing draft was NOT replaced. Read the extracted source preview or revise the file headings and try again.","error");
+  return;
+ }
+ try{localStorage.setItem(store+".previous-draft",JSON.stringify({data,chosen,original,originalName}));}catch{}
+ data={...initial,...incoming};chosen=Array.isArray(parsed.tags)?[...new Set(parsed.tags.filter(x=>tagsKnown.includes(x)))].slice(0,7):[];
+ original=originalSource;originalName=name;sourceNotes=parsed.messages||[];recommendations=[];rerender();save();
  const populated=Object.entries(parsed.fields).filter(([k,v])=>typeof v==="string"&&v.trim());
  const missing=populated.filter(([k,v])=>{const input=document.getElementById("field-"+k);return input&&input.value!==v;});
  if(missing.length){mark("Import incomplete: "+missing.length+" populated fields did not appear in the editor ("+missing.map(([k])=>k).join(", ")+"). The original file remains available; do not publish this draft.", "error");return;}
- mark("✓ "+parsed.kind+" imported: "+populated.length+" populated fields mapped and displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" Review the panels, then run suggestions.", "success");
+ const warning=weak||parsed.kind==="General character JSON"||parsed.kind==="Partially recognized character document";
+ mark((warning?"⚠ Partial mapping — ":"✓ ")+parsed.kind+": "+populated.length+" populated values displayed. "+(sourceNotes.length?sourceNotes.join(" "):"All recognized content preserved.")+" "+(warning?"Open Core > Preserved Import Text for unsorted material; review before compiling.":"Review the panels, then compile."),warning?"error":"success");
  showTab("profile");buildSuggestions();
 }
 async function loadFile(file,forWorld=null){
  if(!file)return;
  if(file.size>12*1024*1024)throw Error("File is larger than 12 MB.");
  const ext=(file.name.split(".").pop()||"txt").toLowerCase();
- let content="";
- if(["docx","doc","rtf"].includes(ext)){
-  const api=window.AtelierMigrator;
-  if(!api?.extract)throw Error("Document reader unavailable. Save as TXT or paste the text.");
-  const result=await api.extract(file);content=str(result.text||"");
- }else content=await file.text();
- if(!content.trim())throw Error("The file contained no readable text.");
+ let content="",readerWarnings=[];
+ const api=window.AtelierMigrator;
+ if(api?.extract){
+  const extracted=await api.extract(file);
+  content=str(extracted?.text||"");
+  readerWarnings=extracted?.warnings||[];
+ }else if(["txt","md","markdown","json"].includes(ext)){
+  content=await file.text();
+ }else throw Error("The document reader failed to initialize. Reload the page; DOCX, DOC, PDF, RTF, and PNG imports need the reader.");
+ if(!content.trim())throw Error("No usable text extracted from this file. It has not replaced your current character.");
+ if(!forWorld)displayExtractedSource(file.name,content,readerWarnings);
  if(forWorld){
   if(content.length>10000)throw Error("Worldbook "+forWorld+" exceeds 10,000 characters. No data was replaced.");
   const key="world"+forWorld+"Body";
@@ -244,7 +398,9 @@ async function loadFile(file,forWorld=null){
   return;
  }
  const structured=dataFromNumbered(content);
- mergeParsed(structured||parseGeneric(content,ext),file.name,content);
+ const parsed=structured||parseGeneric(content,ext);
+ parsed.messages=[...(readerWarnings||[]),...(parsed.messages||[])];
+ mergeParsed(parsed,file.name,content);
 }
 function isReadiness(){
  const issues=[],core=coreCompiled(),op=openingCompiled();
@@ -346,7 +502,7 @@ function init(){
  $("#download-backup").addEventListener("click",sendProject);$("#download-project").addEventListener("click",sendProject);
  $("#character-file").addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
  const drop=$("#drop-area");for(const name of ["dragover","dragenter"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.add("drag")});for(const name of ["dragleave","drop"])drop.addEventListener(name,e=>{e.preventDefault();drop.classList.remove("drag")});drop.addEventListener("drop",async e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;try{await loadFile(f)}catch(err){mark(err.message,"error")}});
- $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{mergeParsed(dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
+ $("#import-paste").addEventListener("click",()=>{const val=$("#character-paste").value;if(!val.trim())return mark("Paste some source character content first.","error");try{displayExtractedSource("Pasted character",val,[]);mergeParsed(dataFromNumbered(val)||parseGeneric(val,"txt"),"Pasted character",val);}catch(err){mark(err.message,"error")}});
  $("#restore-backup").addEventListener("click",()=>{const input=document.createElement("input");input.type="file";input.accept=".json";input.onchange=()=>restoreJSON(input.files?.[0]).catch(e=>mark(e.message,"error"));input.click();});
  $$("[data-builder-world]").forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files?.[0];e.target.value="";if(!f)return;const n=Number(el.dataset.builderWorld);try{await loadFile(f,n)}catch(err){notify("Worldbook "+n+": "+err.message)}}));
  $("#refresh-suggestions").addEventListener("click",()=>{analyse();notify("Suggestions refreshed; changes require your approval.")});
