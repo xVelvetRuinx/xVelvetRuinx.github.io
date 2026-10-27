@@ -7,7 +7,7 @@ const norm=x=>String(x??"").replace(/\r\n?/g,"\n").trim();
 const BUNDLE="VelvetRuin Fizzz Worldbook Bundle";
 const empty=()=>({title:"",mode:"keyword",keywords:"",content:""});
 const mode=x=>/always|constant/i.test(String(x||""))?"always":"keyword";
-const kw=x=>Array.isArray(x)?x.filter(v=>typeof v==="string").join(", "):norm(x);
+const kw=x=>{const v=Array.isArray(x)?x.filter(t=>typeof t==="string").join(", "):norm(x);return /^(?:none|none required|n\/a|not applicable)$/i.test(v)?"":v;};
 function parseObject(obj){
  if(!obj||typeof obj!=="object")return [];
  let books=null;
@@ -52,6 +52,7 @@ function parseWorldbookHeadings(text){
    if(/^(?:Keywords|Triggers|Activation Keywords)\s*:/i.test(clean)){
     keywords=clean.replace(/^[^:]+:\s*/,"").trim();
     if(!keywords&&bodyLines[i+1]?.trim()&&!/^(?:Activation|Keywords|Triggers|Lore|Body|Content)\s*:/i.test(bodyLines[i+1].replace(/\*/g,"").trim()))keywords=bodyLines[++i].trim();
+    keywords=kw(keywords);
     continue;
    }
    if(/^(?:Full )?(?:Lore|Body|Content)\s*:/i.test(clean)){
