@@ -45,7 +45,7 @@ function parseWorldbookHeadings(text){
  const list=[];
  for(let j=0;j<heads.length;j++){
   const h=heads[j],end=j+1<heads.length?heads[j+1].at:lines.length,bodyLines=lines.slice(h.at+1,end);
-  let activation="keyword",keywords="",body=[],explicit=false;
+  let activation="",keywords="",body=[],explicit=false;
   for(let i=0;i<bodyLines.length;i++){
    const line=bodyLines[i],clean=line.replace(/\*/g,"").trim();
    if(/^Activation(?:\s+Mode)?\s*:/i.test(clean)){activation=mode(clean.split(":").slice(1).join(":"));continue;}
@@ -78,7 +78,7 @@ function parseLoreBlocks(text){
   if(!body)continue;
   const numbered=title.match(/(?:worldbook|lorebook)\s*([1-3])\b/i),number=numbered?Number(numbered[1]):result.length+1;
   if(number>3||result.some(x=>x.number===number))continue;
-  result.push({number,title,mode:"keyword",keywords:"",content:match[0].trim()});
+  result.push({number,title,mode:"",keywords:"",content:match[0].trim()});
  }
  return result;
 }
