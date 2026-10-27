@@ -585,7 +585,7 @@ function renderSuggestions(){
  }
 }
 function analyse(){
- const issues=isReadiness(),r=$("#readiness");r.textContent=issues.length?"Publishing checklist: "+issues.join(" • "):"✓ Required text present and measured limits passed. Verify tags, voice and media on Fizzz before publishing.";
+ const issues=isReadiness(),r=$("#readiness");r.textContent=issues.length?"Publishing checklist: "+issues.join(" • "):"✓ Required character text is ready. Select up to 10 discovery tags and transfer Worldbooks separately before publishing.";
  buildSuggestions();renderSuggestions();
 }
 function renderOutput(){
