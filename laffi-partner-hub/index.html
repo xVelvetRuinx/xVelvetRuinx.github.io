@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#181225">
+  <meta name="description" content="Interactive concept prototype for Laffi creator and partner management.">
+  <title>Laffi Partner Hub — Interactive Prototype</title>
+  <link rel="stylesheet" href="./styles.css">
+
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a href="#overview" class="brand" aria-label="Laffi Partner Hub home">
+      <span class="brand-icon" aria-hidden="true">✦</span>
+      <span class="brand-words"><strong>laffi<span class="brand-mark">.</span></strong><small>PARTNER HUB</small></span>
+    </a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav class="nav" aria-label="Main navigation">
+      <button type="button" data-nav="overview"><span class="nav-symbol">◫</span> Overview</button>
+      <button type="button" data-nav="creators"><span class="nav-symbol">♙</span> Creators</button>
+      <button type="button" data-nav="readers"><span class="nav-symbol">◎</span> Readers</button>
+      <button type="button" data-nav="activity"><span class="nav-symbol">◷</span> Activity</button>
+      <button type="button" data-nav="rewards"><span class="nav-symbol">◇</span> Rewards</button>
+      <button type="button" data-nav="settings"><span class="nav-symbol">⚙</span> Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-note"><span class="tiny-status"></span><span><strong>Prototype mode</strong><br>Local sample data · No Laffi account connection</span></div>
+      <div class="user-tile"><span class="avatar avatar-purple">VL</span><span><strong>Team Lead Demo</strong><small>Example workspace</small></span><span class="chevron">⌄</span></div>
+    </div>
+  </aside>
+
+  <div class="main-frame">
+    <header class="topbar">
+      <button type="button" class="mobile-menu" id="menu-toggle" aria-label="Toggle menu">☰</button>
+      <div class="breadcrumb"><span>Partner workspace</span><span class="crumb-sep">/</span><strong id="breadcrumb-current">Overview</strong></div>
+      <div class="topbar-right"><span class="live-dot"></span><span class="source-indicator">Demo data</span><button type="button" class="icon-button" id="refresh-view" title="Refresh saved view" aria-label="Refresh view">↻</button></div>
+    </header>
+    <main id="app-content" tabindex="-1"></main>
+    <footer class="footer"><span>LAFFI PARTNER HUB · CONCEPT PROTOTYPE</span><span>Sample records only. Not connected to Laffi systems.</span></footer>
+  </div>
+</div>
+<div class="backdrop" id="menu-backdrop" hidden></div>
+<dialog id="editor-dialog" class="editor-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+<script src="./app.js" defer></script>
+</body>
+</html>
