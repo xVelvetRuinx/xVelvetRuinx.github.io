@@ -9,12 +9,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="studio.css?v=1">
-<script src="studio.js?v=1" defer></script>
+<script src="locale.js?v=1" defer></script>
+<script src="studio.js?v=2" defer></script>
 </head>
 <body>
 <header class="site-header">
   <a class="brand" href="../../">VELVET<span>RUIN</span> <small>/ FIZZZ STUDIO</small></a>
   <nav aria-label="Fizzz tools"><a href="../prompt-builder/">Single Bot Builder</a><a href="../atelier/">Atelier</a><a href="../">Creator Guide</a></nav>
+  <div class="language-switch" role="group" aria-label="Interface language / Idioma de la interfaz"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="es" aria-pressed="false">Español</button></div>
 </header>
 <section class="hero">
   <p class="eyebrow">VELVETRUIN'S CREATOR TOOLS · MULTI-CHARACTER WORKFLOW</p>
@@ -84,6 +86,19 @@
       </aside>
       <section class="panel editor">
         <div class="panel-top"><div><p class="eyebrow">MULTI-BOT SETUP</p><h2>Group scenario & lore</h2></div><span class="badge">Separate from individual bots</span></div>
+        <section class="creation-guide" aria-labelledby="creation-guide-title">
+          <div class="guide-heading"><span class="guide-icon" aria-hidden="true">✦</span><div><p class="eyebrow">START HERE · HOW THIS BUILDER WORKS</p><h3 id="creation-guide-title">Five steps to your multi-character bot</h3></div></div>
+          <p class="guide-lead">A multi-bot links <strong>already-created individual characters</strong>. It does not turn one group profile into five standalone bots. Follow these steps in order:</p>
+          <ol class="guide-steps">
+            <li><strong>Build each person separately.</strong> Use Character Library (Tab 01) to give each person a name, adult age, portrait, Core Personality, individual greeting and Worldbooks. Press <em>Save Individual Character</em> for each one.</li>
+            <li><strong>Download their upload kits.</strong> Select <em>Download Bot Upload Kit ZIP + Image</em> for each character, or <em>All Character Kits ZIP + Portraits</em> later. Extract the ZIP to find the real <code>profile-image.png</code> and text files.</li>
+            <li><strong>Create those individuals on Fizzz.</strong> In Fizzz Creator on the web, create each bot separately. Upload the matching PNG, paste its own fields, and save or publish. Come back to Tab 01, record each Fizzz URL/ID and tick that it was created.</li>
+            <li><strong>Choose the saved characters here.</strong> In the left-hand roster, select each character from your library and press <em>Add Character to Ensemble</em>. Reorder or remove them as needed; they remain independent bots.</li>
+            <li><strong>Write and export the group story.</strong> Complete the title, public description, group opening and shared lore below. Press <em>Save Multi-Bot Setup</em> and download the kits. In Fizzz's Multi-Character creator, select the <strong>existing characters</strong>, add the ensemble content, test and publish.</li>
+          </ol>
+          <div class="guide-tip"><strong>Important:</strong> Saving or exporting here does not upload a bot to Fizzz. The ZIP is a creator kit, not a native Fizzz import. The English / Español switch translates this website and the included guides, <strong>not the character text you write</strong>.</div>
+          <div class="guide-links"><button id="guide-characters" type="button">↗ Go to Character Library</button><button id="guide-publish" type="button">↗ Full publishing checklist</button></div>
+        </section>
         <div class="form-grid">
           <label class="full">Open a saved ensemble<select id="saved-ensembles"><option value="">New ensemble…</option></select></label>
           <label class="full">Multi-bot title<input id="g-title" placeholder="Under the Table | A Very Whitmore Thanksgiving"></label>
