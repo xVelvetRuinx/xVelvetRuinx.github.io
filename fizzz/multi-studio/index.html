@@ -20,7 +20,7 @@
   <p class="eyebrow">VELVETRUIN'S CREATOR TOOLS · MULTI-CHARACTER WORKFLOW</p>
   <h1>Build them apart. <em>Bring them together.</em></h1>
   <p>Create and keep each adult character as a standalone bot with its own portrait, personality, opening and three separate Worldbooks. When they're ready, choose them from your saved library to assemble a multi-character scene.</p>
-  <div class="hero-pills"><span>✦ Individual exports</span><span>✦ Reusable character library</span><span>✦ Up to 3 lore entries per bot</span><span>✦ Ensemble assembly</span><span>✦ Manual Fizzz publishing checklist</span></div>
+  <div class="hero-pills"><span>✦ Portrait included in every upload-kit ZIP</span><span>✦ Individual exports</span><span>✦ Reusable character library</span><span>✦ Up to 3 lore entries per bot</span><span>✦ Ensemble assembly</span><span>✦ Manual Fizzz publishing checklist</span></div>
 </section>
 <main class="container">
   <div class="notice privacy"><strong>Private, browser-only library.</strong> Saved characters, images and ensembles stay in this browser's IndexedDB on this device, not on GitHub or a server. Unlike the session-only Single Bot Builder, this studio saves only when you press Save. Download a Library Backup to avoid losing work if browser data is cleared. This site cannot publish bots directly into Fizzz.</div>
@@ -33,7 +33,7 @@
     <div class="two-col">
       <aside class="panel library">
         <div class="panel-top"><div><p class="eyebrow">YOUR ROSTER</p><h2>Saved characters <span id="character-count" class="count">0</span></h2></div><button id="new-character" type="button" class="primary">+ New</button></div>
-        <p class="muted">Each card is a standalone bot. Edit, export or reuse it in any ensemble.</p>
+        <p class="muted">Each card is a standalone bot. Edit, export, or reuse it. Choose <strong>📦 Upload Kit</strong> to download the character profile <em>and its actual uploadable portrait PNG</em> together in one ZIP.</p>
         <input type="search" id="search-characters" placeholder="Search your characters…" aria-label="Search saved characters">
         <div id="character-list" class="card-list" aria-live="polite"><p class="muted">Your library is empty.</p></div>
         <div class="mini-actions"><button id="library-backup" type="button">↓ Library Backup JSON</button><label class="file-button">↑ Import JSON / Backup<input id="library-import" type="file" accept=".json,application/json" hidden></label></div>
@@ -54,7 +54,7 @@
             <label class="full">Tags (comma-separated, up to 10)<input id="c-tags" placeholder="AnyPOV, Drama, Friends to Lovers, Slow Burn"></label>
           </div>
           <details class="fold" open><summary>✧ Character portrait / media</summary>
-            <div class="portrait-grid"><div id="portrait-preview" class="portrait-preview">No portrait yet</div><div><label class="file-button">↑ Choose character portrait<input id="c-image" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="remove-image" type="button">Remove portrait</button><p class="muted">PNG, JPG or WebP; images are resized to fit within 720 × 1280 and saved privately with the character. Export the portrait separately for uploading to Fizzz.</p></div></div>
+            <div class="portrait-grid"><div id="portrait-preview" class="portrait-preview">No portrait yet</div><div><label class="file-button">↑ Choose character portrait<input id="c-image" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="remove-image" type="button">Remove portrait</button><p class="muted">PNG, JPG or WebP; images are resized to fit within 720 × 1280 and saved privately with the character. <strong>Download Upload Kit ZIP</strong> exports a standard <code>profile-image.png</code> together with this character’s fields, Worldbooks, and restorable JSON. Upload the PNG using Fizzz’s image selector; paste or import the text using whatever fields Fizzz supports.</p></div></div>
           </details>
           <details class="fold"><summary>✧ Three separate Worldbooks</summary>
             <p class="muted">These are NOT concatenated into the character's personality or portable card. Export lore separately and enter it in the proper Fizzz Worldbook fields.</p>
@@ -65,7 +65,7 @@
             <label class="check"><input type="checkbox" id="c-published"> I have created/published this individual character on Fizzz</label>
             <p class="muted">This is a creator-maintained status, not an automatic platform verification.</p>
           </details>
-          <div class="action-bar"><button type="submit" class="primary">✓ Save Individual Character</button><button id="export-character" type="button">↓ Character TXT</button><button id="export-worldbooks" type="button">↓ Worldbooks TXT</button><button id="export-character-json" type="button">↓ Character JSON</button><button id="export-image" type="button">↓ Portrait</button></div>
+          <div class="action-bar"><button type="submit" class="primary">✓ Save Individual Character</button><button id="export-character-kit" type="button" class="primary">📦 Download Bot Upload Kit ZIP + Image</button><button id="export-character" type="button">↓ Character TXT</button><button id="export-worldbooks" type="button">↓ Worldbooks TXT</button><button id="export-character-json" type="button">↓ Character JSON</button><button id="export-image" type="button">↓ Portrait</button></div>
           <p id="character-message" class="status" role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -92,7 +92,7 @@
           <label class="full">Group interaction and continuity rules<textarea id="g-rules" rows="6" placeholder="Who knows what, character autonomy, never writing the player's actions, when each character speaks, slow-burn progression."></textarea></label>
         </div>
         <details class="fold" open><summary>✧ Shared setting & Worldbooks</summary><p class="muted">Use these for ensemble-specific setting, interaction and secrets. Character Worldbooks remain on each standalone record.</p><div id="group-worldbooks"></div></details>
-        <div class="action-bar"><button id="save-ensemble" type="button" class="primary">✓ Save Multi-Bot Setup</button><button id="export-group" type="button">↓ Assembly Instructions TXT</button><button id="export-group-json" type="button">↓ Full Project Backup JSON</button><button id="delete-ensemble" type="button" class="danger">Delete Saved Setup</button></div>
+        <div class="action-bar"><button id="save-ensemble" type="button" class="primary">✓ Save Multi-Bot Setup</button><button id="export-ensemble-kits" type="button" class="primary">📦 All Character Kits ZIP + Portraits</button><button id="export-group" type="button">↓ Assembly Instructions TXT</button><button id="export-group-json" type="button">↓ Full Project Backup JSON</button><button id="delete-ensemble" type="button" class="danger">Delete Saved Setup</button></div>
         <p id="ensemble-message" class="status" role="status" aria-live="polite"></p>
       </section>
     </div>
@@ -102,12 +102,12 @@
       <p class="eyebrow">THE CORRECT FIZZZ WORKFLOW</p><h2>Individual bots first. <em>Multi-bot second.</em></h2>
       <ol class="steps">
         <li><strong>Create each character separately.</strong> Give Miles, Wren, Sebastian, Genevieve and Elias their own standalone profiles, personality, initial message, portrait and individual lore. Save each in your library.</li>
-        <li><strong>Export each one.</strong> Download the individual Character TXT, Worldbooks TXT and portrait. Worldbooks are NOT embedded in the Character TXT or card.</li>
+        <li><strong>Download each character’s Upload Kit ZIP.</strong> One ZIP contains their public profile, Core Personality, individual opening, separate Worldbooks, restorable JSON, <strong>and a real profile-image.png</strong>. Unzip it and upload the PNG through Fizzz’s image control. Alternatively, download an <strong>All Character Kits ZIP</strong> from the group editor to collect every cast member’s files at once.</li>
         <li><strong>Create/upload those five characters inside Fizzz.</strong> Enter each field into the corresponding standalone bot. Publish or save as Fizzz requires; then record its URL/ID back in this studio.</li>
         <li><strong>Create the Multi-Character bot on Fizzz.</strong> In Fizzz's multibot builder, choose the already-created characters from the list, instead of trying to upload a single combined character card.</li>
         <li><strong>Transfer the group scenario.</strong> Use the group's title, bio, opening, shared Worldbooks, and interaction guidance. Follow the fields Fizzz actually offers. Test entrances, speaking order, continuity and {{user}} autonomy.</li>
       </ol>
-      <div class="notice">Exports from this independent GitHub Pages tool are copy-ready creator packages and backups, <strong>not verified native Fizzz bulk-import files</strong>. Direct upload/creation would require an official Fizzz integration or authorized API.</div>
+      <div class="notice">The portrait file inside each ZIP is a standard PNG ready for selection in a website image-upload field. <strong>The ZIP itself is not a verified native Fizzz import.</strong> Unzip first, upload the PNG separately, and enter/copy the corresponding profile and lore into Fizzz. Direct publishing would require an authorized Fizzz integration or API.</div>
       <div class="action-bar"><button type="button" id="go-characters" class="primary">Create individual bots →</button><button type="button" id="go-ensemble">Assemble your cast →</button><a class="link-button" href="https://fizzz.ai/" target="_blank" rel="noopener noreferrer">Open Fizzz ↗</a></div>
     </section>
   </section>
