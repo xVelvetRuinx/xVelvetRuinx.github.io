@@ -33,11 +33,127 @@ function clearEditor(force){if(!force&&dirtyChar&&!confirm("Discard the unsaved 
 function openCharacter(id){var c=characters.find(function(x){return x.id===id;});if(!c)return;if(dirtyChar&&!confirm("Discard unsaved edits to open another character?"))return;clearEditor(true);editingId=c.id;["name","age","gender","role","title","bio","core","opening"].forEach(function(k){set("c-"+k,c[k]);});set("c-tags",(c.tags||[]).join(", "));set("c-fizzz",c.fizzzUrl);$("c-published").checked=!!c.published;worldSet("c",c.worldbooks);currentImage=safeImage(c.image);showPortrait();updateCounts();$("editor-title").textContent="Edit "+c.name;$("character-save-state").textContent="Saved locally";status("character-message","Loaded "+c.name+". Edit and press Save to keep changes.");showView("characters");}
 async function saveCharacter(e){if(e)e.preventDefault();try{var c=characterDraft();await put("characters",c);editingId=c.id;dirtyChar=false;await refreshDB();$("editor-title").textContent="Edit "+c.name;$("character-save-state").textContent="Saved locally";status("character-message","✓ "+c.name+" saved as an independent bot record. Export it and create the matching Fizzz bot separately.");}catch(err){status("character-message",err.message,true);}}
 function cardImage(c){return safeImage(c.image)?'<img alt="" src="'+c.image+'">':'<div class="portrait-placeholder">✧</div>';}
-function renderLibrary(){var q=field("search-characters").toLowerCase(),items=characters.filter(function(c){return (c.name+" "+(c.role||"")+" "+(c.title||"")).toLowerCase().includes(q);});$("character-count").textContent=characters.length;if(!items.length){$("character-list").innerHTML='<div class="empty">'+(q?"No characters match your search.":"No saved characters yet. Start with one standalone bot.")+'</div>';return;}$("character-list").innerHTML=items.map(function(c){return '<article class="library-card">'+cardImage(c)+'<div class="details"><b>'+html(c.name)+'</b><small>'+html(String(c.age)+" · "+(c.role||"Standalone bot"))+'</small><small class="'+(c.published?"status-published":"")+'">'+(c.published?"✓ Created on Fizzz":"◇ Not marked created on Fizzz")+'</small><div class="card-tools"><button type="button" data-c-action="edit" data-id="'+html(c.id)+'">Edit</button><button type="button" data-c-action="duplicate" data-id="'+html(c.id)+'">Duplicate</button><button type="button" data-c-action="export" data-id="'+html(c.id)+'">TXT</button><button type="button" data-c-action="remove" data-id="'+html(c.id)+'">Delete</button></div></div></article>';}).join("");}
+function renderLibrary(){var q=field("search-characters").toLowerCase(),items=characters.filter(function(c){return (c.name+" "+(c.role||"")+" "+(c.title||"")).toLowerCase().includes(q);});$("character-count").textContent=characters.length;if(!items.length){$("character-list").innerHTML='<div class="empty">'+(q?"No characters match your search.":"No saved characters yet. Start with one standalone bot.")+'</div>';return;}$("character-list").innerHTML=items.map(function(c){return '<article class="library-card">'+cardImage(c)+'<div class="details"><b>'+html(c.name)+'</b><small>'+html(String(c.age)+" · "+(c.role||"Standalone bot"))+'</small><small class="'+(c.published?"status-published":"")+'">'+(c.published?"✓ Created on Fizzz":"◇ Not marked created on Fizzz")+'</small><div class="card-tools"><button type="button" data-c-action="edit" data-id="'+html(c.id)+'">Edit</button><button type="button" data-c-action="duplicate" data-id="'+html(c.id)+'">Duplicate</button><button type="button" data-c-action="kit" data-id="'+html(c.id)+'">📦 Kit + PNG</button><button type="button" data-c-action="export" data-id="'+html(c.id)+'">TXT</button><button type="button" data-c-action="remove" data-id="'+html(c.id)+'">Delete</button></div></div></article>';}).join("");}
 function renderOptions(){var options=characters.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).map(function(c){return '<option value="'+html(c.id)+'">'+html(c.name)+(c.published?" ✓":"")+'</option>';}).join("");var current=$("add-character").value;$("add-character").innerHTML='<option value="">Choose a saved character…</option>'+options;if(characters.some(function(c){return c.id===current;}))$("add-character").value=current;var prev=$("saved-ensembles").value;$("saved-ensembles").innerHTML='<option value="">New ensemble…</option>'+groups.slice().sort(function(a,b){return (b.updatedAt||"").localeCompare(a.updatedAt||"");}).map(function(g){return '<option value="'+html(g.id)+'">'+html(g.title||"Untitled ensemble")+'</option>';}).join("");$("saved-ensembles").value=groupId||prev||"";renderRoster();}
 function textCharacter(c){return ["FIZZZ INDIVIDUAL CHARACTER — COPY INTO STANDALONE BOT","Name: "+c.name,"Age: "+c.age,"Gender: "+(c.gender||""),"Role: "+(c.role||""),"Public Title: "+(c.title||""),"Tags: "+(c.tags||[]).join(", "),"\nPUBLIC DESCRIPTION\n"+(c.bio||""),"\nCORE PERSONALITY\n"+(c.core||""),"\nINDIVIDUAL OPENING\n"+(c.opening||""),"\n---\nWorldbooks and portrait are deliberately exported separately. This is not a verified native Fizzz bulk import."].join("\n");}
 function textWorldbooks(books){return (books||[]).map(function(b,i){return ["WORLDBOOK "+(i+1)+" — "+(b.title||"Untitled"),"Activation: "+(b.mode||"always"),"Keywords: "+(b.keywords||""),"\n"+(b.body||"(No lore yet)")].join("\n");}).join("\n\n"+"=".repeat(45)+"\n\n");}
-function exportSingle(c,kind){if(!c)return;var name=slug(c.name);if(kind==="txt")download(name+"-character.txt",textCharacter(c));else if(kind==="world")download(name+"-worldbooks.txt",textWorldbooks(c.worldbooks));else if(kind==="json")download(name+"-character.json",JSON.stringify({format:"velvetruin.fizzz.multi-character",version:1,character:c},null,2),"application/json");else if(kind==="image"){if(!safeImage(c.image))return status("character-message","Add a portrait first.",true);var a=document.createElement("a");a.href=c.image;a.download=name+"-portrait."+(c.image.startsWith("data:image/png")?"png":c.image.startsWith("data:image/jpeg")?"jpg":"webp");document.body.appendChild(a);a.click();a.remove();}}
+/* Download kits use a self-contained, uncompressed ZIP writer (no third-party CDN).
+   Each portrait is converted to a real PNG for ordinary browser image-upload fields. */
+function pngBytesFromPortrait(image){
+ return new Promise(function(resolve,reject){
+  if(!safeImage(image))return reject(Error("The saved bot has no profile portrait. Choose a portrait, save the bot, and try again."));
+  var img=new Image();
+  img.onerror=function(){reject(Error("The profile portrait could not be decoded."));};
+  img.onload=function(){
+   try{
+    var canvas=document.createElement("canvas");canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+    if(!canvas.width||!canvas.height)throw Error("Portrait is empty.");
+    canvas.getContext("2d").drawImage(img,0,0);
+    canvas.toBlob(function(blob){if(!blob)return reject(Error("Could not convert the portrait to a PNG."));
+     blob.arrayBuffer().then(function(buffer){resolve(new Uint8Array(buffer));}).catch(reject);
+    },"image/png");
+   }catch(error){reject(error);}
+  };
+  img.src=image;
+ });
+}
+function zipCrc32(bytes){
+ var crc=0xffffffff;
+ for(var i=0;i<bytes.length;i++){
+  crc^=bytes[i];
+  for(var n=0;n<8;n++)crc=(crc>>>1)^(-(crc&1)&0xedb88320);
+ }
+ return (crc^0xffffffff)>>>0;
+}
+function zipFromFiles(files){
+ if(!files.length)throw Error("There are no files to package.");
+ if(files.length>65535)throw Error("Too many files for a ZIP package.");
+ var encoder=new TextEncoder(),local=[],central=[],offset=0,centralLength=0;
+ files.forEach(function(file){
+  var name=encoder.encode(file.name),bytes=file.data instanceof Uint8Array?file.data:encoder.encode(String(file.data));
+  if(name.length>65535)throw Error("A ZIP path is too long.");
+  if(bytes.length>0xffffffff)throw Error("A file is too large for this ZIP.");
+  var crc=zipCrc32(bytes);
+  var lh=new Uint8Array(30),lv=new DataView(lh.buffer);
+  lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x0800,true);
+  lv.setUint32(14,crc,true);lv.setUint32(18,bytes.length,true);lv.setUint32(22,bytes.length,true);
+  lv.setUint16(26,name.length,true);
+  local.push(lh,name,bytes);
+  var ch=new Uint8Array(46),cv=new DataView(ch.buffer);
+  cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);
+  cv.setUint16(8,0x0800,true);cv.setUint32(16,crc,true);cv.setUint32(20,bytes.length,true);
+  cv.setUint32(24,bytes.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);
+  central.push(ch,name);
+  offset+=lh.length+name.length+bytes.length;
+  centralLength+=ch.length+name.length;
+  if(offset>0xffffffff||centralLength>0xffffffff)throw Error("This collection is too large for a browser ZIP.");
+ });
+ var end=new Uint8Array(22),ev=new DataView(end.buffer);
+ ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);
+ ev.setUint32(12,centralLength,true);ev.setUint32(16,offset,true);
+ return new Blob(local.concat(central,[end]),{type:"application/zip"});
+}
+function uploadKitReadme(c){
+ return [
+  "FIZZZ CHARACTER UPLOAD KIT — "+c.name,
+  "",
+  "This folder is one independent character bot.",
+  "It includes an actual PNG named profile-image.png (not just a link or picture preview).",
+  "",
+  "WEB CREATOR STEPS:",
+  "1. Extract this ZIP on your device.",
+  "2. In Fizzz's individual character creator, choose profile-image.png using the profile image-upload control.",
+  "3. Copy the public title, description and tags from profile.txt.",
+  "4. Copy the Core Personality from core-personality.txt.",
+  "5. Copy the initial message from initial-message.txt.",
+  "6. Add the three Worldbooks separately from worldbooks.txt where Fizzz offers Worldbook entry fields.",
+  "7. Save/create this individual bot. Record its Fizzz URL/ID in the studio.",
+  "8. Only after all individuals exist on Fizzz, add them to your Multi-Character bot there.",
+  "",
+  "character-studio-backup.json can restore this character (including its portrait) in VelvetRuin Multi-Character Studio.",
+  "This ZIP is a creator preparation package, NOT a native Fizzz bulk-import format.",
+  "The image can be uploaded separately; a ZIP cannot automatically bind the image to a Fizzz character without their supported integration.",
+  ""
+ ].join("\n");
+}
+async function kitFilesForCharacter(c,prefix){
+ if(!safeImage(c.image))throw Error(c.name+" has no saved portrait. Add its image before downloading the upload kit.");
+ var png=await pngBytesFromPortrait(c.image),d=prefix||"";
+ return [
+  {name:d+"README-START-HERE.txt",data:uploadKitReadme(c)},
+  {name:d+"profile-image.png",data:png},
+  {name:d+"profile.txt",data:["NAME: "+c.name,"AGE: "+c.age,"GENDER: "+(c.gender||""),"ROLE: "+(c.role||""),"PUBLIC TITLE: "+(c.title||""),"TAGS: "+(c.tags||[]).join(", "),"\nPUBLIC BIO\n"+(c.bio||"")].join("\n")},
+  {name:d+"core-personality.txt",data:c.core||""},
+  {name:d+"initial-message.txt",data:c.opening||""},
+  {name:d+"worldbooks.txt",data:textWorldbooks(c.worldbooks)},
+  {name:d+"character-studio-backup.json",data:JSON.stringify({format:"velvetruin.fizzz.multi-character",version:1,character:c},null,2)}
+ ];
+}
+async function downloadCharacterKit(c){
+ var files=await kitFilesForCharacter(c,slug(c.name)+"/");
+ download(slug(c.name)+"-fizzz-upload-kit-with-portrait.zip",zipFromFiles(files),"application/zip");
+ status("character-message","✓ Downloaded "+c.name+"'s upload kit with profile-image.png, fields, separate Worldbooks and a restorable JSON.");
+}
+async function downloadEnsembleKits(){
+ var g=groupDraft(),members=g.characterIds.map(function(id){return characters.find(function(c){return c.id===id;});});
+ if(members.some(function(c){return !c;}))throw Error("Some roster characters have been deleted. Remove the missing cards first.");
+ var missing=members.filter(function(c){return !safeImage(c.image);}).map(function(c){return c.name;});
+ if(missing.length)throw Error("Portraits are missing for: "+missing.join(", ")+". Add them before exporting all upload kits.");
+ var files=[
+  {name:"README-START-HERE.txt",data:"FIZZZ MULTI-CHARACTER UPLOAD KITS\n\nExtract the ZIP. Each numbered character folder contains profile-image.png, public profile, core, individual greeting, Worldbooks and a full character backup. Create all standalone bots FIRST on Fizzz, attaching their PNGs through the web image-upload field. THEN build the multi-character bot using those existing bot records. The group folder contains the ensemble setup. The ZIP itself is NOT a native Fizzz import.\n"},
+  {name:"00-MULTI-BOT/"+ "assembly-instructions.txt",data:groupText(g)},
+  {name:"00-MULTI-BOT/"+ "shared-worldbooks.txt",data:textWorldbooks(g.worldbooks)}
+ ];
+ for(var i=0;i<members.length;i++){
+  var prefix=String(i+1).padStart(2,"0")+"-"+slug(members[i].name)+"/";
+  files.push.apply(files,await kitFilesForCharacter(members[i],prefix));
+ }
+ files.push({name:"00-MULTI-BOT/complete-project-backup.json",data:JSON.stringify(projectFile(members,[g]),null,2)});
+ download(slug(g.title)+"-all-character-kits-with-portraits.zip",zipFromFiles(files),"application/zip");
+ status("ensemble-message","✓ Downloaded "+members.length+" individual bot kits WITH their profile-image.png files and the ensemble setup.");
+}
+
+function exportSingle(c,kind){if(!c)return;var name=slug(c.name);if(kind==="txt")download(name+"-character.txt",textCharacter(c));else if(kind==="world")download(name+"-worldbooks.txt",textWorldbooks(c.worldbooks));else if(kind==="json")download(name+"-character.json",JSON.stringify({format:"velvetruin.fizzz.multi-character",version:1,character:c},null,2),"application/json");else if(kind==="image"){if(!safeImage(c.image))return status("character-message","Add a portrait first.",true);pngBytesFromPortrait(c.image).then(function(bytes){download(name+"-profile-image.png",new Blob([bytes],{type:"image/png"}),"image/png");status("character-message","✓ Profile image PNG downloaded.");}).catch(function(err){status("character-message",err.message,true);});}}
 function exportCurrent(kind){try{exportSingle(characterDraft(),kind);}catch(err){status("character-message",err.message,true);}}
 async function copyCharacter(id){var c=characters.find(function(x){return x.id===id;});if(!c)return;var name=prompt("Name for the copied standalone character:",c.name+" (copy)");if(!name||!name.trim())return;var clone={...c,id:uid(),name:name.trim(),published:false,fizzzUrl:"",createdAt:now(),updatedAt:now()};await put("characters",clone);await refreshDB();openCharacter(clone.id);}
 async function removeCharacter(id){var c=characters.find(function(x){return x.id===id;});if(!c)return;if(!confirm("Delete "+c.name+" from this device? Groups that use this character will show a missing-character warning. Export a backup first if needed."))return;await del("characters",id);if(editingId===id)clearEditor(true);await refreshDB();}
@@ -65,7 +181,8 @@ function bind(){
  $("c-image").addEventListener("change",function(e){setPreviewFromFile(e.target.files[0]);e.target.value="";});
  $("remove-image").addEventListener("click",function(){currentImage="";showPortrait();editorDirty();});
  $("search-characters").addEventListener("input",renderLibrary);
- $("character-list").addEventListener("click",function(e){var b=e.target.closest("[data-c-action]");if(!b)return;var c=characters.find(function(x){return x.id===b.dataset.id;});if(b.dataset.cAction==="edit")openCharacter(b.dataset.id);if(b.dataset.cAction==="duplicate")copyCharacter(b.dataset.id).catch(function(err){status("character-message",err.message,true);});if(b.dataset.cAction==="export")exportSingle(c,"txt");if(b.dataset.cAction==="remove")removeCharacter(b.dataset.id).catch(function(err){status("character-message",err.message,true);});});
+ $("character-list").addEventListener("click",function(e){var b=e.target.closest("[data-c-action]");if(!b)return;var c=characters.find(function(x){return x.id===b.dataset.id;});if(b.dataset.cAction==="edit")openCharacter(b.dataset.id);if(b.dataset.cAction==="duplicate")copyCharacter(b.dataset.id).catch(function(err){status("character-message",err.message,true);});if(b.dataset.cAction==="kit")downloadCharacterKit(c).catch(function(err){status("character-message",err.message,true);});if(b.dataset.cAction==="export")exportSingle(c,"txt");if(b.dataset.cAction==="remove")removeCharacter(b.dataset.id).catch(function(err){status("character-message",err.message,true);});});
+ $("export-character-kit").addEventListener("click",function(){try{var c=characterDraft();downloadCharacterKit(c).catch(function(err){status("character-message",err.message,true);});}catch(err){status("character-message",err.message,true);}});
  [["export-character","txt"],["export-worldbooks","world"],["export-character-json","json"],["export-image","image"]].forEach(function(pair){$(pair[0]).addEventListener("click",function(){exportCurrent(pair[1]);});});
  $("library-backup").addEventListener("click",function(){download("velvetruin-fizzz-multi-library-backup.json",JSON.stringify(projectFile(characters,groups),null,2),"application/json");});
  $("library-import").addEventListener("change",function(e){importJSON(e.target.files[0]);e.target.value="";});
@@ -74,6 +191,7 @@ function bind(){
  $("saved-ensembles").addEventListener("change",function(e){loadGroup(e.target.value);});
  $("save-ensemble").addEventListener("click",function(){saveGroup();});
  $("delete-ensemble").addEventListener("click",function(){deleteGroup();});
+ $("export-ensemble-kits").addEventListener("click",function(){downloadEnsembleKits().catch(function(err){status("ensemble-message",err.message,true);});});
  $("export-group").addEventListener("click",function(){exportGroup("txt");});
  $("export-group-json").addEventListener("click",function(){exportGroup("json");});
  $("go-characters").addEventListener("click",function(){showView("characters");});
