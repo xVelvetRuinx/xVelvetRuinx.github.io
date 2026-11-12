@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#110c16">
+<meta name="description" content="VelvetRuin Fizzz Multi-Character Studio: create, save, export and manage each character separately, then assemble saved characters into an ensemble bot.">
+<title>Fizzz Multi-Character Studio · VelvetRuin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="studio.css?v=1">
+<script src="studio.js?v=1" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="../../">VELVET<span>RUIN</span> <small>/ FIZZZ STUDIO</small></a>
+  <nav aria-label="Fizzz tools"><a href="../prompt-builder/">Single Bot Builder</a><a href="../atelier/">Atelier</a><a href="../">Creator Guide</a></nav>
+</header>
+<section class="hero">
+  <p class="eyebrow">VELVETRUIN'S CREATOR TOOLS · MULTI-CHARACTER WORKFLOW</p>
+  <h1>Build them apart. <em>Bring them together.</em></h1>
+  <p>Create and keep each adult character as a standalone bot with its own portrait, personality, opening and three separate Worldbooks. When they're ready, choose them from your saved library to assemble a multi-character scene.</p>
+  <div class="hero-pills"><span>✦ Individual exports</span><span>✦ Reusable character library</span><span>✦ Up to 3 lore entries per bot</span><span>✦ Ensemble assembly</span><span>✦ Manual Fizzz publishing checklist</span></div>
+</section>
+<main class="container">
+  <div class="notice privacy"><strong>Private, browser-only library.</strong> Saved characters, images and ensembles stay in this browser's IndexedDB on this device, not on GitHub or a server. Unlike the session-only Single Bot Builder, this studio saves only when you press Save. Download a Library Backup to avoid losing work if browser data is cleared. This site cannot publish bots directly into Fizzz.</div>
+  <div class="tab-row" role="tablist" aria-label="Studio views">
+    <button type="button" role="tab" aria-selected="true" class="tab active" data-view="characters">01 · Character Library</button>
+    <button type="button" role="tab" aria-selected="false" class="tab" data-view="ensemble">02 · Multi-Bot Assembly</button>
+    <button type="button" role="tab" aria-selected="false" class="tab" data-view="publish">03 · Publish Checklist</button>
+  </div>
+  <section id="view-characters" class="view" role="tabpanel">
+    <div class="two-col">
+      <aside class="panel library">
+        <div class="panel-top"><div><p class="eyebrow">YOUR ROSTER</p><h2>Saved characters <span id="character-count" class="count">0</span></h2></div><button id="new-character" type="button" class="primary">+ New</button></div>
+        <p class="muted">Each card is a standalone bot. Edit, export or reuse it in any ensemble.</p>
+        <input type="search" id="search-characters" placeholder="Search your characters…" aria-label="Search saved characters">
+        <div id="character-list" class="card-list" aria-live="polite"><p class="muted">Your library is empty.</p></div>
+        <div class="mini-actions"><button id="library-backup" type="button">↓ Library Backup JSON</button><label class="file-button">↑ Import JSON / Backup<input id="library-import" type="file" accept=".json,application/json" hidden></label></div>
+        <p class="footnote">A backup can contain image data and be large. Imports merge by character ID; matching records are replaced. Separate browsers/devices do not share libraries automatically.</p>
+      </aside>
+      <section class="panel editor">
+        <div class="panel-top"><div><p class="eyebrow">STANDALONE CHARACTER EDITOR</p><h2 id="editor-title">Create a character</h2></div><span id="character-save-state" class="badge">New draft</span></div>
+        <form id="character-form" autocomplete="off">
+          <div class="form-grid">
+            <label>Character name <b>*</b><input id="c-name" maxlength="100" required placeholder="Miles Whitmore"></label>
+            <label>Age (18+) <b>*</b><input id="c-age" type="number" min="18" max="150" required placeholder="30"></label>
+            <label>Gender / identity<input id="c-gender" maxlength="90" placeholder="Male"></label>
+            <label>Role in the cast<input id="c-role" maxlength="170" placeholder="Best friend, secretly in love"></label>
+            <label class="full">Public title<input id="c-title" maxlength="150" placeholder="Miles Whitmore | The Confession He Never Made"></label>
+            <label class="full">Public description<textarea id="c-bio" rows="4" placeholder="A short hook readers will see before chatting."></textarea></label>
+            <label class="full">Core personality <span class="limit" id="count-core">0 / 25,000</span><textarea id="c-core" rows="13" maxlength="25000" placeholder="Identity, appearance, psychological motivations, independent goals, emotional habits, boundaries and speech style. Keep Worldbook lore separate."></textarea></label>
+            <label class="full">Individual opening message <span class="limit" id="count-opening">0 / 5,000</span><textarea id="c-opening" rows="8" maxlength="5000" placeholder="A standalone scene for this bot. The ensemble opening is written separately."></textarea></label>
+            <label class="full">Tags (comma-separated, up to 10)<input id="c-tags" placeholder="AnyPOV, Drama, Friends to Lovers, Slow Burn"></label>
+          </div>
+          <details class="fold" open><summary>✧ Character portrait / media</summary>
+            <div class="portrait-grid"><div id="portrait-preview" class="portrait-preview">No portrait yet</div><div><label class="file-button">↑ Choose character portrait<input id="c-image" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="remove-image" type="button">Remove portrait</button><p class="muted">PNG, JPG or WebP; images are resized to fit within 720 × 1280 and saved privately with the character. Export the portrait separately for uploading to Fizzz.</p></div></div>
+          </details>
+          <details class="fold"><summary>✧ Three separate Worldbooks</summary>
+            <p class="muted">These are NOT concatenated into the character's personality or portable card. Export lore separately and enter it in the proper Fizzz Worldbook fields.</p>
+            <div id="character-worldbooks"></div>
+          </details>
+          <details class="fold"><summary>✧ Fizzz publishing reference</summary>
+            <div class="form-grid"><label class="full">Fizzz individual character URL or ID<input id="c-fizzz" placeholder="Paste the live individual character URL or ID after publishing"></label></div>
+            <label class="check"><input type="checkbox" id="c-published"> I have created/published this individual character on Fizzz</label>
+            <p class="muted">This is a creator-maintained status, not an automatic platform verification.</p>
+          </details>
+          <div class="action-bar"><button type="submit" class="primary">✓ Save Individual Character</button><button id="export-character" type="button">↓ Character TXT</button><button id="export-worldbooks" type="button">↓ Worldbooks TXT</button><button id="export-character-json" type="button">↓ Character JSON</button><button id="export-image" type="button">↓ Portrait</button></div>
+          <p id="character-message" class="status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+  </section>
+  <section id="view-ensemble" class="view" role="tabpanel" hidden>
+    <div class="two-col">
+      <aside class="panel library">
+        <div class="panel-top"><div><p class="eyebrow">ENSEMBLE ROSTER</p><h2>Choose saved bots</h2></div><span id="roster-count" class="count">0</span></div>
+        <p class="muted">Select characters you already created separately. This assembly references their saved records; editing a character updates its roster entry.</p>
+        <label>Add from your character library<select id="add-character"><option value="">Choose a saved character…</option></select></label>
+        <button id="add-to-ensemble" type="button" class="primary full-button">+ Add Character to Ensemble</button>
+        <div id="roster" class="card-list" aria-live="polite"></div>
+        <p class="footnote">For the Thanksgiving example, use five main characters. The tool itself does not assert a platform character limit.</p>
+        <div class="fold note"><strong>📎 Existing Fizzz bots</strong><p class="muted">Once each character is created on Fizzz, use the platform's Multi-Character creation screen to select those existing characters. This studio prepares the content and records their URLs/IDs; it does not connect to Fizzz's private upload interface.</p></div>
+      </aside>
+      <section class="panel editor">
+        <div class="panel-top"><div><p class="eyebrow">MULTI-BOT SETUP</p><h2>Group scenario & lore</h2></div><span class="badge">Separate from individual bots</span></div>
+        <div class="form-grid">
+          <label class="full">Open a saved ensemble<select id="saved-ensembles"><option value="">New ensemble…</option></select></label>
+          <label class="full">Multi-bot title<input id="g-title" placeholder="Under the Table | A Very Whitmore Thanksgiving"></label>
+          <label class="full">Public description<textarea id="g-bio" rows="5" placeholder="The invitation, the emotional hook and the scandals."></textarea></label>
+          <label class="full">Group opening scene <span class="limit" id="count-group-opening">0 / 5,000</span><textarea id="g-opening" maxlength="5000" rows="11" placeholder="The ensemble's initial message, with naturally overlapping characters and player agency."></textarea></label>
+          <label class="full">Group interaction and continuity rules<textarea id="g-rules" rows="6" placeholder="Who knows what, character autonomy, never writing the player's actions, when each character speaks, slow-burn progression."></textarea></label>
+        </div>
+        <details class="fold" open><summary>✧ Shared setting & Worldbooks</summary><p class="muted">Use these for ensemble-specific setting, interaction and secrets. Character Worldbooks remain on each standalone record.</p><div id="group-worldbooks"></div></details>
+        <div class="action-bar"><button id="save-ensemble" type="button" class="primary">✓ Save Multi-Bot Setup</button><button id="export-group" type="button">↓ Assembly Instructions TXT</button><button id="export-group-json" type="button">↓ Full Project Backup JSON</button><button id="delete-ensemble" type="button" class="danger">Delete Saved Setup</button></div>
+        <p id="ensemble-message" class="status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </section>
+  <section id="view-publish" class="view" role="tabpanel" hidden>
+    <section class="panel publish">
+      <p class="eyebrow">THE CORRECT FIZZZ WORKFLOW</p><h2>Individual bots first. <em>Multi-bot second.</em></h2>
+      <ol class="steps">
+        <li><strong>Create each character separately.</strong> Give Miles, Wren, Sebastian, Genevieve and Elias their own standalone profiles, personality, initial message, portrait and individual lore. Save each in your library.</li>
+        <li><strong>Export each one.</strong> Download the individual Character TXT, Worldbooks TXT and portrait. Worldbooks are NOT embedded in the Character TXT or card.</li>
+        <li><strong>Create/upload those five characters inside Fizzz.</strong> Enter each field into the corresponding standalone bot. Publish or save as Fizzz requires; then record its URL/ID back in this studio.</li>
+        <li><strong>Create the Multi-Character bot on Fizzz.</strong> In Fizzz's multibot builder, choose the already-created characters from the list, instead of trying to upload a single combined character card.</li>
+        <li><strong>Transfer the group scenario.</strong> Use the group's title, bio, opening, shared Worldbooks, and interaction guidance. Follow the fields Fizzz actually offers. Test entrances, speaking order, continuity and {{user}} autonomy.</li>
+      </ol>
+      <div class="notice">Exports from this independent GitHub Pages tool are copy-ready creator packages and backups, <strong>not verified native Fizzz bulk-import files</strong>. Direct upload/creation would require an official Fizzz integration or authorized API.</div>
+      <div class="action-bar"><button type="button" id="go-characters" class="primary">Create individual bots →</button><button type="button" id="go-ensemble">Assemble your cast →</button><a class="link-button" href="https://fizzz.ai/" target="_blank" rel="noopener noreferrer">Open Fizzz ↗</a></div>
+    </section>
+  </section>
+  <footer>VELVETRUIN · MULTI-CHARACTER STUDIO · Works in your browser. Export a backup before changing devices.</footer>
+</main>
+</body>
+</html>
