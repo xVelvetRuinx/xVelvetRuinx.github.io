@@ -11,7 +11,7 @@ var uid=function(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID()
 var slug=function(s){return String(s||"character").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)||"character";};
 var safeImage=function(s){return typeof s==="string"&&/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(s)?s:"";};
 var now=function(){return new Date().toISOString();};
-function status(id,msg,bad){var e=$(id);if(e){e.textContent=msg;e.classList.toggle("error",!!bad);}}
+function status(id,msg,bad){var e=$(id);if(e){e.textContent=window.FizzzMultiI18n?window.FizzzMultiI18n.message(msg):msg;e.classList.toggle("error",!!bad);}}
 function download(name,content,mime){var b=content instanceof Blob?content:new Blob([content],{type:mime||"text/plain;charset=utf-8"});var u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},60000);}
 function openDB(){return new Promise(function(resolve,reject){if(!window.indexedDB)return reject(Error("IndexedDB is unavailable in this browser. Use a modern browser with site storage enabled."));var req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=function(){var d=req.result;["characters","groups"].forEach(function(k){if(!d.objectStoreNames.contains(k))d.createObjectStore(k,{keyPath:"id"});});};req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error||Error("Cannot open local storage."));};});}
 function store(name,mode,verb,obj){return new Promise(function(resolve,reject){var t=db.transaction(name,mode),req=t.objectStore(name)[verb](obj);t.oncomplete=function(){resolve(req.result);};t.onerror=function(){reject(t.error||Error("Local storage failed."));};});}
@@ -29,8 +29,8 @@ function validWB(books){return books.every(function(b){return (b.body||"").lengt
 function characterDraft(){var name=field("c-name"),age=Number(field("c-age")),tags=field("c-tags").split(",").map(function(s){return s.trim();}).filter(Boolean),books=worldRead("c");if(!name)throw Error("Enter a character name.");if(!Number.isInteger(age)||age<18||age>150)throw Error("Each character must be 18 or older.");if(tags.length>10)throw Error("Use no more than 10 tags.");if(field("c-core").length>25000||field("c-opening").length>5000||!validWB(books))throw Error("A Fizzz text field exceeds its character limit.");var previous=characters.find(function(c){return c.id===editingId;});return {id:editingId||uid(),name:name,age:age,gender:field("c-gender"),role:field("c-role"),title:field("c-title"),bio:field("c-bio"),core:field("c-core"),opening:field("c-opening"),tags:tags,worldbooks:books,image:safeImage(currentImage),fizzzUrl:field("c-fizzz"),published:$("c-published").checked,createdAt:previous?previous.createdAt:now(),updatedAt:now()};}
 function showPortrait(){var e=$("portrait-preview");e.replaceChildren();if(!safeImage(currentImage)){e.textContent="No portrait yet";return;}var img=document.createElement("img");img.alt="Current character portrait";img.src=currentImage;e.appendChild(img);}
 function editorDirty(){dirtyChar=true;$("character-save-state").textContent="Unsaved changes";updateCounts();}
-function clearEditor(force){if(!force&&dirtyChar&&!confirm("Discard the unsaved edits to this character?"))return false;editingId=null;currentImage="";dirtyChar=false;$("character-form").reset();worldSet("c",[]);showPortrait();updateCounts();$("editor-title").textContent="Create a character";$("character-save-state").textContent="New draft";status("character-message","");return true;}
-function openCharacter(id){var c=characters.find(function(x){return x.id===id;});if(!c)return;if(dirtyChar&&!confirm("Discard unsaved edits to open another character?"))return;clearEditor(true);editingId=c.id;["name","age","gender","role","title","bio","core","opening"].forEach(function(k){set("c-"+k,c[k]);});set("c-tags",(c.tags||[]).join(", "));set("c-fizzz",c.fizzzUrl);$("c-published").checked=!!c.published;worldSet("c",c.worldbooks);currentImage=safeImage(c.image);showPortrait();updateCounts();$("editor-title").textContent="Edit "+c.name;$("character-save-state").textContent="Saved locally";status("character-message","Loaded "+c.name+". Edit and press Save to keep changes.");showView("characters");}
+function clearEditor(force){if(!force&&dirtyChar&&!confirm(window.FizzzMultiI18n?window.FizzzMultiI18n.message("Discard the unsaved edits to this character?"):"Discard the unsaved edits to this character?"))return false;editingId=null;currentImage="";dirtyChar=false;$("character-form").reset();worldSet("c",[]);showPortrait();updateCounts();$("editor-title").textContent="Create a character";$("character-save-state").textContent="New draft";status("character-message","");return true;}
+function openCharacter(id){var c=characters.find(function(x){return x.id===id;});if(!c)return;if(dirtyChar&&!confirm(window.FizzzMultiI18n?window.FizzzMultiI18n.message("Discard unsaved edits to open another character?"):"Discard unsaved edits to open another character?"))return;clearEditor(true);editingId=c.id;["name","age","gender","role","title","bio","core","opening"].forEach(function(k){set("c-"+k,c[k]);});set("c-tags",(c.tags||[]).join(", "));set("c-fizzz",c.fizzzUrl);$("c-published").checked=!!c.published;worldSet("c",c.worldbooks);currentImage=safeImage(c.image);showPortrait();updateCounts();$("editor-title").textContent="Edit "+c.name;$("character-save-state").textContent="Saved locally";status("character-message","Loaded "+c.name+". Edit and press Save to keep changes.");showView("characters");}
 async function saveCharacter(e){if(e)e.preventDefault();try{var c=characterDraft();await put("characters",c);editingId=c.id;dirtyChar=false;await refreshDB();$("editor-title").textContent="Edit "+c.name;$("character-save-state").textContent="Saved locally";status("character-message","✓ "+c.name+" saved as an independent bot record. Export it and create the matching Fizzz bot separately.");}catch(err){status("character-message",err.message,true);}}
 function cardImage(c){return safeImage(c.image)?'<img alt="" src="'+c.image+'">':'<div class="portrait-placeholder">✧</div>';}
 function renderLibrary(){var q=field("search-characters").toLowerCase(),items=characters.filter(function(c){return (c.name+" "+(c.role||"")+" "+(c.title||"")).toLowerCase().includes(q);});$("character-count").textContent=characters.length;if(!items.length){$("character-list").innerHTML='<div class="empty">'+(q?"No characters match your search.":"No saved characters yet. Start with one standalone bot.")+'</div>';return;}$("character-list").innerHTML=items.map(function(c){return '<article class="library-card">'+cardImage(c)+'<div class="details"><b>'+html(c.name)+'</b><small>'+html(String(c.age)+" · "+(c.role||"Standalone bot"))+'</small><small class="'+(c.published?"status-published":"")+'">'+(c.published?"✓ Created on Fizzz":"◇ Not marked created on Fizzz")+'</small><div class="card-tools"><button type="button" data-c-action="edit" data-id="'+html(c.id)+'">Edit</button><button type="button" data-c-action="duplicate" data-id="'+html(c.id)+'">Duplicate</button><button type="button" data-c-action="kit" data-id="'+html(c.id)+'">📦 Kit + PNG</button><button type="button" data-c-action="export" data-id="'+html(c.id)+'">TXT</button><button type="button" data-c-action="remove" data-id="'+html(c.id)+'">Delete</button></div></div></article>';}).join("");}
@@ -95,25 +95,51 @@ function zipFromFiles(files){
 }
 function uploadKitReadme(c){
  return [
-  "FIZZZ CHARACTER UPLOAD KIT — "+c.name,
-  "",
-  "This folder is one independent character bot.",
-  "It includes an actual PNG named profile-image.png (not just a link or picture preview).",
-  "",
-  "WEB CREATOR STEPS:",
-  "1. Extract this ZIP on your device.",
-  "2. In Fizzz's individual character creator, choose profile-image.png using the profile image-upload control.",
-  "3. Copy the public title, description and tags from profile.txt.",
-  "4. Copy the Core Personality from core-personality.txt.",
-  "5. Copy the initial message from initial-message.txt.",
-  "6. Add the three Worldbooks separately from worldbooks.txt where Fizzz offers Worldbook entry fields.",
-  "7. Save/create this individual bot. Record its Fizzz URL/ID in the studio.",
-  "8. Only after all individuals exist on Fizzz, add them to your Multi-Character bot there.",
-  "",
-  "character-studio-backup.json can restore this character (including its portrait) in VelvetRuin Multi-Character Studio.",
-  "This ZIP is a creator preparation package, NOT a native Fizzz bulk-import format.",
-  "The image can be uploaded separately; a ZIP cannot automatically bind the image to a Fizzz character without their supported integration.",
-  ""
+ "FIZZZ CHARACTER UPLOAD KIT / KIT DE SUBIDA DE PERSONAJE — "+c.name,
+ "============================================================",
+ "",
+ "ENGLISH — UPLOAD THIS CHARACTER AS AN INDIVIDUAL BOT FIRST",
+ "This folder is ONE independent character, not the completed multibot.",
+ "profile-image.png is the REAL PNG portrait you can select in Fizzz Creator's web image uploader.",
+ "",
+ "1. Extract this ZIP. Do not upload the ZIP itself to Fizzz.",
+ "2. Open Fizzz Creator on the web and start an INDIVIDUAL character.",
+ "3. Upload profile-image.png as that character's profile picture.",
+ "4. Copy name, public title, public description, age and tags from profile.txt.",
+ "5. Copy the personality from core-personality.txt to Core Personality.",
+ "6. Copy initial-message.txt into that individual bot's opening/greeting.",
+ "7. Add each Worldbook from worldbooks.txt separately where Fizzz provides Worldbook fields.",
+ "8. Save or publish the individual character in Fizzz.",
+ "9. Return to VelvetRuin Multi-Character Studio and enter its Fizzz URL/ID; mark it as created.",
+ "10. Once ALL individuals exist in Fizzz, open Fizzz's Multi-Character creator and SELECT THOSE EXISTING CHARACTERS.",
+ "11. Add the separate group's public description, opening scene, and shared lore from the ensemble package.",
+ "",
+ "ESPAÑOL — PRIMERO SUBE ESTE PERSONAJE COMO BOT INDIVIDUAL",
+ "Esta carpeta corresponde a UN personaje independiente, no al multibot completo.",
+ "profile-image.png es la imagen PNG REAL que puedes seleccionar en el formulario web de Fizzz Creator.",
+ "",
+ "1. Extrae este ZIP. No subas el ZIP directamente a Fizzz.",
+ "2. Abre Fizzz Creator en la web y comienza a crear un personaje INDIVIDUAL.",
+ "3. Sube profile-image.png como imagen de perfil de ese personaje.",
+ "4. Copia el nombre, título público, descripción, edad y etiquetas desde profile.txt.",
+ "5. Copia la personalidad de core-personality.txt al campo de personalidad principal.",
+ "6. Copia initial-message.txt como mensaje inicial de ese personaje.",
+ "7. Añade los libros de mundo de worldbooks.txt por separado en los campos disponibles.",
+ "8. Guarda o publica el personaje individual en Fizzz.",
+ "9. Regresa al Estudio Multibot de VelvetRuin, registra su URL/ID de Fizzz y márcalo como creado.",
+ "10. Cuando TODOS los personajes individuales existan en Fizzz, abre el creador de multibots y SELECCIONA ESOS PERSONAJES EXISTENTES.",
+ "11. Añade la descripción, el mensaje inicial y la historia compartida del paquete grupal.",
+ "",
+ "BACKUP / COPIA DE SEGURIDAD",
+ "character-studio-backup.json restores this character (INCLUDING its portrait) in the VelvetRuin Multi-Character Studio.",
+ "El archivo character-studio-backup.json restaura el personaje y su retrato en el Estudio Multibot.",
+ "",
+ "IMPORTANT / IMPORTANTE",
+ "This ZIP is NOT a native Fizzz bulk import and cannot auto-publish a bot. The PNG must be uploaded using Fizzz's image selector.",
+ "Este ZIP NO es un formato de importación nativo de Fizzz y no publica bots automáticamente. Sube el PNG desde el selector de imágenes de Fizzz.",
+ "The English / Español setting translates the studio interface and instructions only; your own character writing is not translated automatically.",
+ "El selector English / Español solo traduce la interfaz y las instrucciones del estudio; los textos que escribas para los personajes no se traducen automáticamente.",
+ ""
  ].join("\n");
 }
 async function kitFilesForCharacter(c,prefix){
@@ -140,7 +166,29 @@ async function downloadEnsembleKits(){
  var missing=members.filter(function(c){return !safeImage(c.image);}).map(function(c){return c.name;});
  if(missing.length)throw Error("Portraits are missing for: "+missing.join(", ")+". Add them before exporting all upload kits.");
  var files=[
-  {name:"README-START-HERE.txt",data:"FIZZZ MULTI-CHARACTER UPLOAD KITS\n\nExtract the ZIP. Each numbered character folder contains profile-image.png, public profile, core, individual greeting, Worldbooks and a full character backup. Create all standalone bots FIRST on Fizzz, attaching their PNGs through the web image-upload field. THEN build the multi-character bot using those existing bot records. The group folder contains the ensemble setup. The ZIP itself is NOT a native Fizzz import.\n"},
+  {name:"README-START-HERE.txt",data:[
+  "FIZZZ MULTI-CHARACTER UPLOAD KITS / KITS DE MULTIBOT — ENGLISH & ESPAÑOL",
+  "",
+  "ENGLISH — START HERE",
+  "1. Extract this ZIP. Each numbered folder is a SEPARATE character.",
+  "2. In Fizzz Creator on the web, create EACH individual bot. Upload that folder's profile-image.png and copy its individual profile, Core, greeting and Worldbooks.",
+  "3. In VelvetRuin Multi-Character Studio, enter the Fizzz ID/URL and mark each created character.",
+  "4. In Fizzz's Multi-Character creator, SELECT the existing individual bots from the platform's character list.",
+  "5. Use 00-MULTI-BOT/assembly-instructions.txt for the group title, description, scene, interaction rules and shared Worldbooks.",
+  "6. Test and publish in Fizzz. The ZIP does NOT automatically upload or publish anything.",
+  "",
+  "ESPAÑOL — EMPIEZA AQUÍ",
+  "1. Extrae este ZIP. Cada carpeta numerada corresponde a un personaje DIFERENTE.",
+  "2. En Fizzz Creator (web), crea CADA bot individual. Sube el archivo profile-image.png de su carpeta y copia su perfil, personalidad, mensaje inicial y libros de mundo.",
+  "3. En el Estudio Multibot de VelvetRuin, registra la URL/ID de cada personaje y márcalo como creado.",
+  "4. En el creador de multibots de Fizzz, SELECCIONA los bots individuales existentes desde la lista de personajes de la plataforma.",
+  "5. Consulta 00-MULTI-BOT/assembly-instructions.txt para el título, descripción, escena, reglas grupales y libros de mundo compartidos.",
+  "6. Prueba y publica en Fizzz. Este ZIP NO sube ni publica nada automáticamente.",
+  "",
+  "A language change translates instructions and interface, NOT your authored character text.",
+  "Cambiar de idioma traduce instrucciones e interfaz, NO el contenido de los personajes que escribiste.",
+  ""
+ ].join("\n")},
   {name:"00-MULTI-BOT/"+ "assembly-instructions.txt",data:groupText(g)},
   {name:"00-MULTI-BOT/"+ "shared-worldbooks.txt",data:textWorldbooks(g.worldbooks)}
  ];
@@ -164,7 +212,7 @@ function resetGroup(){groupId=null;roster=[];["g-title","g-bio","g-opening","g-r
 function loadGroup(id){if(!id){resetGroup();return;}var g=groups.find(function(x){return x.id===id;});if(!g)return;groupId=g.id;roster=(g.characterIds||[]).slice();set("g-title",g.title);set("g-bio",g.bio);set("g-opening",g.opening);set("g-rules",g.rules);worldSet("g",g.worldbooks);renderOptions();updateCounts();status("ensemble-message","Loaded saved ensemble "+g.title+".");}
 function renderRoster(){var box=$("roster");$("roster-count").textContent=roster.length;if(!roster.length){box.innerHTML='<div class="empty">No characters selected yet. Add individual bots from your saved library.</div>';return;}box.innerHTML=roster.map(function(id,i){var c=characters.find(function(x){return x.id===id;});if(!c)return '<article class="roster-item warning">Missing character ID '+html(id)+' <button data-r-action="remove" data-index="'+i+'">Remove</button></article>';return '<article class="roster-item"><div class="roster-line">'+cardImage(c)+'<div class="name">'+html((i+1)+". "+c.name)+'<small>'+html(c.role||"Ensemble character")+'</small><small class="'+(c.published?"status-published":"warning")+'">'+(c.published?"✓ Created on Fizzz":"⚠ Create standalone bot on Fizzz first")+'</small></div></div><div class="card-tools"><button data-r-action="up" data-index="'+i+'" type="button">↑</button><button data-r-action="down" data-index="'+i+'" type="button">↓</button><button data-r-action="edit" data-index="'+i+'" type="button">Edit bot</button><button data-r-action="remove" data-index="'+i+'" type="button">Remove</button></div></article>';}).join("");}
 async function saveGroup(){try{var g=groupDraft();await put("groups",g);groupId=g.id;await refreshDB();$("saved-ensembles").value=groupId;status("ensemble-message","✓ Ensemble saved. Its roster still points to independent characters.");}catch(err){status("ensemble-message",err.message,true);}}
-async function deleteGroup(){if(!groupId)return status("ensemble-message","No saved ensemble is selected.",true);if(!confirm("Delete this saved ensemble setup? Individual characters will remain in your library."))return;await del("groups",groupId);groupId=null;await refreshDB();resetGroup();}
+async function deleteGroup(){if(!groupId)return status("ensemble-message","No saved ensemble is selected.",true);if(!confirm(window.FizzzMultiI18n?window.FizzzMultiI18n.message("Delete this saved ensemble setup? Individual characters will remain in your library."):"Delete this saved ensemble setup? Individual characters will remain in your library."))return;await del("groups",groupId);groupId=null;await refreshDB();resetGroup();}
 function groupText(g){var names=g.characterIds.map(function(id,i){var c=characters.find(function(x){return x.id===id;});if(!c)return (i+1)+". MISSING CHARACTER "+id;return (i+1)+". "+c.name+" ("+c.age+") — "+(c.role||"")+"\n   Fizzz individual bot URL/ID: "+(c.fizzzUrl||"NOT YET RECORDED")+"\n   Marked created on Fizzz: "+(c.published?"Yes":"No");});return ["FIZZZ MULTI-CHARACTER ASSEMBLY GUIDE — NOT A NATIVE IMPORT","\n1. FIRST CREATE THESE STANDALONE CHARACTERS ON FIZZZ",names.join("\n"),"\n2. CREATE A MULTI-CHARACTER BOT IN FIZZZ AND SELECT THESE EXISTING CHARACTERS","\nMULTI-BOT TITLE\n"+g.title,"\nMULTI-BOT PUBLIC DESCRIPTION\n"+g.bio,"\nMULTI-BOT OPENING\n"+g.opening,"\nENSEMBLE RESPONSE & CONTINUITY RULES\n"+g.rules,"\n3. SHARED MULTI-BOT WORLDBOOKS\n"+textWorldbooks(g.worldbooks),"\n4. KEEP EACH CHARACTER'S OWN PERSONALITY, OPENING, PORTRAIT AND WORLDBOOKS ON ITS INDIVIDUAL BOT. Verify platform fields and test in Fizzz."].join("\n");}
 function projectFile(chars,grps){return {format:"velvetruin.fizzz.multi-studio",version:1,exportedAt:now(),notes:"Creator project backup, not a native Fizzz import. Character Worldbooks stay in their own worldbooks arrays. Includes private character portraits as local data URLs.",characters:chars,groups:grps};}
 function exportGroup(kind){try{var g=groupDraft();if(kind==="txt"){download(slug(g.title)+"-assembly-instructions.txt",groupText(g));}else{var related=g.characterIds.map(function(id){return characters.find(function(c){return c.id===id;});}).filter(Boolean);download(slug(g.title)+"-full-project.json",JSON.stringify(projectFile(related,[g]),null,2),"application/json");}status("ensemble-message","Export downloaded. Remember to create each individual bot in Fizzz first.");}catch(err){status("ensemble-message",err.message,true);}}
@@ -195,6 +243,8 @@ function bind(){
  $("export-group").addEventListener("click",function(){exportGroup("txt");});
  $("export-group-json").addEventListener("click",function(){exportGroup("json");});
  $("go-characters").addEventListener("click",function(){showView("characters");});
+ $("guide-characters").addEventListener("click",function(){showView("characters");document.getElementById("view-characters").scrollIntoView({behavior:"smooth",block:"start"});});
+ $("guide-publish").addEventListener("click",function(){showView("publish");document.getElementById("view-publish").scrollIntoView({behavior:"smooth",block:"start"});});
  $("go-ensemble").addEventListener("click",function(){showView("ensemble");});
  document.addEventListener("input",function(e){if(e.target&&((e.target.id||"").startsWith("g-")||(e.target.id||"").startsWith("c-w")))updateCounts();});
 }
